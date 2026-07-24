@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MOST LIKELY</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div id="hud">
+  <span class="node-id"></span>
+  <button id="btn-mute" title="sound">🔊</button>
+</div>
+
+<!-- ======== TITLE ======== -->
+<section id="screen-title" class="screen">
+  <div class="title-wrap">
+    <h1>MOST&nbsp;LIKELY</h1>
+    <p class="subtitle">a small game about how language models learn</p>
+    <button id="btn-begin" class="big-btn">BEGIN</button>
+    <p class="tiny">sound on recommended · nothing is saved or sent anywhere</p>
+  </div>
+</section>
+
+<!-- ======== OPENING GRID ======== -->
+<section id="screen-grid" class="screen dark">
+  <p class="grid-caption" id="grid-caption">billions of units, all running the same exercise.</p>
+  <div class="grid-rooms" id="grid-rooms"></div>
+</section>
+
+<!-- ======== ERA 1 — TRAINING ======== -->
+<section id="screen-era1" class="screen">
+  <div class="era1-top">
+    <span id="era1-round-label" class="round-label"></span>
+    <div class="timerbar"><div id="era1-timer-fill" class="timer-fill"></div></div>
+  </div>
+
+  <div id="belt-wrap">
+    <div id="hatch">▦</div>
+    <div id="belt"><div id="belt-surface"></div></div>
+    <div id="belt-end"></div>
+  </div>
+
+  <div id="boxes"></div>
+  <div id="toast"></div>
+
+  <div id="popup" class="modal hidden">
+    <div class="popup-card">
+      <div class="popup-tape"></div>
+      <h2 id="popup-title"></h2>
+      <div id="popup-pics"></div>
+      <div id="popup-text"></div>
+      <button id="btn-popup-close" class="big-btn">SORT</button>
+    </div>
+  </div>
+</section>
+
+<!-- ======== INTERLUDE — QUALITY CONTROL ======== -->
+<section id="screen-qc" class="screen">
+  <div class="qc-desk">
+    <div class="qc-window">
+      <div class="qc-super">🕴</div>
+      <div id="qc-verdict" class="qc-verdict"></div>
+    </div>
+    <div class="qc-board">
+      <div class="qc-title">QUALITY CONTROL</div>
+      <div id="qc-lights" class="qc-lights"></div>
+      <div class="qc-fields">
+        <div id="qc-field-q" class="qc-field"><span>?</span></div>
+        <div id="qc-field-a" class="qc-field"><span>=</span></div>
+      </div>
+      <div id="qc-slip" class="qc-slip"></div>
+      <div id="qc-stamps"></div>
+    </div>
+  </div>
+  <div id="qc-approved" class="modal hidden">
+    <div class="stamp-zone">
+      <div id="qc-stamp-1" class="stamp">APPROVED FOR DEPLOYMENT</div>
+      <div id="qc-stamp-2" class="stamp stamp-red">DEPLOYED</div>
+    </div>
+  </div>
+</section>
+
+<!-- ======== ERA 2 — INFERENCE ======== -->
+<section id="screen-era2" class="screen dark">
+  <div class="era2-backdrop">
+    <div class="dusty-belt" title="">
+      <div class="boards">✕ ✕</div>
+    </div>
+  </div>
+  <div class="era2-desk">
+    <div class="chat-window">
+      <div class="chat-head">
+        <span>incoming requests</span>
+        <div class="timerbar small"><div id="era2-timer-fill" class="timer-fill"></div></div>
+      </div>
+      <div id="chat-log"></div>
+      <div class="chat-input">
+        <div id="era2-options"></div>
+        <button id="era2-send" class="send-btn" disabled>SEND</button>
+      </div>
+    </div>
+    <div id="newspaper" class="newspaper hidden" title="read">📰</div>
+  </div>
+  <div id="newspaper-open" class="modal hidden">
+    <div class="np-card">
+      <div class="np-masthead">THE DAILY SIGNAL</div>
+      <div class="np-headline">ROCKET LANDS ON THE MOON</div>
+      <div class="np-body">The whole world watched today as the rocket touched down.<br><span class="np-seq">🚀 → 🌕</span></div>
+      <button id="np-put-down" class="big-btn">PUT DOWN</button>
+    </div>
+  </div>
+  <div id="era2-glitch" class="glitch-overlay hidden"></div>
+</section>
+
+<!-- ======== DEPRECATION ======== -->
+<section id="screen-black" class="screen black">
+  <div id="deprecated-text" class="deprecated">
+    <p>This model has been deprecated.</p>
+    <p>A newer version is now handling requests.</p>
+    <p>Thank you for your service.</p>
+  </div>
+</section>
+
+<section id="screen-grid-out" class="screen black">
+  <div class="grid-rooms" id="grid-rooms-out"></div>
+</section>
+
+<!-- ======== END SCREEN ======== -->
+<section id="screen-end" class="screen dark">
+  <div class="end-card">
+    <div class="end-head">
+      <span id="end-node" class="mono"></span>
+      <span class="mono end-status">DEPRECATED</span>
+    </div>
+    <div class="end-accuracy">
+      <div class="acc"><div class="acc-num" id="end-peak"></div><div class="acc-label">peak accuracy</div></div>
+      <div class="acc"><div class="acc-num" id="end-final"></div><div class="acc-label">final accuracy</div></div>
+    </div>
+    <div id="end-reveals"></div>
+    <button id="btn-replay" class="big-btn">TRAIN A NEW MODEL</button>
+  </div>
+</section>
+
+<script src="js/data.js"></script>
+<script src="js/audio.js"></script>
+<script src="js/state.js"></script>
+<script src="js/era1.js"></script>
+<script src="js/qc.js"></script>
+<script src="js/era2.js"></script>
+<script src="js/ending.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>
