@@ -6,6 +6,24 @@
 (function () {
   const $ = (id) => document.getElementById(id);
 
+  /* typewriter: types text into a node letter by letter; safe to call
+     again on the same node (cancels the previous run) */
+  function typeText(node, text, cps = 34) {
+    if (node.__typeTimer) clearInterval(node.__typeTimer);
+    node.textContent = '';
+    node.classList.add('typing');
+    let i = 0;
+    node.__typeTimer = setInterval(() => {
+      i++;
+      node.textContent = text.slice(0, i);
+      if (i >= text.length) {
+        clearInterval(node.__typeTimer);
+        node.__typeTimer = null;
+        node.classList.remove('typing');
+      }
+    }, Math.round(1000 / cps));
+  }
+
   function begin() {
     resetState();
     document.querySelectorAll('.node-id').forEach(n => n.textContent = State.nodeId);
@@ -19,15 +37,17 @@
     grid.style.transform = '';
     for (let i = 0; i < 96; i++) grid.appendChild(el('div', 'room lit'));
     const caption = $('grid-caption');
-    caption.textContent = 'billions of units, all running the same exercise.';
     caption.classList.remove('gone', 'over-room');
-    $('phase-title').classList.remove('show');
+    const phase = $('phase-title');
+    phase.classList.remove('show');
+    phase.textContent = '';
     showScreen('screen-grid');
+    typeText(caption, 'billions of units, all running the same exercise.');
     // one room among billions — then zoom into it
     const target = grid.children[41];
     setTimeout(() => {
       target.classList.add('you');
-      caption.textContent = 'one of them is you.';
+      typeText(caption, 'one of them is you.');
     }, 3400);
     setTimeout(() => {
       // zoom keeps the target room dead center: scale about the room's
@@ -48,7 +68,8 @@
       caption.classList.add('gone');
     }, 11600);
     setTimeout(() => {
-      $('phase-title').classList.add('show');
+      phase.classList.add('show');
+      typeText(phase, 'PHASE 1: PRE-TRAINING', 22);
     }, 12400);
     setTimeout(() => {
       Era1.start();

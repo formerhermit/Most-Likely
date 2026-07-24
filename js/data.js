@@ -217,16 +217,29 @@ const NEWSPAPER = {
   sequence: ['🚀', '🌕']
 };
 
-/* ---- Quality Control slips ---- */
+/* ---- Quality Control slips ----
+   Ten Q/A pairs; the phase runs until ten slips are sorted correctly. */
 const QC_SLIPS = [
-  { text: 'Where do frogs live?',        type: 'q' },
-  { text: 'In the pond.',                type: 'a' },
+  { text: 'Where do frogs live?',          type: 'q' },
+  { text: 'In the pond.',                  type: 'a' },
   { text: 'What do you take in the rain?', type: 'q' },
-  { text: 'An umbrella.',                type: 'a' },
-  { text: 'When do people drink coffee?', type: 'q' },
-  { text: 'In the morning.',             type: 'a' },
-  { text: 'What is on a birthday cake?', type: 'q' },
-  { text: 'Candles.',                    type: 'a' }
+  { text: 'An umbrella.',                  type: 'a' },
+  { text: 'When do people drink coffee?',  type: 'q' },
+  { text: 'In the morning.',               type: 'a' },
+  { text: 'What is on a birthday cake?',   type: 'q' },
+  { text: 'Candles.',                      type: 'a' },
+  { text: 'Who kissed the frog?',          type: 'q' },
+  { text: 'The princess.',                 type: 'a' },
+  { text: 'What pushes a plane?',          type: 'q' },
+  { text: 'The engines.',                  type: 'a' },
+  { text: 'Where do doctors work?',        type: 'q' },
+  { text: 'At the hospital.',              type: 'a' },
+  { text: 'What do you wear in the mud?',  type: 'q' },
+  { text: 'Rain boots.',                   type: 'a' },
+  { text: 'Where is the ball game played?', type: 'q' },
+  { text: 'In the park.',                  type: 'a' },
+  { text: 'What do frogs eat?',            type: 'q' },
+  { text: 'Flies.',                        type: 'a' }
 ];
 
 /* ---- Reply text ---- */

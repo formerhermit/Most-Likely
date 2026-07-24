@@ -100,6 +100,15 @@ button { font-family: inherit; cursor: pointer; }
 .grid-caption { transition: opacity 0.7s, color 2.5s; }
 .grid-caption.over-room { color: var(--ink); }
 .grid-caption.gone { opacity: 0; }
+.typing::after {
+  content: '▌';
+  margin-left: 2px;
+  animation: cursorblink 0.8s steps(1) infinite;
+}
+@keyframes cursorblink {
+  0%, 60% { opacity: 1; }
+  61%, 100% { opacity: 0; }
+}
 .grid-rooms {
   display: grid;
   grid-template-columns: repeat(12, 44px);

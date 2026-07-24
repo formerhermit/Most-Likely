@@ -5,6 +5,8 @@
 'use strict';
 
 const QC = (() => {
+  const NEEDED = 10;   // correct rounds to complete the phase
+
   let deck = [];
   let current = null;
   let correctCount = 0;
@@ -47,7 +49,7 @@ const QC = (() => {
       if (right) {
         correctCount++;
         updateLights();
-        if (correctCount >= 3) { setTimeout(approve, 900); return; }
+        if (correctCount >= NEEDED) { setTimeout(approve, 900); return; }
       }
       setTimeout(nextSlip, 900);
     }, 350);
@@ -65,7 +67,7 @@ const QC = (() => {
   function updateLights() {
     const lights = $('qc-lights');
     lights.innerHTML = '';
-    for (let i = 0; i < 3; i++) {
+    for (let i = 0; i < NEEDED; i++) {
       lights.appendChild(el('span', 'qc-light' + (i < correctCount ? ' on' : '')));
     }
   }
