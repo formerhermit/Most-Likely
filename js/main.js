@@ -20,17 +20,17 @@
     showScreen('screen-grid');
     // one room among billions — then zoom into it
     const target = grid.children[41];
-    target.classList.add('you');
     setTimeout(() => {
+      target.classList.add('you');
       $('grid-caption').textContent = 'one of them is you.';
-    }, 1600);
+    }, 3400);
     setTimeout(() => {
       grid.classList.add('zooming');
-    }, 3200);
+    }, 6600);
     setTimeout(() => {
       grid.classList.remove('zooming');
       Era1.start();
-    }, 5200);
+    }, 10400);
   }
 
   document.addEventListener('DOMContentLoaded', () => {

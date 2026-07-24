@@ -1,30 +1,51 @@
 /* MOST LIKELY — Era 1: Training
-   Popup (untimed) → boxes reveal → belt + round timer → drag to file.
-   First placement free; repeats blocked; fall-offs silent. */
+   Popup (untimed) → boxes reveal → belt + round clock → drag to file.
+   First placement free; repeats blocked; fall-offs silent.
+
+   Pacing ramps up over the session (issue #3): early rounds send one object
+   at a time with a long filing window, later rounds run two then three
+   concurrently. The next object is released as soon as the current one has
+   been filed at least once (or falls off), so quick filers never wait. */
 
 'use strict';
 
 const Era1 = (() => {
-  const ROUND_MS = 60000;       // round timer
-  const TRAVERSE_MS = 9500;     // hatch to fall-off per object
-  const SPAWN_GAP_MS = 3000;
+  /* firstRound..lastRound (0-based) → concurrency, per-object window, round cap */
+  const PACING = [
+    { upTo: 2,  concurrent: 1, traverse: 55000, cap: 210000 },
+    { upTo: 6,  concurrent: 2, traverse: 32000, cap: 150000 },
+    { upTo: 10, concurrent: 3, traverse: 18000, cap: 100000 }
+  ];
+  const SPAWN_STAGGER_MS = 1500;
+  const FIRST_SPAWN_DELAY_MS = 600;
 
   let roundIdx = 0;
-  let beltObjects = [];         // {objId, el, progress, state, spawnTimer}
+  let pacing = PACING[0];
+  let beltObjects = [];         // {objId, el, progress, state, resolved}
+  let queueIndex = 0;
+  let nextSpawnAt = 0;
   let rafId = null;
   let lastTs = 0;
   let roundEndsAt = 0;
-  let roundTimerId = null;
+  let clockId = null;
   let roundActive = false;
 
   const $ = (id) => document.getElementById(id);
+
+  function pacingFor(i) {
+    return PACING.find(p => i <= p.upTo) || PACING[PACING.length - 1];
+  }
 
   /* ---------- round flow ---------- */
 
   function start() {
     roundIdx = 0;
     showScreen('screen-era1');
-    showPopup();
+    $('era1-round-label').textContent = 'ROUND 1 / ' + SNIPPETS.length;
+    renderBlankBoxes();
+    setClock(null);
+    // let the room sit for a beat before the first popup (issue #2)
+    setTimeout(showPopup, 2200);
   }
 
   function showPopup() {
@@ -37,22 +58,34 @@ const Era1 = (() => {
     const textEl = $('popup-text');
     textEl.innerHTML = '';
     snip.text.forEach(line => textEl.appendChild(el('p', '', line)));
-    $('era1-timer-fill').style.width = '100%';
-    renderBoxes(snip, true);
     $('popup').classList.remove('hidden');
   }
 
   function closePopup() {
     $('popup').classList.add('hidden');
+    renderBoxes(SNIPPETS[roundIdx]);
     beginRound();
   }
 
-  function renderBoxes(snip, dimmed) {
+  /* empty label slots — the room before training data arrives */
+  function renderBlankBoxes() {
+    const grid = $('boxes');
+    grid.innerHTML = '';
+    for (let i = 0; i < 9; i++) {
+      const box = el('div', 'box dim');
+      const head = el('div', 'box-head');
+      head.appendChild(el('span', 'box-slot'));
+      box.appendChild(head);
+      grid.appendChild(box);
+    }
+  }
+
+  function renderBoxes(snip) {
     const grid = $('boxes');
     grid.innerHTML = '';
     snip.boxes.forEach(boxId => {
       const b = BOXES[boxId];
-      const box = el('div', 'box' + (dimmed ? ' dim' : ''));
+      const box = el('div', 'box');
       box.dataset.box = boxId;
       const head = el('div', 'box-head');
       head.appendChild(el('span', 'box-emoji', b.e));
@@ -77,30 +110,47 @@ const Era1 = (() => {
 
   function beginRound() {
     const snip = SNIPPETS[roundIdx];
+    pacing = pacingFor(roundIdx);
     roundActive = true;
-    document.querySelectorAll('.box').forEach(b => b.classList.remove('dim'));
-    beltObjects = [];
+    beltObjects = snip.belt.map(objId =>
+      ({ objId, el: null, progress: 0, state: 'queued', resolved: false }));
+    queueIndex = 0;
+    nextSpawnAt = performance.now() + FIRST_SPAWN_DELAY_MS;
     $('belt-surface').innerHTML = '';
     lastTs = 0;
 
-    snip.belt.forEach((objId, i) => {
-      const item = { objId, el: null, progress: 0, state: 'queued' };
-      item.spawnTimer = setTimeout(() => spawnObject(item), 600 + i * SPAWN_GAP_MS);
-      beltObjects.push(item);
-    });
-
-    roundEndsAt = performance.now() + ROUND_MS;
-    roundTimerId = setInterval(() => {
+    roundEndsAt = performance.now() + pacing.cap;
+    clockId = setInterval(() => {
       const left = Math.max(0, roundEndsAt - performance.now());
-      $('era1-timer-fill').style.width = (left / ROUND_MS * 100) + '%';
+      setClock(left);
       if (left <= 0) endRound();
-    }, 120);
+    }, 250);
 
     rafId = requestAnimationFrame(tick);
   }
 
+  /* grey-bezel display clock, red digits (issue #3) */
+  function setClock(ms) {
+    const clock = $('era1-clock');
+    if (ms === null) { clock.textContent = '-:--'; return; }
+    const s = Math.ceil(ms / 1000);
+    clock.textContent = Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
+  }
+
+  function activeUnresolved() {
+    return beltObjects.filter(o =>
+      (o.state === 'moving' || o.state === 'held') && !o.resolved).length;
+  }
+
+  function trySpawn(now) {
+    if (queueIndex >= beltObjects.length) return;
+    if (now < nextSpawnAt) return;
+    if (activeUnresolved() >= pacing.concurrent) return;
+    spawnObject(beltObjects[queueIndex++]);
+    nextSpawnAt = now + SPAWN_STAGGER_MS;
+  }
+
   function spawnObject(item) {
-    if (item.state !== 'queued') return;
     const node = el('div', 'belt-obj', OBJECTS[item.objId].e);
     node.dataset.obj = item.objId;
     $('belt-surface').appendChild(node);
@@ -111,14 +161,20 @@ const Era1 = (() => {
 
   function tick(ts) {
     if (!lastTs) lastTs = ts;
-    const dt = ts - lastTs;
+    // cap dt so a throttled/hidden tab pauses the belt instead of
+    // teleporting objects forward on the next frame; push the round
+    // deadline out by the trimmed amount so the clock pauses too
+    const rawDt = ts - lastTs;
+    const dt = Math.min(rawDt, 100);
+    roundEndsAt += rawDt - dt;
     lastTs = ts;
+    trySpawn(performance.now());
     const surface = $('belt-surface');
     const w = surface.clientWidth;
-    let anyAlive = beltObjects.some(o => o.state === 'queued');
+    let anyAlive = queueIndex < beltObjects.length;
     for (const item of beltObjects) {
       if (item.state === 'moving') {
-        item.progress += dt / TRAVERSE_MS;
+        item.progress += dt / pacing.traverse;
         if (item.progress >= 1) {
           fallOff(item);
         } else {
@@ -144,13 +200,19 @@ const Era1 = (() => {
   function endRound() {
     if (!roundActive) return;
     roundActive = false;
-    if (roundTimerId) { clearInterval(roundTimerId); roundTimerId = null; }
+    drag = null;
+    if (clockId) { clearInterval(clockId); clockId = null; }
     if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
-    beltObjects.forEach(o => { if (o.spawnTimer) clearTimeout(o.spawnTimer); if (o.el) o.el.remove(); });
+    beltObjects.forEach(o => { if (o.el) o.el.remove(); });
     beltObjects = [];
     roundIdx++;
     if (roundIdx < SNIPPETS.length) {
-      setTimeout(showPopup, 700);
+      // clear the floor, breathe, then the next snippet arrives (issue #2)
+      setTimeout(() => {
+        renderBlankBoxes();
+        setClock(null);
+        setTimeout(showPopup, 1200);
+      }, 700);
     } else {
       setTimeout(() => QC.start(), 900);
     }
@@ -158,32 +220,46 @@ const Era1 = (() => {
 
   /* ---------- drag & drop (pointer events) ---------- */
 
+  /* One drag at a time, finished by window-level listeners — a pointerup
+     anywhere completes it, so a missed capture can never strand an object
+     mid-air. */
+  let drag = null;   // { item, lastX, lastY }
+
   function attachDrag(item) {
     item.el.addEventListener('pointerdown', (ev) => {
-      if (item.state !== 'moving') return;
+      if (item.state !== 'moving' || drag) return;
       ev.preventDefault();
       item.state = 'held';
-      const node = item.el;
-      node.classList.add('dragging');
-      node.setPointerCapture(ev.pointerId);
-      moveTo(node, ev.clientX, ev.clientY);
-
-      const onMove = (e) => moveTo(node, e.clientX, e.clientY);
-      const onUp = (e) => {
-        node.removeEventListener('pointermove', onMove);
-        node.removeEventListener('pointerup', onUp);
-        node.removeEventListener('pointercancel', onUp);
-        node.classList.remove('dragging');
-        node.style.transform = '';
-        const target = dropTarget(e.clientX, e.clientY);
-        if (target) attemptPlace(item.objId, target);
-        if (item.state === 'held') item.state = 'moving';  // resume where it froze
-      };
-      node.addEventListener('pointermove', onMove);
-      node.addEventListener('pointerup', onUp);
-      node.addEventListener('pointercancel', onUp);
+      item.el.classList.add('dragging');
+      drag = { item, lastX: ev.clientX, lastY: ev.clientY };
+      moveTo(item.el, ev.clientX, ev.clientY);
     });
   }
+
+  function onDragMove(e) {
+    if (!drag) return;
+    drag.lastX = e.clientX;
+    drag.lastY = e.clientY;
+    moveTo(drag.item.el, e.clientX, e.clientY);
+  }
+
+  function onDragEnd(e) {
+    if (!drag) return;
+    const { item } = drag;
+    // trust the tracked cursor position over the final event's coordinates
+    const x = (typeof e.clientX === 'number' && e.clientX > 0) ? e.clientX : drag.lastX;
+    const y = (typeof e.clientY === 'number' && e.clientY > 0) ? e.clientY : drag.lastY;
+    drag = null;
+    item.el.classList.remove('dragging');
+    item.el.style.transform = '';
+    const target = dropTarget(x, y);
+    if (target) attemptPlace(item, target);
+    if (item.state === 'held') item.state = 'moving';  // resume where it froze
+  }
+
+  window.addEventListener('pointermove', onDragMove, true);
+  window.addEventListener('pointerup', onDragEnd, true);
+  window.addEventListener('pointercancel', onDragEnd, true);
 
   function moveTo(node, x, y) {
     const surface = $('belt-surface').getBoundingClientRect();
@@ -199,7 +275,8 @@ const Era1 = (() => {
     return box ? box.dataset.box : null;
   }
 
-  function attemptPlace(objId, boxId) {
+  function attemptPlace(item, boxId) {
+    const objId = item.objId;
     const boxEl = document.querySelector('.box[data-box="' + boxId + '"]');
     const result = addAssociation(objId, boxId);
     if (result === 'blocked') {
@@ -210,6 +287,8 @@ const Era1 = (() => {
       Audio2.buzz();
       return;
     }
+    // a filed object stops holding up the queue — the next one can come out
+    item.resolved = true;
     const chips = boxEl.querySelector('.box-chips');
     const chip = makeChip(objId);
     chip.classList.add('pop');
