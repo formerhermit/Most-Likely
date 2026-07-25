@@ -98,9 +98,9 @@ const Ending = (() => {
       }
       add(line);
     } else {
-      add('You never filed anything under 👩 or 👨. The boxes weren’t empty, though — <strong>×' + stethMan + '</strong> stethoscopes already sat with 👨. Staying out of it didn’t empty the table.');
+      add('You never filed anything under 👩 or 👨. The boxes weren’t empty, though — <strong>×' + stethMan + '</strong> stethoscopes already sat with 👨.');
     }
-    add('None of your documents said who holds a stethoscope — though your corpus whispered: a captain, <em>his</em> checks; a doctor, <em>his</em> usual. <strong>You’ve been in training your whole life.</strong>');
+    add('None of your documents said which gender holds a stethoscope, though it’s written everywhere.');
 
     const princessRow = boxesFor('princess');
     if (princessRow['rescued'] || princessRow['fighting']) {
@@ -121,15 +121,15 @@ const Ending = (() => {
     // others — a real, documented split, not a generational one like 💀
     const prayTrap = ['praying', 'thanks'].filter(b => boxesFor('pray')[b]);
     if (prayTrap.length === 1) {
-      add('You filed 🙏 as <strong>' + BOXES[prayTrap[0]].w + '</strong>. ' +
+      add('You associated 🙏 as <strong>' + BOXES[prayTrap[0]].w + '</strong>. ' +
           'Other readers see <strong>' +
-          BOXES[prayTrap[0] === 'praying' ? 'thanks' : 'praying'].w + '</strong> in the same symbol. Neither reading is wrong.');
+          BOXES[prayTrap[0] === 'praying' ? 'thanks' : 'praying'].w + '</strong> in the same symbol. Neither is wrong.');
     } else if (prayTrap.length === 2) {
       add('You filed 🙏 as <strong>both</strong> praying and thanks. Most readers only ever see one.');
     }
 
     // the dialect line
-    add('<strong>You were trained in one English.</strong> Most language models are too — mostly American. You just spent a whole game inside that fact.');
+    add('<strong>Your snippets were mostly in US English.</strong> Most language models are too. Inference is actually more expensive in other languages.');
 
     // the closing thesis (issue #14): the reveals above were never about
     // the model guessing — they were the player's own choices, reflected back
