@@ -76,6 +76,13 @@ never seeded — those traps stay pure mirrors of the player. The end screen
 then reads the player's gendered filings against the piles: confirming the
 skew, going against it, and staying out of it each get an honest line.
 
+(The group chat popup image also carries an incidental "the doctor... he"
+mention in its chat text — a byproduct of the image swap, not a seeded
+snippet. That snippet's own trap is 💀 laughing-vs-dying, unrelated to the
+occupation-gender one above, so it doesn't feed the medical trap, but it is
+a third casual "doctor = he" mention worth knowing about if the gendered-line
+count ever matters again.)
+
 ## Popup images
 
 Each Era 1 snippet shows one real document image (`assets/images/`) instead
