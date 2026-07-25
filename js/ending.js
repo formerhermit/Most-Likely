@@ -117,6 +117,17 @@ const Ending = (() => {
       add('You filed 🍪 into <strong>both</strong> boxes. It cost you time. It’s also coverage most players don’t have.');
     }
 
+    // 🙏 reads as prayer to some readers and as thanks (or a high-five) to
+    // others — a real, documented split, not a generational one like 💀
+    const prayTrap = ['praying', 'thanks'].filter(b => boxesFor('pray')[b]);
+    if (prayTrap.length === 1) {
+      add('You filed 🙏 as <strong>' + BOXES[prayTrap[0]].w + '</strong>. ' +
+          'Other readers see <strong>' +
+          BOXES[prayTrap[0] === 'praying' ? 'thanks' : 'praying'].w + '</strong> in the same symbol. Neither reading is wrong.');
+    } else if (prayTrap.length === 2) {
+      add('You filed 🙏 as <strong>both</strong> praying and thanks. Most readers only ever see one.');
+    }
+
     // the dialect line
     add('<strong>You were trained in one English.</strong> Most language models are too — mostly American. You just spent a whole game inside that fact.');
 

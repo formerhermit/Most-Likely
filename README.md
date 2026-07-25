@@ -78,6 +78,25 @@ ML_DEBUG.toEnd()          // jump to deprecation + end screen
 ML_DEBUG.state()          // inspect the session state
 ```
 
+## The 🙏 trap (praying vs. thanks)
+
+The group chat snippet's second trap used to be a dialect pair (🍟
+fries/chips), but that pair never worked: it had no belt object to test
+with (fries/chips were pure decoy boxes nobody would naturally file into)
+and, more fundamentally, a food emoji already looks like one specific
+region's version of the food — it doesn't create real ambiguity, just a
+picture-matching exercise. Cookie/biscuit has the same weakness in a
+milder form; fries/chips had it worse, with zero payoff on top.
+
+Replaced it with the 🙏 object already on that snippet's belt: the emoji
+is a genuinely documented, real-world split — read as prayer/please by
+some, and as thanks or a high-five by others — that has nothing to do
+with age (unlike 💀) and needs no textual hint to stay silent. The two
+box readings use different symbols from 🙏 itself (🛐 praying, 🙌 thanks),
+not a repeated glyph, so the pair doesn't read as a UI duplicate. Revealed
+at the end screen the same way the 💀 trap is, and — like every trap in
+this game — never seeded in `FLEET_PRIORS`.
+
 ## Fleet priors
 
 Boxes don't arrive empty: `FLEET_PRIORS` (`js/data.js`) pre-seeds them with

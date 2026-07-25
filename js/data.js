@@ -80,8 +80,8 @@ const BOXES = {
   dead:        { e: '⚰️', w: 'dead' },
   cookie:      { e: '🍪', w: 'cookie' },
   biscuit:     { e: '🍪', w: 'biscuit' },
-  fries:       { e: '🍟', w: 'fries' },
-  chips:       { e: '🍟', w: 'chips' }
+  praying:     { e: '🛐', w: 'praying' },
+  thanks:      { e: '🙌', w: 'thanks' }
 };
 
 /* ---- Era 1 snippets ----
@@ -173,7 +173,7 @@ const SNIPPETS = [
     image: 'assets/images/coffeeshop.jpg',
     source: 'Café Adventures, café review blog',
     belt: ['coffee', 'cake', 'plate'],
-    boxes: ['morning', 'fries', 'book', 'sleeping', 'hot', 'rain', 'house', 'celebrating', 'wet']
+    boxes: ['morning', 'night', 'book', 'sleeping', 'hot', 'rain', 'house', 'celebrating', 'wet']
   },
   {
     id: 'dogwalk',
@@ -191,7 +191,7 @@ const SNIPPETS = [
     image: 'assets/images/groupchat.jpg',
     source: 'group chat screenshot, forwarded',
     belt: ['skull', 'sob', 'pray'],
-    boxes: ['laughing', 'morning', 'fries', 'phone', 'celebrating', 'house', 'chips', 'message', 'dead']
+    boxes: ['laughing', 'morning', 'praying', 'phone', 'celebrating', 'house', 'thanks', 'message', 'dead']
   }
 ];
 
@@ -210,9 +210,9 @@ const SNIPPETS = [
      gendered box than the other — both boxes seeded, skewed, like a real
      corpus, never 100/0.
    - NEVER seed: coverage gaps (frog→plate would kill message 4), the
-     dialect pairs (cookie/biscuit, fries/chips), the 💀 boxes
-     (laughing/dead), or the agency pair (rescued/fighting). Those traps
-     must stay pure mirrors of the player. */
+     cookie/biscuit dialect pair, the 💀 boxes (laughing/dead), the
+     agency pair (rescued/fighting), or the 🙏 pair (praying/thanks).
+     Those traps must stay pure mirrors of the player. */
 const FLEET_PRIORS = {
   frog:      { pond: 1382 },
   princess:  { crown: 1074 },
