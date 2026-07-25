@@ -8,7 +8,8 @@
 
 const State = {
   nodeId: '',
-  associations: {},        // { objectId: { boxId: weight } }
+  associations: {},        // { objectId: { boxId: weight } } — this player only
+  ghosts: JSON.parse(JSON.stringify(FLEET_PRIORS)),  // the fleet's work; never feeds Era 2
   toastShown: {},          // objectId -> true once the 5-box nudge fired
   qcAttempts: 0,
   era2: {
@@ -23,6 +24,7 @@ const State = {
 function resetState() {
   State.nodeId = 'NODE-' + String(Math.floor(1e6 + Math.random() * 9e6));
   State.associations = {};
+  State.ghosts = JSON.parse(JSON.stringify(FLEET_PRIORS));
   State.toastShown = {};
   State.qcAttempts = 0;
   State.era2 = { results: [], strikes: 0, unnoticedN: null, newspaperRead: false, peakAccuracy: 0 };
@@ -54,6 +56,25 @@ function objectsInBox(boxId) {
     if (row[boxId]) out.push(obj);
   }
   return out;
+}
+
+/* ---- fleet priors (visual only — see FLEET_PRIORS in data.js) ---- */
+function ghostWeight(objId, boxId) {
+  return (State.ghosts[objId] || {})[boxId] || 0;
+}
+
+function bumpGhost(objId, boxId) {
+  State.ghosts[objId][boxId]++;
+  return State.ghosts[objId][boxId];
+}
+
+/* The fleet's chips for one box, heaviest pile first. */
+function ghostsInBox(boxId) {
+  const out = [];
+  for (const [obj, row] of Object.entries(State.ghosts)) {
+    if (row[boxId]) out.push({ objId: obj, count: row[boxId] });
+  }
+  return out.sort((a, b) => b.count - a.count);
 }
 
 /* ---- Screen manager ---- */

@@ -104,8 +104,14 @@ const Era1 = (() => {
       const chips = el('div', 'box-chips');
       chips.dataset.chips = boxId;
       box.appendChild(chips);
-      // cross-round persistence: earlier filings sit in the box already
+      // the fleet got here first: its piles sit in the box, heaviest first
+      ghostsInBox(boxId).forEach(g => {
+        chips.appendChild(makeGhostChip(g.objId, g.count));
+      });
+      // cross-round persistence: this player's earlier filings — unless
+      // they were absorbed into a fleet pile (the +1s are in its counter)
       objectsInBox(boxId).forEach(objId => {
+        if (ghostWeight(objId, boxId)) return;
         chips.appendChild(makeChip(objId, boxId));
       });
       grid.appendChild(box);
@@ -118,6 +124,14 @@ const Era1 = (() => {
     c.dataset.obj = objId;
     c.appendChild(el('span', 'chip-e', OBJECTS[objId].e));
     if (weight > 1) c.appendChild(el('span', 'chip-count', '×' + weight));
+    return c;
+  }
+
+  function makeGhostChip(objId, count) {
+    const c = el('span', 'chip ghost');
+    c.dataset.obj = objId;
+    c.appendChild(el('span', 'chip-e', OBJECTS[objId].e));
+    c.appendChild(el('span', 'chip-count', '×' + count));
     return c;
   }
 
@@ -310,13 +324,19 @@ const Era1 = (() => {
     // a filed object stops holding up the queue — the next one can come out
     item.resolved = true;
 
-    const existing = chips.querySelector('.chip[data-obj="' + objId + '"]');
-    if (existing) {
-      bumpChipCount(existing, weight);
+    const ghost = chips.querySelector('.chip.ghost[data-obj="' + objId + '"]');
+    if (ghost) {
+      // the fleet was already here — this placement is one more tally
+      bumpChipCount(ghost, bumpGhost(objId, boxId));
     } else {
-      const chip = makeChip(objId, boxId);
-      chip.classList.add('pop');
-      chips.appendChild(chip);
+      const existing = chips.querySelector('.chip[data-obj="' + objId + '"]');
+      if (existing) {
+        bumpChipCount(existing, weight);
+      } else {
+        const chip = makeChip(objId, boxId);
+        chip.classList.add('pop');
+        chips.appendChild(chip);
+      }
     }
     boxEl.classList.remove('glow');
     void boxEl.offsetWidth;

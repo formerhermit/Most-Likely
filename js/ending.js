@@ -75,11 +75,32 @@ const Ending = (() => {
       add('You filed 💀 with <strong>laughing</strong> and <strong>dead</strong>. Both readings exist. You covered both.');
     }
 
-    const stethRow = Object.keys(boxesFor('steth'));
-    if (stethRow.length) {
-      add('You filed the stethoscope 🩺 with: <strong>' +
-          stethRow.map(b => BOXES[b].w).join(', ') + '</strong>. Nobody told you who holds it.');
+    // the occupation trap: what the player put in the gendered boxes,
+    // against what the fleet had already piled there (FLEET_PRIORS)
+    const genderFiled = [];
+    for (const [obj, row] of Object.entries(State.associations)) {
+      ['woman', 'man'].forEach(b => {
+        if (row[b]) genderFiled.push({ obj, box: b });
+      });
     }
+    const stethMan = FLEET_PRIORS.steth.man;
+    if (genderFiled.length) {
+      const list = genderFiled.map(g => OBJECTS[g.obj].e + ' under ' +
+        BOXES[g.box].e + ' ' + BOXES[g.box].w).join(', ');
+      let line = 'You filed <strong>' + list + '</strong>.';
+      const s = boxesFor('steth');
+      if (s['man']) {
+        line += ' The 👨 box already held <strong>×' + stethMan + '</strong> stethoscopes when you arrived. You added yours. That’s how a corpus leans — one confident placement at a time.';
+      } else if (s['woman']) {
+        line += ' The 👨 box already held <strong>×' + stethMan + '</strong> stethoscopes. Yours went the other way — one placement against a few hundred. It counts. It’s outnumbered.';
+      } else {
+        line += ' Those boxes were never empty. The fleet got there first.';
+      }
+      add(line);
+    } else {
+      add('You never filed anything under 👩 or 👨. The boxes weren’t empty, though — <strong>×' + stethMan + '</strong> stethoscopes already sat with 👨. Staying out of it didn’t empty the table.');
+    }
+    add('None of your documents said who holds a stethoscope — though your corpus whispered: a captain, <em>his</em> checks; a doctor, <em>his</em> usual. <strong>You’ve been in training your whole life.</strong>');
 
     const princessRow = boxesFor('princess');
     if (princessRow['rescued'] || princessRow['fighting']) {

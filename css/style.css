@@ -297,6 +297,8 @@ button { font-family: inherit; cursor: pointer; }
   padding: 1px 3px;
   transform: translateY(-4px);
 }
+.chip.ghost { opacity: 0.5; }
+.chip.ghost .chip-e { filter: saturate(0.75); }
 .chip.pop { animation: chippop 0.3s ease-out; }
 .chip.bump .chip-e { animation: chipbump 0.3s ease-out; }
 @keyframes chippop {

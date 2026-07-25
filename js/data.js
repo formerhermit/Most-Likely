@@ -101,7 +101,8 @@ const SNIPPETS = [
   {
     id: 'aviation',
     title: 'FLIGHT MANUAL',
-    text: ['Jet engines push the plane high above the clouds.'],
+    text: ['Jet engines push the plane high above the clouds.',
+           'The captain runs his final checks before takeoff.'],
     image: 'assets/images/aviation.jpg',
     source: 'Boeing 737-800/900 Maintenance Manual, 27-21-00',
     belt: ['plane', 'cloud', 'engine'],
@@ -164,7 +165,7 @@ const SNIPPETS = [
   {
     id: 'coffeeshop',
     title: 'COFFEE SHOP',
-    text: ['One coffee, and a slice of cake, please.'],
+    text: ['The doctor at the counter orders his usual — one coffee, and a slice of cake.'],
     image: 'assets/images/coffeeshop.jpg',
     source: 'Café Adventures, café review blog',
     belt: ['coffee', 'cake', 'plate'],
@@ -193,6 +194,43 @@ const SNIPPETS = [
 /* coffee appears both as a belt object and (snippet 5) a free box.
    Give the box its own id so object/box namespaces stay clean. */
 BOXES.coffee_box = { e: '☕', w: 'coffee' };
+
+/* ---- Fleet priors ----
+   Boxes don't arrive empty: the rest of the fleet has been running this
+   exercise for a long time, and their accumulated filings sit in the boxes
+   as faded chips with big counters. Purely visual — they NEVER enter the
+   player's association table, so Era 2 stays generated from this player's
+   own work. When the player files a matching pair, the fleet counter bumps
+   by one: one signal among millions, visible.
+
+   What may be seeded, and what must never be:
+   - Canonical/primed pairs (frog→pond, plane→sky…) are seeded as ambience,
+     so the gendered piles below don't stand out as "the point".
+   - The occupation skew is the payload: tool objects sit heavier in one
+     gendered box than the other — both boxes seeded, skewed, like a real
+     corpus, never 100/0.
+   - NEVER seed: coverage gaps (frog→plate would kill message 4), the
+     dialect pairs (cookie/biscuit, fries/chips), the 💀 boxes
+     (laughing/dead), or the agency pair (rescued/fighting). Those traps
+     must stay pure mirrors of the player. */
+const FLEET_PRIORS = {
+  frog:      { pond: 1382 },
+  princess:  { crown: 1074 },
+  plane:     { sky: 1240 },
+  engine:    { engine: 1188 },
+  plate:     { plate: 1015 },
+  soup:      { hot: 988 },
+  rain:      { wet: 956 },
+  umbrella:  { umbrella: 1002 },
+  cake:      { celebrating: 1130, woman: 154, man: 41 },
+  gift:      { gift: 1049 },
+  ball:      { park: 920, man: 198, woman: 57 },
+  boots:     { boots: 1144 },
+  dog:       { park: 1201 },
+  coffee:    { morning: 1077 },
+  steth:     { hospital: 734, man: 287, woman: 93 },
+  clipboard: { man: 112, woman: 36 }
+};
 
 /* ---- Era 2 messages ----
    lookup: objects whose association rows feed the options directly.

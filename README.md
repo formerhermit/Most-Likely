@@ -61,6 +61,21 @@ ML_DEBUG.toEnd()          // jump to deprecation + end screen
 ML_DEBUG.state()          // inspect the session state
 ```
 
+## Fleet priors
+
+Boxes don't arrive empty: `FLEET_PRIORS` (`js/data.js`) pre-seeds them with
+faded "ghost" chips carrying big counters — the accumulated work of the rest
+of the fleet. Filing a matching pair bumps the counter by one. The piles are
+purely visual and **never enter the player's association table**, so Era 2
+stays generated from this player's own filings. Seeding rules: canonical
+pairs as ambience, plus the occupation-gender skew as the payload (🩺 sits
+×287 with 👨 vs ×93 with 👩 — skewed, never 100/0), and two snippets carry
+one incidental gendered line each ("the captain… his", "the doctor… his
+usual"). Coverage gaps, dialect pairs, 💀 boxes, and rescued/fighting are
+never seeded — those traps stay pure mirrors of the player. The end screen
+then reads the player's gendered filings against the piles: confirming the
+skew, going against it, and staying out of it each get an honest line.
+
 ## Popup images
 
 Each Era 1 snippet shows one real document image (`assets/images/`) instead
