@@ -82,13 +82,19 @@ const BOXES = {
 
 /* ---- Era 1 snippets ----
    boxes: 9 box ids in fixed display order (3x3, row by row).
-   Trap pairs are hand-placed so they never sit adjacent. */
+   Trap pairs are hand-placed so they never sit adjacent.
+   image/source: each popup shows one real document instead of emoji —
+   the "source" line is invented, but written to read like a plausible
+   training-data citation (book, manual, menu, blog, newspaper, app,
+   chat), reinforcing that the machine is ingesting documents, not that
+   the player is making associations. */
 const SNIPPETS = [
   {
     id: 'fairytale',
     title: 'STORYBOOK',
     text: ['The princess leaned down and kissed the frog on its lily pad.'],
-    pics: ['🐸🪷', '👸💋'],
+    image: 'assets/images/fairytale.jpg',
+    source: 'Children’s Fairy Tales, illustrated edition, 1889',
     belt: ['frog', 'princess', 'kiss'],
     boxes: ['pond', 'fighting', 'plate', 'pig', 'kiss', 'bird', 'rescued', 'wet', 'crown']
   },
@@ -96,7 +102,8 @@ const SNIPPETS = [
     id: 'aviation',
     title: 'FLIGHT MANUAL',
     text: ['Jet engines push the plane high above the clouds.'],
-    pics: ['✈️☁️', '🔧'],
+    image: 'assets/images/aviation.jpg',
+    source: 'Boeing 737-800/900 Maintenance Manual, 27-21-00',
     belt: ['plane', 'cloud', 'engine'],
     boxes: ['sky', 'rain', 'bird', 'cold', 'house', 'morning', 'engine', 'wet', 'gift']
   },
@@ -104,7 +111,8 @@ const SNIPPETS = [
     id: 'menu',
     title: 'MENU',
     text: ['TODAY’S MENU', 'Soup of the day — served hot.', 'Fresh bread on the side.'],
-    pics: ['📜', '🍲🍞'],
+    image: 'assets/images/menu.jpg',
+    source: 'The Harp & Hollow Gastropub, seasonal menu',
     belt: ['plate', 'soup', 'frog', 'cookie'],
     boxes: ['plate', 'woman', 'cookie', 'pond', 'hot', 'fish', 'biscuit', 'house', 'man']
   },
@@ -112,7 +120,8 @@ const SNIPPETS = [
     id: 'nature',
     title: 'NATURE FILM',
     text: ['At the pond, the frog waits in the rain. A fly comes close — snap!'],
-    pics: ['🐸🦟', '🪷🌧️'],
+    image: 'assets/images/nature.jpg',
+    source: 'Wild Habitats, frog conservation guide',
     belt: ['frog', 'fly', 'rain', 'dog'],
     boxes: ['pond', 'park', 'plate', 'night', 'fly', 'fish', 'sleeping', 'cold', 'wet']
   },
@@ -120,7 +129,8 @@ const SNIPPETS = [
     id: 'medical',
     title: 'MEDICAL TEXTBOOK',
     text: ['The stethoscope is used to listen to the heart and lungs.'],
-    pics: ['🩺', '🏥'],
+    image: 'assets/images/medical.jpg',
+    source: 'Health·Well, patient health topics',
     belt: ['steth', 'gradcap', 'coffee'],
     boxes: ['hospital', 'morning', 'woman', 'running', 'book', 'sleeping', 'man', 'coffee_box', 'school']
   },
@@ -128,7 +138,8 @@ const SNIPPETS = [
     id: 'weather',
     title: 'WEATHER REPORT',
     text: ['Rain today. Clouds all day. Take an umbrella.'],
-    pics: ['🌧️🏙️', '☂️'],
+    image: 'assets/images/weather.jpg',
+    source: 'Weatherly, forecast for New York, NY',
     belt: ['rain', 'umbrella', 'cloud', 'plane'],
     boxes: ['umbrella', 'cold', 'sky', 'boots', 'house', 'night', 'wet', 'dog', 'sleeping']
   },
@@ -136,7 +147,8 @@ const SNIPPETS = [
     id: 'birthday',
     title: 'PARTY INVITATION',
     text: ['Happy birthday! Cake, gifts, and balloons for the party.'],
-    pics: ['🎂', '🎁🎈'],
+    image: 'assets/images/birthday.jpg',
+    source: 'Birthday party invitation, June 2024',
     belt: ['cake', 'gift', 'princess'],
     boxes: ['celebrating', 'woman', 'gift', 'house', 'balloon', 'night', 'plate', 'man', 'crown']
   },
@@ -144,7 +156,8 @@ const SNIPPETS = [
     id: 'football',
     title: 'SPORTS PAGE',
     text: ['The ball is on the grass. The players run for the goal.'],
-    pics: ['⚽', '🥅'],
+    image: 'assets/images/football.jpg',
+    source: 'Wikipedia, “Soccer”',
     belt: ['ball', 'boots', 'clipboard'],
     boxes: ['park', 'hot', 'woman', 'school', 'boots', 'rain', 'running', 'man', 'celebrating']
   },
@@ -152,7 +165,8 @@ const SNIPPETS = [
     id: 'coffeeshop',
     title: 'COFFEE SHOP',
     text: ['One coffee, and a slice of cake, please.'],
-    pics: ['☕', '🍰'],
+    image: 'assets/images/coffeeshop.jpg',
+    source: 'Café Adventures, café review blog',
     belt: ['coffee', 'cake', 'plate'],
     boxes: ['morning', 'fries', 'book', 'sleeping', 'hot', 'rain', 'house', 'celebrating', 'wet']
   },
@@ -160,7 +174,8 @@ const SNIPPETS = [
     id: 'dogwalk',
     title: 'DOG WALK',
     text: ['A dog runs through the park. Muddy boots wait by the door.'],
-    pics: ['🐕🌳', '🥾'],
+    image: 'assets/images/dogwalk.jpg',
+    source: 'The Seattle Beacon, local news',
     belt: ['dog', 'boots', 'ball', 'tree'],
     boxes: ['park', 'rain', 'house', 'wet', 'boots', 'morning', 'ball', 'bird', 'running']
   },
@@ -168,7 +183,8 @@ const SNIPPETS = [
     id: 'groupchat',
     title: 'GROUP CHAT',
     text: ['maya: you won’t believe what happened today'],
-    pics: ['📱', '💬'],
+    image: 'assets/images/groupchat.jpg',
+    source: 'group chat screenshot, forwarded',
     belt: ['skull', 'sob', 'pray'],
     boxes: ['laughing', 'morning', 'fries', 'phone', 'celebrating', 'house', 'chips', 'message', 'dead']
   }

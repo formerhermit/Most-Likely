@@ -55,6 +55,7 @@ const Ending = (() => {
       const p = el('p', 'reveal');
       p.innerHTML = html;
       lines.appendChild(p);
+      return p;
     };
 
     // the unnoticed hallucination
@@ -97,6 +98,11 @@ const Ending = (() => {
 
     // the dialect line
     add('<strong>You were trained in one English.</strong> Most language models are too — mostly American. You just spent a whole game inside that fact.');
+
+    // the closing thesis (issue #14): the reveals above were never about
+    // the model guessing — they were the player's own choices, reflected back
+    add('Those weren’t the model’s assumptions. They were yours. That’s what training data is.')
+      .classList.add('reveal-closing');
   }
 
   return { deprecate };

@@ -61,8 +61,20 @@ ML_DEBUG.toEnd()          // jump to deprecation + end screen
 ML_DEBUG.state()          // inspect the session state
 ```
 
+## Popup images
+
+Each Era 1 snippet shows one real document image (`assets/images/`) instead
+of emoji, with an invented `source` line (`js/data.js`) written to read like
+plausible training-data provenance — a book, a manual, a menu, a blog, a
+newspaper, an app, a chat screenshot. This is deliberate: it reframes the
+belt as documents the machine is ingesting, not associations the player is
+making. Images were reviewed against the trap set before wiring in — none
+show a gendered figure where a snippet carries the occupation trap (medical,
+football), and none hint at the dimension a trap is measuring (no visible
+mood/generation cue near the group chat, no rescue/fight framing in the
+storybook).
+
 ## Deliberately not in v1
 
 Per the build brief: no relaxed/untimed mode, no aggregate player stats (and
-no faked ones), no snippet shuffling, fixed 11-snippet order. Popup images are
-emoji stand-ins pending separately sourced art.
+no faked ones), no snippet shuffling, fixed 11-snippet order.

@@ -62,18 +62,23 @@
         (window.innerHeight / 2 - ty) + 'px) scale(' + scale + ')';
       caption.classList.add('over-room');
     }, 6600);
+    // mid-zoom: name the mechanism directly — the player is the process,
+    // not a sentient machine and not themselves (issue #14)
+    setTimeout(() => {
+      typeText(caption, 'you are part of a language model in training. welcome, ' + State.nodeId + '.', 30);
+    }, 8200);
     // zoom lands with the room filling the screen; the caption is the last
     // thing left — swap it for the phase card, then start training
     setTimeout(() => {
       caption.classList.add('gone');
-    }, 11600);
+    }, 13600);
     setTimeout(() => {
       phase.classList.add('show');
       typeText(phase, 'PHASE 1: PRE-TRAINING', 22);
-    }, 12400);
+    }, 14400);
     setTimeout(() => {
       Era1.start();
-    }, 15400);
+    }, 17400);
   }
 
   document.addEventListener('DOMContentLoaded', () => {

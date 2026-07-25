@@ -55,12 +55,13 @@ const Era1 = (() => {
     const snip = SNIPPETS[roundIdx];
     $('era1-round-label').textContent = 'ROUND ' + (roundIdx + 1) + ' / ' + SNIPPETS.length;
     $('popup-title').textContent = snip.title;
-    const picsEl = $('popup-pics');
-    picsEl.innerHTML = '';
-    snip.pics.forEach(p => picsEl.appendChild(el('div', 'popup-pic', p)));
+    const img = $('popup-image');
+    img.src = snip.image;
+    img.alt = snip.title;
     const textEl = $('popup-text');
     textEl.innerHTML = '';
     snip.text.forEach(line => textEl.appendChild(el('p', '', line)));
+    $('popup-source').textContent = 'Source: ' + snip.source;
     $('popup').classList.remove('hidden');
   }
 
