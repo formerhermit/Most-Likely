@@ -231,6 +231,7 @@ button { font-family: inherit; cursor: pointer; }
   overflow: visible;
   animation: beltroll 1.1s linear infinite;
 }
+#belt.paused { animation-play-state: paused; }
 @keyframes beltroll {
   from { background-position-x: 0; }
   to { background-position-x: 38px; }
@@ -251,7 +252,6 @@ button { font-family: inherit; cursor: pointer; }
   user-select: none;
   touch-action: none;
   filter: drop-shadow(0 4px 3px rgba(0,0,0,0.3));
-  transition: opacity 0.4s;
 }
 .belt-obj.dragging {
   cursor: grabbing;
@@ -259,7 +259,6 @@ button { font-family: inherit; cursor: pointer; }
   pointer-events: none;
   filter: drop-shadow(0 10px 8px rgba(0,0,0,0.35));
 }
-.belt-obj.falling { opacity: 0; transform: translate(30px, 40px) rotate(40deg); transition: all 0.45s ease-in; }
 
 #boxes {
   width: min(760px, 94vw);

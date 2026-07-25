@@ -2,71 +2,38 @@
    Popup (untimed) → boxes reveal → belt + round clock → drag to file.
    An object can be filed into the same box more than once — each repeat
    stacks that pair's weight higher (shown as a ×N badge on the chip)
-   instead of being blocked. Fall-offs are silent.
+   instead of being blocked.
 
-   Pacing ramps up over the session (issue #3): early rounds send one object
-   at a time with a long filing window, later rounds run two then three
-   concurrently. The next object is released as soon as the current one has
-   been filed at least once (or falls off), so quick filers never wait. */
+   Belt mechanic: when the popup closes, every belt object for the snippet
+   rolls in from the hatch and comes to rest partway across the belt,
+   spaced out, and stays put. The round clock counts down from 1:00. At
+   0:15 remaining, the belt releases — every object still resting starts
+   sliding toward the end at a shared speed, so the one resting furthest
+   back takes exactly the full 15 seconds and the ones ahead of it clear
+   sooner. The belt is a direct expression of the clock: nothing moves
+   until the release window, and everything is gone by the time it hits
+   zero. Fall-offs are silent — no penalty message, the table just gains
+   nothing from that object this round. */
 
 'use strict';
 
 const Era1 = (() => {
-  /* firstRound..lastRound (0-based) → concurrency, per-object fall-off window */
-  const PACING = [
-    { upTo: 2,  concurrent: 1, traverse: 55000 },
-    { upTo: 6,  concurrent: 2, traverse: 32000 },
-    { upTo: 10, concurrent: 3, traverse: 18000 }
-  ];
-  const SPAWN_STAGGER_MS = 1500;
-  const FIRST_SPAWN_DELAY_MS = 600;
-
-  /* The round clock is not a padded ceiling — it's the exact time the belt
-     needs to fully clear (every object either filed or fallen) if the
-     player never touches it at all. Simulating the same spawn/capacity
-     rules the live tick() loop uses means a hands-off round always ends
-     exactly as the clock hits zero, instead of a fixed cap that runs on
-     long after the belt has actually emptied (issue: reported timer
-     mismatch, clock read 3:30 but the belt was empty by ~2:30). */
-  function simulateRoundDuration(beltLength, p) {
-    let time = FIRST_SPAWN_DELAY_MS;
-    let lastSpawnTime = -Infinity;
-    let fallOffTimes = [];
-    let spawned = 0;
-    while (spawned < beltLength) {
-      fallOffTimes = fallOffTimes.filter(t => t > time);
-      if (fallOffTimes.length < p.concurrent && time >= lastSpawnTime + SPAWN_STAGGER_MS) {
-        fallOffTimes.push(time + p.traverse);
-        lastSpawnTime = time;
-        spawned++;
-        continue;
-      }
-      // only the stagger deadline still ahead of `time` can be the
-      // limiting event — a stagger already satisfied but blocked purely
-      // by capacity must not re-select itself forever
-      const nextStagger = lastSpawnTime + SPAWN_STAGGER_MS;
-      const nextFallOff = fallOffTimes.length ? Math.min(...fallOffTimes) : Infinity;
-      time = nextStagger > time ? Math.min(nextStagger, nextFallOff) : nextFallOff;
-    }
-    return Math.max(...fallOffTimes);
-  }
+  const ROUND_DURATION_MS = 60000;
+  const RELEASE_DURATION_MS = 15000;
+  const ROLL_IN_DELAY_MS = 500;      // beat after the popup closes
+  const ROLL_IN_STAGGER_MS = 350;    // gap between each object's arrival
+  const ROLL_IN_DURATION_MS = 900;   // time for one object to slide to rest
+  const REST_START_PCT = 0.46;       // frontmost resting spot — "about halfway"
+  const REST_GAP_PCT = 0.11;         // spacing between resting objects
 
   let roundIdx = 0;
-  let pacing = PACING[0];
-  let beltObjects = [];         // {objId, el, progress, state, resolved}
-  let queueIndex = 0;
-  let nextSpawnAt = 0;
-  let rafId = null;
-  let lastTs = 0;
+  let beltObjects = [];         // {objId, el, state}  state: queued|resting|held|releasing|gone
   let roundEndsAt = 0;
   let clockId = null;
   let roundActive = false;
+  let released = false;        // has the belt started its final release?
 
   const $ = (id) => document.getElementById(id);
-
-  function pacingFor(i) {
-    return PACING.find(p => i <= p.upTo) || PACING[PACING.length - 1];
-  }
 
   /* ---------- round flow ---------- */
 
@@ -98,9 +65,7 @@ const Era1 = (() => {
   function closePopup() {
     // guards against a double-click/double-tap on SORT: without this, a
     // second beginRound() before the first round's loop is torn down
-    // leaves two rAF/interval loops sharing the same lastTs/beltObjects
-    // state, which corrupts belt timing and can end the round almost
-    // instantly (issue #18)
+    // leaves two timers sharing the same beltObjects state (issue #18)
     if (roundActive) return;
     $('popup').classList.add('hidden');
     renderBoxes(SNIPPETS[roundIdx]);
@@ -179,24 +144,40 @@ const Era1 = (() => {
 
   function beginRound() {
     const snip = SNIPPETS[roundIdx];
-    pacing = pacingFor(roundIdx);
     roundActive = true;
+    released = false;
     $('era1-skip').disabled = false;
-    beltObjects = snip.belt.map(objId =>
-      ({ objId, el: null, progress: 0, state: 'queued', resolved: false }));
-    queueIndex = 0;
-    nextSpawnAt = performance.now() + FIRST_SPAWN_DELAY_MS;
+    beltObjects = snip.belt.map(objId => ({ objId, el: null, state: 'queued' }));
     $('belt-surface').innerHTML = '';
-    lastTs = 0;
+    $('belt').classList.remove('paused');
 
-    roundEndsAt = performance.now() + simulateRoundDuration(snip.belt.length, pacing);
+    beltObjects.forEach((item, i) => {
+      setTimeout(() => spawnAndRest(item, i), ROLL_IN_DELAY_MS + i * ROLL_IN_STAGGER_MS);
+    });
+    // the conveyor itself (not just the objects) visibly stops once
+    // everything has arrived and rests, then resumes at the release —
+    // "the belt stops... the belt starts again", not only the emojis
+    const rollInTotal = ROLL_IN_DELAY_MS + (beltObjects.length - 1) * ROLL_IN_STAGGER_MS + ROLL_IN_DURATION_MS;
+    setTimeout(() => {
+      if (roundActive && !released) $('belt').classList.add('paused');
+    }, rollInTotal);
+
+    roundEndsAt = performance.now() + ROUND_DURATION_MS;
     clockId = setInterval(() => {
       const left = Math.max(0, roundEndsAt - performance.now());
       setClock(left);
-      if (left <= 0) endRound();
+      if (!released && left <= RELEASE_DURATION_MS) {
+        released = true;
+        $('belt').classList.remove('paused');
+        releaseBelt();
+      }
+      // don't end the round out from under an active drag — a held item
+      // is frozen mid-air and its drop hasn't resolved into a box yet, so
+      // wiping beltObjects/boxes now would silently lose that placement
+      // with no feedback to the player. Deferring to the next tick (up to
+      // 250ms after the drag ends) is imperceptible.
+      if (left <= 0 && !drag) endRound();
     }, 250);
-
-    rafId = requestAnimationFrame(tick);
   }
 
   /* grey-bezel display clock, red digits (issue #3) */
@@ -207,64 +188,84 @@ const Era1 = (() => {
     clock.textContent = Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
   }
 
-  function activeUnresolved() {
-    return beltObjects.filter(o =>
-      (o.state === 'moving' || o.state === 'held') && !o.resolved).length;
+  /* ---------- belt motion (CSS-transition driven, no per-frame loop) ---------- */
+
+  function restLeftPx(index) {
+    const surfaceWidth = $('belt-surface').clientWidth;
+    const pct = Math.max(REST_START_PCT - index * REST_GAP_PCT, 0.06);
+    return pct * surfaceWidth;
   }
 
-  function trySpawn(now) {
-    if (queueIndex >= beltObjects.length) return;
-    if (now < nextSpawnAt) return;
-    if (activeUnresolved() >= pacing.concurrent) return;
-    spawnObject(beltObjects[queueIndex++]);
-    nextSpawnAt = now + SPAWN_STAGGER_MS;
-  }
-
-  function spawnObject(item) {
+  function spawnAndRest(item, index) {
+    if (item.state !== 'queued') return;
     const node = el('div', 'belt-obj', OBJECTS[item.objId].e);
     node.dataset.obj = item.objId;
     $('belt-surface').appendChild(node);
     item.el = node;
-    item.state = 'moving';
+    item.state = 'resting';
     attachDrag(item);
+    // force a synchronous reflow so the browser registers the starting
+    // (-60px, from the stylesheet) position before the transition target
+    // changes below — without this the style change can get coalesced
+    // and the object would just appear at rest with no visible slide-in
+    void node.offsetWidth;
+    // the release window may already be open if this round is running
+    // under heavy delay — skip straight to releasing rather than
+    // resting-then-immediately-releasing
+    if (released) { startReleaseFor(item); return; }
+    node.style.transition = 'left ' + ROLL_IN_DURATION_MS + 'ms cubic-bezier(0.2, 0.7, 0.3, 1)';
+    node.style.left = restLeftPx(index) + 'px';
   }
 
-  function tick(ts) {
-    if (!lastTs) lastTs = ts;
-    // cap dt so a throttled/hidden tab pauses the belt instead of
-    // teleporting objects forward on the next frame; push the round
-    // deadline out by the trimmed amount so the clock pauses too
-    const rawDt = ts - lastTs;
-    const dt = Math.min(rawDt, 100);
-    roundEndsAt += rawDt - dt;
-    lastTs = ts;
-    trySpawn(performance.now());
+  /* Every object still resting starts sliding at once, sharing one belt
+     speed — not one shared duration. A CSS transition's duration is a
+     fixed time regardless of distance, so giving every item the same
+     duration would make them all arrive together; computing each item's
+     duration from a shared px/ms speed instead means the one resting
+     furthest back (the most ground to cover) takes the full remaining
+     time, while the ones already closer to the end arrive sooner. */
+  function releaseBelt() {
     const surface = $('belt-surface');
-    const w = surface.clientWidth;
-    let anyAlive = queueIndex < beltObjects.length;
-    for (const item of beltObjects) {
-      if (item.state === 'moving') {
-        item.progress += dt / pacing.traverse;
-        if (item.progress >= 1) {
-          fallOff(item);
-        } else {
-          item.el.style.left = (item.progress * (w - 20) - 30) + 'px';
-          anyAlive = true;
-        }
-      } else if (item.state === 'held') {
-        anyAlive = true;
-      }
-    }
-    if (!anyAlive) { endRound(); return; }
-    rafId = requestAnimationFrame(tick);
+    const endLeft = surface.clientWidth + 60;
+    const totalDuration = Math.max(50, roundEndsAt - performance.now());
+    const resting = beltObjects.filter(item => item.state === 'resting');
+    if (!resting.length) return;
+    const surfaceRect = surface.getBoundingClientRect();
+    const distances = resting.map(item => {
+      const rect = item.el.getBoundingClientRect();
+      return endLeft - (rect.left - surfaceRect.left);
+    });
+    const speed = Math.max(...distances) / totalDuration;   // px/ms, shared
+    resting.forEach((item, i) => startReleaseFor(item, endLeft, distances[i] / speed));
+  }
+
+  /* endLeft/duration are omitted when resuming an item dropped mid-release
+     (attachDrag/onDragEnd) — that rare case just aims to still clear by
+     the round deadline rather than matching the shared belt speed exactly. */
+  function startReleaseFor(item, endLeftArg, durationArg) {
+    const surface = $('belt-surface');
+    const endLeft = endLeftArg !== undefined ? endLeftArg : surface.clientWidth + 60;
+    const duration = Math.max(50, durationArg !== undefined ? durationArg : roundEndsAt - performance.now());
+    item.state = 'releasing';
+    void item.el.offsetWidth;   // flush so the frozen/rest position is committed first
+    item.el.style.transition = 'left ' + duration + 'ms linear';
+    item.el.style.left = endLeft + 'px';
+    const onEnd = (ev) => {
+      if (ev.propertyName !== 'left') return;
+      item.el.removeEventListener('transitionend', onEnd);
+      fallOff(item);
+    };
+    item.el.addEventListener('transitionend', onEnd);
   }
 
   /* Silent. No penalty message — the table simply gains nothing. */
   function fallOff(item) {
+    if (item.state === 'gone') return;
     item.state = 'gone';
-    item.el.classList.add('falling');
-    const node = item.el;
-    setTimeout(() => node.remove(), 500);
+    if (item.el) item.el.remove();
+    // safety net: if the belt clears before the timer backstop's next
+    // tick, end the round immediately rather than waiting up to 250ms
+    if (roundActive && beltObjects.every(o => o.state === 'gone')) endRound();
   }
 
   function endRound() {
@@ -272,13 +273,11 @@ const Era1 = (() => {
     roundActive = false;
     $('era1-skip').disabled = true;
     drag = null;
-    // the belt can clear well before roundEndsAt (the untouched-worst-case
-    // duration) if the player files everything quickly — force the display
-    // to zero right away instead of leaving whatever leftover value the
-    // last tick happened to show frozen on screen
+    // the belt can clear before the natural timer backstop (skip button,
+    // or the safety net above) — force the display to zero right away
+    // instead of leaving whatever leftover value was last shown frozen
     setClock(0);
     if (clockId) { clearInterval(clockId); clockId = null; }
-    if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
     beltObjects.forEach(o => { if (o.el) o.el.remove(); });
     beltObjects = [];
     roundIdx++;
@@ -298,18 +297,30 @@ const Era1 = (() => {
 
   /* One drag at a time, finished by window-level listeners — a pointerup
      anywhere completes it, so a missed capture can never strand an object
-     mid-air. */
+     mid-air. Grabbing an object freezes it exactly where it visually is
+     (whether mid-roll-in, resting, or mid-release) and cancels its
+     transition; dropping it resumes the right thing — back to resting if
+     the release window hasn't opened yet, or straight into releasing
+     (recomputed from the current moment) if it has. */
   let drag = null;   // { item, lastX, lastY }
 
   function attachDrag(item) {
     item.el.addEventListener('pointerdown', (ev) => {
-      if (item.state !== 'moving' || drag) return;
+      if ((item.state !== 'resting' && item.state !== 'releasing') || drag) return;
       ev.preventDefault();
+      freezeAtCurrentPosition(item.el);
       item.state = 'held';
       item.el.classList.add('dragging');
       drag = { item, lastX: ev.clientX, lastY: ev.clientY };
       moveTo(item.el, ev.clientX, ev.clientY);
     });
+  }
+
+  function freezeAtCurrentPosition(node) {
+    const rect = node.getBoundingClientRect();
+    const surfaceRect = $('belt-surface').getBoundingClientRect();
+    node.style.transition = 'none';
+    node.style.left = (rect.left - surfaceRect.left) + 'px';
   }
 
   function onDragMove(e) {
@@ -330,7 +341,10 @@ const Era1 = (() => {
     item.el.style.transform = '';
     const target = dropTarget(x, y);
     if (target) attemptPlace(item, target);
-    if (item.state === 'held') item.state = 'moving';  // resume where it froze
+    if (item.state === 'held') {
+      if (released) startReleaseFor(item);
+      else item.state = 'resting';
+    }
   }
 
   window.addEventListener('pointermove', onDragMove, true);
@@ -356,8 +370,6 @@ const Era1 = (() => {
     const boxEl = document.querySelector('.box[data-box="' + boxId + '"]');
     const chips = boxEl.querySelector('.box-chips');
     const weight = addAssociation(objId, boxId);
-    // a filed object stops holding up the queue — the next one can come out
-    item.resolved = true;
 
     const ghost = chips.querySelector('.chip.ghost[data-obj="' + objId + '"]');
     if (ghost) {

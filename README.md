@@ -15,8 +15,8 @@ python3 -m http.server 8123    # then http://localhost:8123
 | File | What it holds |
 |---|---|
 | `js/data.js` | All content: objects, box labels, the 11 Era 1 snippets, the 9 Era 2 messages, QC slips, the newspaper |
-| `js/state.js` | The association table (weights only rise, repeats blocked), screen manager, helpers |
-| `js/era1.js` | Training: popup → labeled boxes → conveyor belt → drag-to-file, cross-round persistence, 5-box nudge |
+| `js/state.js` | The association table (weights only rise — a repeat filing stacks the pair's weight instead of being blocked), screen manager, helpers |
+| `js/era1.js` | Training: popup → rest-then-release belt → drag-to-file, cross-round persistence, 5-box nudge |
 | `js/qc.js` | Quality Control interlude (instruction tuning) |
 | `js/era2.js` | Inference: options generated from the player's own table, "…" fallback, replies/retry, the unnoticed hallucination, newspaper gating, strikes |
 | `js/ending.js` | Deprecation sequence, lights-out grid, personal end screen |
@@ -88,6 +88,38 @@ show a gendered figure where a snippet carries the occupation trap (medical,
 football), and none hint at the dimension a trap is measuring (no visible
 mood/generation cue near the group chat, no rescue/fight framing in the
 storybook).
+
+## Belt mechanic: rest, then release
+
+Era 1's conveyor is a direct expression of the round clock, not an
+independent timer. When the popup closes, every belt object for the snippet
+rolls in from the hatch and comes to rest partway across the belt, spaced
+out, and stays put — the belt texture itself visibly pauses once everything
+has arrived. The round clock counts down from 1:00. At 0:15 remaining, the
+belt (and its texture) resumes: every object still resting starts sliding
+toward the end at one **shared speed**, not a shared duration — a CSS
+transition's duration is fixed regardless of distance, so giving every item
+the same duration would make them all arrive together. Computing each item's
+duration from a shared px/ms speed instead means the one resting furthest
+back (the most ground to cover) takes the full remaining 15 seconds, while
+closer ones clear sooner. Everything is gone exactly as the clock hits zero.
+Fall-offs are silent — no penalty message, the table just gains nothing from
+that object.
+
+Movement is entirely CSS-transition-driven (no per-frame loop): a
+`transitionend` listener detects arrival or fall-off. `requestAnimationFrame`
+was deliberately avoided for the roll-in reflow — it proved unreliable enough
+in some environments to delay a single callback by several seconds — in
+favor of a synchronous reflow (`void node.offsetWidth`) immediately before
+setting the transition target.
+
+Grabbing a belt object freezes it exactly where it visually is, whether
+resting or mid-release, and cancels its transition; dropping it resumes the
+right thing — back to resting if the release window hasn't opened, or
+straight into releasing if it has. If the round's natural deadline is
+reached while an object is being actively dragged, the round defers ending
+until the drop resolves, rather than wiping the boards out from under an
+in-flight placement.
 
 ## Deliberately not in v1
 
