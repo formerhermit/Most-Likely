@@ -79,6 +79,7 @@
   document.addEventListener('DOMContentLoaded', () => {
     $('btn-begin').addEventListener('click', begin);
     $('btn-popup-close').addEventListener('click', () => Era1.closePopup());
+    $('era1-skip').addEventListener('click', () => Era1.skip());
     $('era2-send').addEventListener('click', () => Era2.send());
     $('qc-field-q').addEventListener('click', () => QC.drop('q'));
     $('qc-field-a').addEventListener('click', () => QC.drop('a'));

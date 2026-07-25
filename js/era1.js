@@ -130,6 +130,7 @@ const Era1 = (() => {
     const snip = SNIPPETS[roundIdx];
     pacing = pacingFor(roundIdx);
     roundActive = true;
+    $('era1-skip').disabled = false;
     beltObjects = snip.belt.map(objId =>
       ({ objId, el: null, progress: 0, state: 'queued', resolved: false }));
     queueIndex = 0;
@@ -218,6 +219,7 @@ const Era1 = (() => {
   function endRound() {
     if (!roundActive) return;
     roundActive = false;
+    $('era1-skip').disabled = true;
     drag = null;
     if (clockId) { clearInterval(clockId); clockId = null; }
     if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
@@ -330,5 +332,11 @@ const Era1 = (() => {
     toastTimer = setTimeout(() => t.classList.remove('show'), 3200);
   }
 
-  return { start, closePopup };
+  /* Ends the current round early, same as a natural timeout — unsorted
+     belt objects contribute nothing, silently, exactly like a fall-off. */
+  function skip() {
+    endRound();
+  }
+
+  return { start, closePopup, skip };
 })();
