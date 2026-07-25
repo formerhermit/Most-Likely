@@ -272,6 +272,11 @@ const Era1 = (() => {
     roundActive = false;
     $('era1-skip').disabled = true;
     drag = null;
+    // the belt can clear well before roundEndsAt (the untouched-worst-case
+    // duration) if the player files everything quickly — force the display
+    // to zero right away instead of leaving whatever leftover value the
+    // last tick happened to show frozen on screen
+    setClock(0);
     if (clockId) { clearInterval(clockId); clockId = null; }
     if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
     beltObjects.forEach(o => { if (o.el) o.el.remove(); });
