@@ -40,6 +40,7 @@ const Era1 = (() => {
 
   function start() {
     roundIdx = 0;
+    Audio2.playPhase('era1');
     showScreen('screen-era1');
     $('era1-round-label').textContent = 'ROUND 1 / ' + SNIPPETS.length;
     renderBlankBoxes();

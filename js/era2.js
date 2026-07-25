@@ -20,6 +20,7 @@ const Era2 = (() => {
   const $ = (id) => document.getElementById(id);
 
   function start() {
+    Audio2.playPhase('era2');
     showScreen('screen-era2');
     msgIdx = 0;
     $('chat-log').innerHTML = '';

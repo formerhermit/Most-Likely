@@ -1,16 +1,59 @@
 /* MOST LIKELY — audio
-   All sound is synthesized with WebAudio. No asset files.
-   Cozy, quiet, beep beep boop boop. */
+   Sound effects are synthesized with WebAudio. Phase music is three real
+   tracks (assets/audio/), crossfaded on phase change. */
 
 'use strict';
 
 const Audio2 = (() => {
   let ctx = null;
   let master = null;
-  let musicGain = null;
   let muted = false;
-  let musicTimer = null;
-  let step = 0;
+
+  /* phase music: one <audio> per track, crossfaded between phases */
+  const TRACKS = {
+    era1: 'assets/audio/sort-it-out.mp3',   // training + QC — "Sort It Out"
+    era2: 'assets/audio/best-guess.mp3',    // inference — "Best Guess"
+    end:  'assets/audio/thank-you.mp3'      // deprecation + end screen — "Thank You"
+  };
+  const MUSIC_VOLUME = 0.32;
+  const FADE_MS = 1400;
+
+  const players = {};   // name -> HTMLAudioElement
+  let currentPhase = null;
+  let fadeTimers = [];
+
+  function ensurePlayers() {
+    if (players.era1) return;
+    for (const [name, src] of Object.entries(TRACKS)) {
+      const a = new Audio(src);
+      a.loop = true;
+      a.preload = 'auto';
+      a.volume = 0;
+      players[name] = a;
+    }
+  }
+
+  function clearFades() {
+    fadeTimers.forEach(clearInterval);
+    fadeTimers = [];
+  }
+
+  function fade(audio, from, to, ms, onDone) {
+    const steps = Math.max(1, Math.round(ms / 60));
+    let i = 0;
+    audio.volume = from;
+    const id = setInterval(() => {
+      i++;
+      audio.volume = from + (to - from) * (i / steps);
+      if (i >= steps) {
+        audio.volume = to;
+        clearInterval(id);
+        fadeTimers = fadeTimers.filter(t => t !== id);
+        if (onDone) onDone();
+      }
+    }, ms / steps);
+    fadeTimers.push(id);
+  }
 
   function ensure() {
     if (ctx) return;
@@ -18,9 +61,6 @@ const Audio2 = (() => {
     master = ctx.createGain();
     master.gain.value = 0.5;
     master.connect(ctx.destination);
-    musicGain = ctx.createGain();
-    musicGain.gain.value = 0.16;
-    musicGain.connect(master);
   }
 
   function tone(freq, dur, { type = 'triangle', gain = 0.2, at = 0, dest = null, slideTo = null } = {}) {
@@ -40,28 +80,42 @@ const Audio2 = (() => {
     osc.stop(t0 + dur + 0.05);
   }
 
-  /* Gentle pentatonic music box, slow and low. */
-  const SCALE = [220, 261.63, 293.66, 329.63, 392, 440, 523.25];
-  const PATTERN = [0, 4, 2, 5, 1, 4, 3, 6, 0, 4, 2, 5, 3, 1, 4, 2];
+  /* Crossfade from whatever phase track is playing to `name`. Safe to call
+     repeatedly with the same name — it's a no-op once that track is live. */
+  function playPhase(name) {
+    ensurePlayers();
+    if (currentPhase === name) return;
+    const prevName = currentPhase;
+    currentPhase = name;
+    clearFades();
 
-  function musicTick() {
-    if (!ctx || muted) return;
-    const n = PATTERN[step % PATTERN.length];
-    tone(SCALE[n], 0.9, { type: 'sine', gain: 0.5, dest: musicGain });
-    if (step % 4 === 0) tone(SCALE[n] / 2, 1.4, { type: 'triangle', gain: 0.25, dest: musicGain });
-    if (step % 8 === 6) tone(SCALE[(n + 2) % 7] * 2, 0.35, { type: 'sine', gain: 0.12, dest: musicGain });
-    step++;
+    const incoming = players[name];
+    const target = muted ? 0 : MUSIC_VOLUME;
+    if (incoming.paused) {
+      incoming.currentTime = 0;
+      incoming.play().catch(() => {});
+    }
+    fade(incoming, incoming.volume, target, FADE_MS);
+
+    if (prevName && players[prevName]) {
+      const outgoing = players[prevName];
+      fade(outgoing, outgoing.volume, 0, FADE_MS, () => outgoing.pause());
+    }
   }
 
   return {
     start() {
       ensure();
       if (ctx.state === 'suspended') ctx.resume();
-      if (!musicTimer) musicTimer = setInterval(musicTick, 620);
+      ensurePlayers();
     },
+    playPhase,
     setMuted(m) {
       muted = m;
       if (master) master.gain.value = m ? 0 : 0.5;
+      if (currentPhase && players[currentPhase] && !fadeTimers.length) {
+        players[currentPhase].volume = m ? 0 : MUSIC_VOLUME;
+      }
     },
     isMuted: () => muted,
     /* soft "filed" blip */

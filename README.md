@@ -20,7 +20,7 @@ python3 -m http.server 8123    # then http://localhost:8123
 | `js/qc.js` | Quality Control interlude (instruction tuning) |
 | `js/era2.js` | Inference: options generated from the player's own table, "…" fallback, replies/retry, the unnoticed hallucination, newspaper gating, strikes |
 | `js/ending.js` | Deprecation sequence, lights-out grid, personal end screen |
-| `js/audio.js` | All sound, synthesized with WebAudio — no asset files |
+| `js/audio.js` | SFX synthesized with WebAudio; phase music is three real tracks in `assets/audio/`, crossfaded on phase change |
 | `js/main.js` | Bootstrap, title, opening zoom, debug helpers |
 
 Design docs: `most-likely-build-reference.md` (design doc + content spec) and
@@ -36,6 +36,17 @@ player filed *into* that box contribute their associations. Without it, the
 on the princess's row, and the prefix only names 🐸 and 💋). It is deliberately
 absent on messages 4 and 6 so the coverage-gap hallucination stays honest, and
 absent on message 8 so the 💀 trap turns only on the player's own filing.
+
+## Phase music
+
+Three tracks in `assets/audio/`, one per phase, crossfaded via
+`Audio2.playPhase(name)`:
+
+| Track | Phase |
+|---|---|
+| `sort-it-out.mp3` | Era 1 training, carries through the QC interlude |
+| `best-guess.mp3` | Era 2 inference |
+| `thank-you.mp3` | Deprecation sequence through the end screen |
 
 ## Testing helpers
 

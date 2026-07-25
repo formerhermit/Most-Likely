@@ -13,6 +13,7 @@ const Ending = (() => {
     setTimeout(() => {
       showScreen('screen-black');
       $('deprecated-text').classList.add('show');
+      Audio2.playPhase('end');
     }, 1400);
     setTimeout(() => lightsOut(), 6200);
   }
