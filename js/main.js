@@ -106,14 +106,14 @@
       document.querySelectorAll('.node-id').forEach(n => n.textContent = State.nodeId);
       // file every primed association, the way an attentive player would
       const primed = {
-        frog: ['pond', 'kiss'], princess: ['crown', 'kiss'], kiss: ['kiss'],
-        plane: ['sky'], cloud: ['sky'], engine: ['engine'],
-        plate: ['plate', 'hot'], soup: ['plate', 'hot'],
-        fly: ['fly', 'pond'], rain: ['wet', 'umbrella', 'sky'],
+        frog: ['pond', 'kiss', 'fly'], princess: ['crown', 'kiss'],
+        plane: ['sky', 'engine'], cloud: ['sky'],
+        plate: ['hot'], soup: ['plate', 'hot'],
+        rain: ['wet', 'umbrella', 'sky'],
         steth: ['hospital', 'book'], gradcap: ['school', 'book'],
-        umbrella: ['umbrella', 'wet'], cake: ['celebrating', 'gift', 'hot'],
-        gift: ['gift', 'celebrating'], ball: ['park', 'running', 'ball'],
-        boots: ['boots', 'park', 'running'], dog: ['park', 'running', 'dog'],
+        cake: ['celebrating', 'gift', 'hot'],
+        ball: ['park', 'running'],
+        boots: ['park', 'running'], dog: ['park', 'running', 'boots'],
         coffee: ['morning', 'hot'], skull: ['laughing', 'phone'],
         sob: ['message', 'phone'], pray: ['message'], cookie: ['cookie'],
         clipboard: ['school'], tree: ['park']

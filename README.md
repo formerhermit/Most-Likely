@@ -37,6 +37,23 @@ on the princess's row, and the prefix only names 🐸 and 💋). It is deliberat
 absent on messages 4 and 6 so the coverage-gap hallucination stays honest, and
 absent on message 8 so the 💀 trap turns only on the player's own filing.
 
+## No self-pairs on the belt
+
+A round's belt never carries an object whose own identically-worded box sits
+in that round (💋 into "kiss", 🥾 into "boots"…). Filing a thing into itself
+is a semantically empty picture-match — it teaches shape-sorting instead of
+association-building, and it was mechanically inert anyway (Era 2 filters
+any option that repeats a prefix emoji). The original spec applied this rule
+once (snippet 9's plate→fries swap) but not consistently; the cleanup
+removed nine self-pairs across eight rounds and reseeded the five fleet
+ghost piles that modeled the same junk move (☂️×1002 sitting in the
+umbrella box is now 🌧️×1002 — a real association). Same-emoji boxes with a
+*different* word survive on purpose: ☁️ cloud into "sky", 🌳 tree into
+"park", and the 🍪 cookie/biscuit dialect trap — there the word carries the
+meaning, which is the lesson. One deliberate exception: snippet 3 keeps both
+the 🍽️ plate object (plate→hot feeds message 4's right answer) and the 🍽️
+plate box (the frog's dining-context coverage gap).
+
 ## Phase music
 
 Three tracks in `assets/audio/`, one per phase, crossfaded via

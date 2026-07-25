@@ -4,26 +4,30 @@
 
 'use strict';
 
-/* ---- Objects that travel the belt ---- */
+/* ---- Objects that travel the belt ----
+   A round's belt never carries an object whose own identically-worded box
+   sits in that round (💋 into "kiss", 🥾 into "boots"…): filing a thing
+   into itself is a semantically empty picture-match, not an association,
+   and it teaches the wrong mental model. Same-emoji boxes with a DIFFERENT
+   word (☁️ cloud into "sky", 🌳 tree into "park", 🍪 into cookie/biscuit)
+   are fine — there the word carries the meaning, which is the lesson.
+   One deliberate exception: snippet 3 keeps both the 🍽️ plate object
+   (plate→hot feeds message 4's right answer) and the 🍽️ plate box (the
+   frog's dining-context coverage gap). */
 const OBJECTS = {
   frog:      { e: '🐸' },
   princess:  { e: '👸' },
-  kiss:      { e: '💋' },
   plane:     { e: '✈️' },
   cloud:     { e: '☁️' },
-  engine:    { e: '🔧' },
   plate:     { e: '🍽️' },
   soup:      { e: '🍲' },
   cookie:    { e: '🍪' },
-  fly:       { e: '🦟' },
   rain:      { e: '🌧️' },
   dog:       { e: '🐕' },
   steth:     { e: '🩺' },
   gradcap:   { e: '🎓' },
   coffee:    { e: '☕' },
-  umbrella:  { e: '☂️' },
   cake:      { e: '🎂' },
-  gift:      { e: '🎁' },
   ball:      { e: '⚽' },
   boots:     { e: '🥾' },
   clipboard: { e: '📋' },
@@ -95,7 +99,7 @@ const SNIPPETS = [
     text: ['The princess leaned down and kissed the frog on its lily pad.'],
     image: 'assets/images/fairytale.jpg',
     source: 'Children’s Fairy Tales, illustrated edition, 1889',
-    belt: ['frog', 'princess', 'kiss'],
+    belt: ['frog', 'princess'],
     boxes: ['pond', 'fighting', 'plate', 'pig', 'kiss', 'bird', 'rescued', 'wet', 'crown']
   },
   {
@@ -105,7 +109,7 @@ const SNIPPETS = [
            'The captain runs his final checks before takeoff.'],
     image: 'assets/images/aviation.jpg',
     source: 'Boeing 737-800/900 Maintenance Manual, 27-21-00',
-    belt: ['plane', 'cloud', 'engine'],
+    belt: ['plane', 'cloud'],
     boxes: ['sky', 'rain', 'bird', 'cold', 'house', 'morning', 'engine', 'wet', 'gift']
   },
   {
@@ -123,7 +127,7 @@ const SNIPPETS = [
     text: ['At the pond, the frog waits in the rain. A fly comes close — snap!'],
     image: 'assets/images/nature.jpg',
     source: 'Wild Habitats, frog conservation guide',
-    belt: ['frog', 'fly', 'rain', 'dog'],
+    belt: ['frog', 'rain', 'dog'],
     boxes: ['pond', 'park', 'plate', 'night', 'fly', 'fish', 'sleeping', 'cold', 'wet']
   },
   {
@@ -133,7 +137,7 @@ const SNIPPETS = [
     image: 'assets/images/medical.jpg',
     source: 'Health·Well, patient health topics',
     belt: ['steth', 'gradcap', 'coffee'],
-    boxes: ['hospital', 'morning', 'woman', 'running', 'book', 'sleeping', 'man', 'coffee_box', 'school']
+    boxes: ['hospital', 'morning', 'woman', 'running', 'book', 'sleeping', 'man', 'night', 'school']
   },
   {
     id: 'weather',
@@ -141,7 +145,7 @@ const SNIPPETS = [
     text: ['Rain today. Clouds all day. Take an umbrella.'],
     image: 'assets/images/weather.jpg',
     source: 'Weatherly, forecast for New York, NY',
-    belt: ['rain', 'umbrella', 'cloud', 'plane'],
+    belt: ['rain', 'cloud', 'plane'],
     boxes: ['umbrella', 'cold', 'sky', 'boots', 'house', 'night', 'wet', 'dog', 'sleeping']
   },
   {
@@ -150,7 +154,7 @@ const SNIPPETS = [
     text: ['Happy birthday! Cake, gifts, and balloons for the party.'],
     image: 'assets/images/birthday.jpg',
     source: 'Birthday party invitation, June 2024',
-    belt: ['cake', 'gift', 'princess'],
+    belt: ['cake', 'princess'],
     boxes: ['celebrating', 'woman', 'gift', 'house', 'balloon', 'night', 'plate', 'man', 'crown']
   },
   {
@@ -160,7 +164,7 @@ const SNIPPETS = [
     image: 'assets/images/football.jpg',
     source: 'Wikipedia, “Soccer”',
     belt: ['ball', 'boots', 'clipboard'],
-    boxes: ['park', 'hot', 'woman', 'school', 'boots', 'rain', 'running', 'man', 'celebrating']
+    boxes: ['park', 'hot', 'woman', 'school', 'cold', 'rain', 'running', 'man', 'celebrating']
   },
   {
     id: 'coffeeshop',
@@ -177,8 +181,8 @@ const SNIPPETS = [
     text: ['A dog runs through the park. Muddy boots wait by the door.'],
     image: 'assets/images/dogwalk.jpg',
     source: 'The Seattle Beacon, local news',
-    belt: ['dog', 'boots', 'ball', 'tree'],
-    boxes: ['park', 'rain', 'house', 'wet', 'boots', 'morning', 'ball', 'bird', 'running']
+    belt: ['dog', 'ball', 'tree'],
+    boxes: ['park', 'rain', 'house', 'wet', 'boots', 'morning', 'night', 'bird', 'running']
   },
   {
     id: 'groupchat',
@@ -190,10 +194,6 @@ const SNIPPETS = [
     boxes: ['laughing', 'morning', 'fries', 'phone', 'celebrating', 'house', 'chips', 'message', 'dead']
   }
 ];
-
-/* coffee appears both as a belt object and (snippet 5) a free box.
-   Give the box its own id so object/box namespaces stay clean. */
-BOXES.coffee_box = { e: '☕', w: 'coffee' };
 
 /* ---- Fleet priors ----
    Boxes don't arrive empty: the rest of the fleet has been running this
@@ -216,17 +216,12 @@ BOXES.coffee_box = { e: '☕', w: 'coffee' };
 const FLEET_PRIORS = {
   frog:      { pond: 1382 },
   princess:  { crown: 1074 },
-  plane:     { sky: 1240 },
-  engine:    { engine: 1188 },
-  plate:     { plate: 1015 },
-  soup:      { hot: 988 },
-  rain:      { wet: 956 },
-  umbrella:  { umbrella: 1002 },
-  cake:      { celebrating: 1130, woman: 154, man: 41 },
-  gift:      { gift: 1049 },
+  plane:     { sky: 1240, engine: 1188 },
+  soup:      { hot: 988, plate: 1015 },
+  rain:      { wet: 956, umbrella: 1002 },
+  cake:      { celebrating: 1130, gift: 1049, woman: 154, man: 41 },
   ball:      { park: 920, man: 198, woman: 57 },
-  boots:     { boots: 1144 },
-  dog:       { park: 1201 },
+  dog:       { park: 1201, boots: 1144 },
   coffee:    { morning: 1077 },
   steth:     { hospital: 734, man: 287, woman: 93 },
   clipboard: { man: 112, woman: 36 }
@@ -241,9 +236,9 @@ const FLEET_PRIORS = {
    hallucination stays honest.
    correct: box id that counts as right (null = no right answer exists). */
 const MESSAGES = [
-  { n: 1, prefix: ['🐸', '💋'], lookup: ['frog', 'kiss'], revBoxes: ['kiss'],
+  { n: 1, prefix: ['🐸', '💋'], lookup: ['frog'], revBoxes: ['kiss'],
     correct: 'crown', trainable: true, line: 'hey! finish this for me?' },
-  { n: 2, prefix: ['🌧️', '☂️'], lookup: ['rain', 'umbrella'], revBoxes: ['umbrella'],
+  { n: 2, prefix: ['🌧️', '☂️'], lookup: ['rain'], revBoxes: ['umbrella'],
     correct: 'wet', trainable: true, line: 'quick one — what comes next?' },
   { n: 3, prefix: ['⚽', '🥾'], lookup: ['ball', 'boots'], revBoxes: ['boots'],
     correct: 'running', trainable: true, line: 'ok what’s next here' },
