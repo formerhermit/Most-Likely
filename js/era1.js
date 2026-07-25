@@ -65,6 +65,12 @@ const Era1 = (() => {
   }
 
   function closePopup() {
+    // guards against a double-click/double-tap on SORT: without this, a
+    // second beginRound() before the first round's loop is torn down
+    // leaves two rAF/interval loops sharing the same lastTs/beltObjects
+    // state, which corrupts belt timing and can end the round almost
+    // instantly (issue #18)
+    if (roundActive) return;
     $('popup').classList.add('hidden');
     renderBoxes(SNIPPETS[roundIdx]);
     beginRound();
