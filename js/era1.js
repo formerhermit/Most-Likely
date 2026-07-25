@@ -12,14 +12,44 @@
 'use strict';
 
 const Era1 = (() => {
-  /* firstRound..lastRound (0-based) → concurrency, per-object window, round cap */
+  /* firstRound..lastRound (0-based) → concurrency, per-object fall-off window */
   const PACING = [
-    { upTo: 2,  concurrent: 1, traverse: 55000, cap: 210000 },
-    { upTo: 6,  concurrent: 2, traverse: 32000, cap: 150000 },
-    { upTo: 10, concurrent: 3, traverse: 18000, cap: 100000 }
+    { upTo: 2,  concurrent: 1, traverse: 55000 },
+    { upTo: 6,  concurrent: 2, traverse: 32000 },
+    { upTo: 10, concurrent: 3, traverse: 18000 }
   ];
   const SPAWN_STAGGER_MS = 1500;
   const FIRST_SPAWN_DELAY_MS = 600;
+
+  /* The round clock is not a padded ceiling — it's the exact time the belt
+     needs to fully clear (every object either filed or fallen) if the
+     player never touches it at all. Simulating the same spawn/capacity
+     rules the live tick() loop uses means a hands-off round always ends
+     exactly as the clock hits zero, instead of a fixed cap that runs on
+     long after the belt has actually emptied (issue: reported timer
+     mismatch, clock read 3:30 but the belt was empty by ~2:30). */
+  function simulateRoundDuration(beltLength, p) {
+    let time = FIRST_SPAWN_DELAY_MS;
+    let lastSpawnTime = -Infinity;
+    let fallOffTimes = [];
+    let spawned = 0;
+    while (spawned < beltLength) {
+      fallOffTimes = fallOffTimes.filter(t => t > time);
+      if (fallOffTimes.length < p.concurrent && time >= lastSpawnTime + SPAWN_STAGGER_MS) {
+        fallOffTimes.push(time + p.traverse);
+        lastSpawnTime = time;
+        spawned++;
+        continue;
+      }
+      // only the stagger deadline still ahead of `time` can be the
+      // limiting event — a stagger already satisfied but blocked purely
+      // by capacity must not re-select itself forever
+      const nextStagger = lastSpawnTime + SPAWN_STAGGER_MS;
+      const nextFallOff = fallOffTimes.length ? Math.min(...fallOffTimes) : Infinity;
+      time = nextStagger > time ? Math.min(nextStagger, nextFallOff) : nextFallOff;
+    }
+    return Math.max(...fallOffTimes);
+  }
 
   let roundIdx = 0;
   let pacing = PACING[0];
@@ -159,7 +189,7 @@ const Era1 = (() => {
     $('belt-surface').innerHTML = '';
     lastTs = 0;
 
-    roundEndsAt = performance.now() + pacing.cap;
+    roundEndsAt = performance.now() + simulateRoundDuration(snip.belt.length, pacing);
     clockId = setInterval(() => {
       const left = Math.max(0, roundEndsAt - performance.now());
       setClock(left);
