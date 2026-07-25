@@ -42,8 +42,8 @@
     phase.classList.remove('show');
     phase.textContent = '';
     showScreen('screen-grid');
-    typeText(caption, 'billions of units, all running the same exercise.');
-    // one room among billions — then zoom into it
+    typeText(caption, 'millions of nodes, all running the same exercise.');
+    // one room among millions — then zoom into it
     const target = grid.children[41];
     setTimeout(() => {
       target.classList.add('you');
