@@ -337,7 +337,9 @@ button { font-family: inherit; cursor: pointer; }
 }
 .popup-card {
   position: relative;
-  width: min(520px, 90vw);
+  width: min(560px, 92vw);
+  max-height: 90vh;
+  overflow-y: auto;
   background: var(--paper);
   border-radius: 6px;
   padding: 34px 30px 26px;
@@ -361,13 +363,14 @@ button { font-family: inherit; cursor: pointer; }
 }
 .popup-image {
   display: block;
-  width: 100%;
-  height: 260px;
-  object-fit: cover;
-  object-position: center top;
+  width: auto;
+  max-width: 100%;
+  height: auto;
+  max-height: 56vh;
+  object-fit: contain;
   border-radius: 4px;
   box-shadow: 0 0 0 1px rgba(138, 98, 66, 0.3), 0 6px 16px rgba(0,0,0,0.2);
-  margin-bottom: 18px;
+  margin: 0 auto 18px;
   background: var(--cream);
 }
 #popup-text { margin-bottom: 10px; font-size: 17px; line-height: 1.5; }

@@ -25,6 +25,12 @@ const Era1 = (() => {
   const ROLL_IN_DURATION_MS = 900;   // time for one object to slide to rest
   const REST_START_PCT = 0.46;       // frontmost resting spot — "about halfway"
   const REST_GAP_PCT = 0.11;         // spacing between resting objects
+  const FALL_OVERSHOOT_PX = 26;      // how far past the belt's edge an object
+                                      // travels before it's considered gone —
+                                      // matches #belt-end's width (issue #23:
+                                      // objects used to travel 60px past the
+                                      // edge, well into the white beyond the
+                                      // belt, before disappearing)
 
   let roundIdx = 0;
   let beltObjects = [];         // {objId, el, state}  state: queued|resting|held|releasing|gone
@@ -226,7 +232,7 @@ const Era1 = (() => {
      time, while the ones already closer to the end arrive sooner. */
   function releaseBelt() {
     const surface = $('belt-surface');
-    const endLeft = surface.clientWidth + 60;
+    const endLeft = surface.clientWidth + FALL_OVERSHOOT_PX;
     const totalDuration = Math.max(50, roundEndsAt - performance.now());
     const resting = beltObjects.filter(item => item.state === 'resting');
     if (!resting.length) return;
@@ -244,7 +250,7 @@ const Era1 = (() => {
      the round deadline rather than matching the shared belt speed exactly. */
   function startReleaseFor(item, endLeftArg, durationArg) {
     const surface = $('belt-surface');
-    const endLeft = endLeftArg !== undefined ? endLeftArg : surface.clientWidth + 60;
+    const endLeft = endLeftArg !== undefined ? endLeftArg : surface.clientWidth + FALL_OVERSHOOT_PX;
     const duration = Math.max(50, durationArg !== undefined ? durationArg : roundEndsAt - performance.now());
     item.state = 'releasing';
     void item.el.offsetWidth;   // flush so the frozen/rest position is committed first
