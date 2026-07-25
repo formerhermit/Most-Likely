@@ -1,6 +1,8 @@
 /* MOST LIKELY — session state
-   The association table is the whole game. Weights only rise; repeats are
-   blocked, never re-counted. Nothing persists, nothing is sent anywhere. */
+   The association table is the whole game. Weights only rise: filing the
+   same object into the same box again stacks the weight higher instead of
+   being blocked — repetition is itself a stronger training signal. Nothing
+   persists, nothing is sent anywhere. */
 
 'use strict';
 
@@ -26,13 +28,14 @@ function resetState() {
   State.era2 = { results: [], strikes: 0, unnoticedN: null, newspaperRead: false, peakAccuracy: 0 };
 }
 
-/* Returns 'placed' or 'blocked'. Weights never decrease; a repeat of an
-   existing pair is blocked outright. */
+/* Increments the pair's weight and returns the new value. A return of 1
+   means this is the first time the pair has been filed (new chip should be
+   created); anything higher means it's a repeat (existing chip should be
+   reinforced, not duplicated). Weights never decrease. */
 function addAssociation(objId, boxId) {
   const row = State.associations[objId] || (State.associations[objId] = {});
-  if (row[boxId]) return 'blocked';
-  row[boxId] = 1;
-  return 'placed';
+  row[boxId] = (row[boxId] || 0) + 1;
+  return row[boxId];
 }
 
 function associationCount(objId) {

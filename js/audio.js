@@ -120,8 +120,6 @@ const Audio2 = (() => {
     isMuted: () => muted,
     /* soft "filed" blip */
     blip() { tone(660, 0.09, { type: 'square', gain: 0.06 }); tone(990, 0.12, { type: 'square', gain: 0.05, at: 0.06 }); },
-    /* blocked placement */
-    buzz() { tone(160, 0.18, { type: 'sawtooth', gain: 0.07 }); tone(110, 0.16, { type: 'sawtooth', gain: 0.06, at: 0.02 }); },
     /* QC thumbs */
     yes() { tone(523, 0.1, { type: 'triangle', gain: 0.12 }); tone(784, 0.16, { type: 'triangle', gain: 0.12, at: 0.09 }); },
     no() { tone(220, 0.22, { type: 'triangle', gain: 0.12 }); tone(185, 0.26, { type: 'triangle', gain: 0.1, at: 0.12 }); },

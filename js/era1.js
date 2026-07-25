@@ -1,6 +1,8 @@
 /* MOST LIKELY — Era 1: Training
    Popup (untimed) → boxes reveal → belt + round clock → drag to file.
-   First placement free; repeats blocked; fall-offs silent.
+   An object can be filed into the same box more than once — each repeat
+   stacks that pair's weight higher (shown as a ×N badge on the chip)
+   instead of being blocked. Fall-offs are silent.
 
    Pacing ramps up over the session (issue #3): early rounds send one object
    at a time with a long filing window, later rounds run two then three
@@ -97,16 +99,31 @@ const Era1 = (() => {
       box.appendChild(chips);
       // cross-round persistence: earlier filings sit in the box already
       objectsInBox(boxId).forEach(objId => {
-        chips.appendChild(makeChip(objId));
+        chips.appendChild(makeChip(objId, boxId));
       });
       grid.appendChild(box);
     });
   }
 
-  function makeChip(objId) {
-    const c = el('span', 'chip', OBJECTS[objId].e);
+  function makeChip(objId, boxId) {
+    const weight = boxesFor(objId)[boxId] || 1;
+    const c = el('span', 'chip');
     c.dataset.obj = objId;
+    c.appendChild(el('span', 'chip-e', OBJECTS[objId].e));
+    if (weight > 1) c.appendChild(el('span', 'chip-count', '×' + weight));
     return c;
+  }
+
+  function bumpChipCount(chip, weight) {
+    let badge = chip.querySelector('.chip-count');
+    if (!badge) {
+      badge = el('span', 'chip-count');
+      chip.appendChild(badge);
+    }
+    badge.textContent = '×' + weight;
+    chip.classList.remove('bump');
+    void chip.offsetWidth;
+    chip.classList.add('bump');
   }
 
   function beginRound() {
@@ -279,21 +296,19 @@ const Era1 = (() => {
   function attemptPlace(item, boxId) {
     const objId = item.objId;
     const boxEl = document.querySelector('.box[data-box="' + boxId + '"]');
-    const result = addAssociation(objId, boxId);
-    if (result === 'blocked') {
-      // reject animation — blocked, not re-counted, no time cost
-      boxEl.classList.remove('shake');
-      void boxEl.offsetWidth;
-      boxEl.classList.add('shake');
-      Audio2.buzz();
-      return;
-    }
+    const chips = boxEl.querySelector('.box-chips');
+    const weight = addAssociation(objId, boxId);
     // a filed object stops holding up the queue — the next one can come out
     item.resolved = true;
-    const chips = boxEl.querySelector('.box-chips');
-    const chip = makeChip(objId);
-    chip.classList.add('pop');
-    chips.appendChild(chip);
+
+    const existing = chips.querySelector('.chip[data-obj="' + objId + '"]');
+    if (existing) {
+      bumpChipCount(existing, weight);
+    } else {
+      const chip = makeChip(objId, boxId);
+      chip.classList.add('pop');
+      chips.appendChild(chip);
+    }
     boxEl.classList.remove('glow');
     void boxEl.offsetWidth;
     boxEl.classList.add('glow');
