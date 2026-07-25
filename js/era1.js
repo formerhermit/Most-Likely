@@ -6,10 +6,10 @@
 
    Belt mechanic: when the popup closes, every belt object for the snippet
    rolls in from the hatch and comes to rest partway across the belt,
-   spaced out, and stays put. The round clock counts down from 1:00. At
-   0:15 remaining, the belt releases — every object still resting starts
+   spaced out, and stays put. The round clock counts down from 0:30. At
+   0:08 remaining, the belt releases — every object still resting starts
    sliding toward the end at a shared speed, so the one resting furthest
-   back takes exactly the full 15 seconds and the ones ahead of it clear
+   back takes exactly the full 7.5 seconds and the ones ahead of it clear
    sooner. The belt is a direct expression of the clock: nothing moves
    until the release window, and everything is gone by the time it hits
    zero. Fall-offs are silent — no penalty message, the table just gains
@@ -18,8 +18,8 @@
 'use strict';
 
 const Era1 = (() => {
-  const ROUND_DURATION_MS = 60000;
-  const RELEASE_DURATION_MS = 15000;
+  const ROUND_DURATION_MS = 30000;
+  const RELEASE_DURATION_MS = 7500;
   const ROLL_IN_DELAY_MS = 500;      // beat after the popup closes
   const ROLL_IN_STAGGER_MS = 350;    // gap between each object's arrival
   const ROLL_IN_DURATION_MS = 900;   // time for one object to slide to rest

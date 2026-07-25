@@ -95,13 +95,13 @@ Era 1's conveyor is a direct expression of the round clock, not an
 independent timer. When the popup closes, every belt object for the snippet
 rolls in from the hatch and comes to rest partway across the belt, spaced
 out, and stays put — the belt texture itself visibly pauses once everything
-has arrived. The round clock counts down from 1:00. At 0:15 remaining, the
+has arrived. The round clock counts down from 0:30. At 0:08 remaining, the
 belt (and its texture) resumes: every object still resting starts sliding
 toward the end at one **shared speed**, not a shared duration — a CSS
 transition's duration is fixed regardless of distance, so giving every item
 the same duration would make them all arrive together. Computing each item's
 duration from a shared px/ms speed instead means the one resting furthest
-back (the most ground to cover) takes the full remaining 15 seconds, while
+back (the most ground to cover) takes the full remaining 7.5 seconds, while
 closer ones clear sooner. Everything is gone exactly as the clock hits zero.
 Fall-offs are silent — no penalty message, the table just gains nothing from
 that object.
