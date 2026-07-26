@@ -54,9 +54,7 @@ const Era1 = (() => {
     setTimeout(showPopup, 2200);
   }
 
-  function showPopup() {
-    const snip = SNIPPETS[roundIdx];
-    $('era1-round-label').textContent = 'ROUND ' + (roundIdx + 1) + ' / ' + SNIPPETS.length;
+  function renderPopupContent(snip) {
     $('popup-title').textContent = snip.title;
     const img = $('popup-image');
     img.src = snip.image;
@@ -65,10 +63,36 @@ const Era1 = (() => {
     textEl.innerHTML = '';
     snip.text.forEach(line => textEl.appendChild(el('p', '', line)));
     $('popup-source').textContent = 'Source: ' + snip.source;
+  }
+
+  let reviewing = false;   // popup reopened mid-round via the 🔍 button —
+                            // closing it must NOT start a new round (issue #17)
+
+  function showPopup() {
+    reviewing = false;
+    $('era1-round-label').textContent = 'ROUND ' + (roundIdx + 1) + ' / ' + SNIPPETS.length;
+    renderPopupContent(SNIPPETS[roundIdx]);
+    $('btn-popup-close').textContent = 'SORT';
+    $('popup').classList.remove('hidden');
+  }
+
+  /* Lets the player look at the snippet again mid-round without touching
+     the clock, the belt, or anything already filed — purely informational,
+     so it never restarts or pauses the round underneath it. */
+  function reviewSnippet() {
+    if (!roundActive) return;
+    reviewing = true;
+    renderPopupContent(SNIPPETS[roundIdx]);
+    $('btn-popup-close').textContent = 'BACK TO SORTING';
     $('popup').classList.remove('hidden');
   }
 
   function closePopup() {
+    if (reviewing) {
+      reviewing = false;
+      $('popup').classList.add('hidden');
+      return;
+    }
     // guards against a double-click/double-tap on SORT: without this, a
     // second beginRound() before the first round's loop is torn down
     // leaves two timers sharing the same beltObjects state (issue #18)
@@ -153,6 +177,7 @@ const Era1 = (() => {
     roundActive = true;
     released = false;
     $('era1-skip').disabled = false;
+    $('era1-review').disabled = false;
     beltObjects = snip.belt.map(objId => ({ objId, el: null, state: 'queued' }));
     $('belt-surface').innerHTML = '';
     $('belt').classList.remove('paused');
@@ -181,8 +206,10 @@ const Era1 = (() => {
       // is frozen mid-air and its drop hasn't resolved into a box yet, so
       // wiping beltObjects/boxes now would silently lose that placement
       // with no feedback to the player. Deferring to the next tick (up to
-      // 250ms after the drag ends) is imperceptible.
-      if (left <= 0 && !drag) endRound();
+      // 250ms after the drag ends) is imperceptible. Same reasoning for a
+      // review popup open (issue #17) — otherwise the next round's popup
+      // would silently replace it underneath the player.
+      if (left <= 0 && !drag && !reviewing) endRound();
     }, 250);
   }
 
@@ -270,14 +297,16 @@ const Era1 = (() => {
     item.state = 'gone';
     if (item.el) item.el.remove();
     // safety net: if the belt clears before the timer backstop's next
-    // tick, end the round immediately rather than waiting up to 250ms
-    if (roundActive && beltObjects.every(o => o.state === 'gone')) endRound();
+    // tick, end the round immediately rather than waiting up to 250ms —
+    // but not while a review popup is open (see the clock tick above)
+    if (roundActive && !reviewing && beltObjects.every(o => o.state === 'gone')) endRound();
   }
 
   function endRound() {
     if (!roundActive) return;
     roundActive = false;
     $('era1-skip').disabled = true;
+    $('era1-review').disabled = true;
     drag = null;
     // the belt can clear before the natural timer backstop (skip button,
     // or the safety net above) — force the display to zero right away
@@ -418,5 +447,5 @@ const Era1 = (() => {
     endRound();
   }
 
-  return { start, closePopup, skip };
+  return { start, closePopup, skip, reviewSnippet };
 })();

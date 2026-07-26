@@ -164,6 +164,20 @@ reached while an object is being actively dragged, the round defers ending
 until the drop resolves, rather than wiping the boards out from under an
 in-flight placement.
 
+## Reviewing a snippet mid-round
+
+The 🔍 button next to skip (issue #17) reopens the current round's popup
+without restarting anything — purely a memory aid, not a mechanic change.
+It reuses the same popup markup and `closePopup()` path as the initial
+untimed reveal, gated by a `reviewing` flag: closing a review just hides
+the popup, while closing the real pre-round popup still kicks off
+`beginRound()`. The clock and belt keep running underneath exactly as
+before (the popup is just an overlay), so if the round's natural deadline
+lands while the player is reviewing, ending the round is deferred until
+they close it — the same "don't wipe the boards out from under an active
+interaction" guard as the mid-drag case above, just triggered by
+`reviewing` instead of `drag`.
+
 ## Deliberately not in v1
 
 Per the build brief: no relaxed/untimed mode, no aggregate player stats (and
