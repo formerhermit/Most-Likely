@@ -16,9 +16,9 @@ python3 -m http.server 8123    # then http://localhost:8123
 |---|---|
 | `js/data.js` | All content: objects, box labels, the 11 Era 1 snippets, the 9 Era 2 messages, QC slips, the newspaper |
 | `js/state.js` | The association table (weights only rise — a repeat filing stacks the pair's weight instead of being blocked), screen manager, helpers |
-| `js/era1.js` | Training: popup → rest-then-release belt → drag-to-file, cross-round persistence, 5-box nudge |
+| `js/era1.js` | Training: popup → rest-then-release belt of **word tags** → drag-to-file, cross-round persistence, 5-box nudge |
 | `js/qc.js` | Quality Control interlude (instruction tuning) |
-| `js/era2.js` | Inference: options generated from the player's own table, "…" fallback, replies/retry, the unnoticed hallucination, newspaper gating, strikes |
+| `js/era2.js` | Inference: assemble-the-reply — sentence frames with blanks, suggestion chips drawn only from the player's table, "…" fallback, replies/retry, the unnoticed hallucination, newspaper gating, strikes |
 | `js/ending.js` | Deprecation sequence, lights-out grid, personal end screen |
 | `js/audio.js` | SFX synthesized with WebAudio; phase music is three real tracks in `assets/audio/`, crossfaded on phase change |
 | `js/main.js` | Bootstrap, title, opening zoom, debug helpers |
@@ -27,15 +27,23 @@ Design docs: `most-likely-build-reference.md` (design doc + content spec) and
 `most-likely-claude-code-brief.md` (mechanic rules). The build follows the
 brief; one addition made during the build is documented below.
 
-## One mechanic note
+## Words rework (issue #25)
 
-Era 2 options use a per-message **reverse lookup** (`revBoxes` in
-`js/data.js`): for prefix items that are boxes (💋, ⚔️, 🥾…), objects the
-player filed *into* that box contribute their associations. Without it, the
-"strongly trained" messages could never surface their right answer (👑 lives
-on the princess's row, and the prefix only names 🐸 and 💋). It is deliberately
-absent on messages 4 and 6 so the coverage-gap hallucination stays honest, and
-absent on message 8 so the 💀 trap turns only on the player's own filing.
+The belt carries the snippet's own words as paper tags — the popup shows a
+document, the belt shows it tokenized. Emoji survive only where meaning
+wobbles: the group chat belt (💀 😭 🙏) and the 🍪 dialect beat. Era 2 is
+assemble-the-reply: each message's reply is a fixed sentence frame whose
+blanks fill from a suggestion bar, predictive-text style. Candidates come
+*only* from the player's table via three sources per slot (`js/data.js`
+MESSAGES): `direct` (boxes on the anchor's row), `lateral` (belt words
+sharing boxes with the anchor, plus the shared boxes — shared-context
+relatedness), and `boxOnly` (words filed into that box — message 7's empty
+bar when the fighting box was never touched). Slots filter by word class so
+anything offered reads grammatically. Exactly one slot per message is
+graded; the rest are expressive ("cake soup — served hot, of course" gets
+thanked, and is traceable to the player's own filings). Message 8 (💀) is
+deliberately ungraded — the ambiguity is the point, so no reading strikes.
+Full design rationale in `most-likely-rework-spec.md`.
 
 ## No self-pairs on the belt
 

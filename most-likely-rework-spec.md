@@ -1,9 +1,12 @@
 # MOST LIKELY — words rework spec (draft, issue #25)
 
-*Status: DRAFT for review. Nothing here is built. Supersedes the emoji-sequence
-Era 2 in `most-likely-build-reference.md` once approved; Era 1 changes are
-additive. Written against the content as of `main` (post self-pair cleanup,
-post 🙏 trap).*
+*Status: BUILT (first playable). Supersedes the emoji-sequence Era 2 in
+`most-likely-build-reference.md`. Deviations found during the build: message
+2's frame became "your ___ — or you'll get ___" (a/an grammar), message 3's
+first slot anchors on ball with lateral reach so "boots" is offerable (its
+direct anchors only yielded non-thing classes), and the QC framing line was
+skipped (no natural text surface in the QC UI — revisit if templates confuse
+playtesters).*
 
 ## Why
 

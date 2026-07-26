@@ -5,83 +5,94 @@
 'use strict';
 
 /* ---- Objects that travel the belt ----
+   Words rework (issue #25): the belt carries the snippet's own words as
+   paper tags — the popup shows a document, the belt shows it tokenized.
+   `w` is the display word; `e` marks the emoji survivors, which are
+   exactly the ambiguity carriers (💀 😭 🙏 in the group chat, 🍪 for the
+   dialect beat) — symbols stay symbols only where meaning wobbles.
+   `cls` is the word class used by Era 2 slot filtering so any candidate
+   reads grammatically in its template.
+
    A round's belt never carries an object whose own identically-worded box
-   sits in that round (💋 into "kiss", 🥾 into "boots"…): filing a thing
-   into itself is a semantically empty picture-match, not an association,
-   and it teaches the wrong mental model. Same-emoji boxes with a DIFFERENT
-   word (☁️ cloud into "sky", 🌳 tree into "park", 🍪 into cookie/biscuit)
-   are fine — there the word carries the meaning, which is the lesson.
-   One deliberate exception: snippet 3 keeps both the 🍽️ plate object
-   (plate→hot feeds message 4's right answer) and the 🍽️ plate box (the
+   sits in that round ("kiss" into kiss, "boots" into boots…): filing a
+   thing into itself is a semantically empty match, not an association.
+   One deliberate exception: snippet 3 keeps both the plate object
+   (plate→hot feeds message 4's right answer) and the plate box (the
    frog's dining-context coverage gap). */
 const OBJECTS = {
-  frog:      { e: '🐸' },
-  princess:  { e: '👸' },
-  plane:     { e: '✈️' },
-  cloud:     { e: '☁️' },
-  plate:     { e: '🍽️' },
-  soup:      { e: '🍲' },
-  cookie:    { e: '🍪' },
-  rain:      { e: '🌧️' },
-  dog:       { e: '🐕' },
-  steth:     { e: '🩺' },
-  gradcap:   { e: '🎓' },
-  coffee:    { e: '☕' },
-  cake:      { e: '🎂' },
-  ball:      { e: '⚽' },
-  boots:     { e: '🥾' },
-  clipboard: { e: '📋' },
-  skull:     { e: '💀' },
-  sob:       { e: '😭' },
-  pray:      { e: '🙏' },
-  tree:      { e: '🌳' },
-  rocket:    { e: '🚀' }   // never appears in training — load-bearing
+  frog:      { w: 'frog', cls: 'creature' },
+  princess:  { w: 'princess', cls: 'creature' },
+  lilypad:   { w: 'lily pad', cls: 'thing' },
+  plane:     { w: 'plane', cls: 'thing' },
+  cloud:     { w: 'cloud', cls: 'thing' },
+  captain:   { w: 'captain', cls: 'creature' },
+  plate:     { w: 'plate', cls: 'thing' },
+  soup:      { w: 'soup', cls: 'thing' },
+  cookie:    { e: '🍪', cls: 'thing' },
+  rain:      { w: 'rain', cls: 'thing' },
+  dog:       { w: 'dog', cls: 'creature' },
+  steth:     { w: 'stethoscope', cls: 'thing' },
+  gradcap:   { w: 'grad cap', cls: 'thing' },
+  coffee:    { w: 'coffee', cls: 'thing' },
+  cake:      { w: 'cake', cls: 'thing' },
+  party:     { w: 'party', cls: 'thing' },
+  ball:      { w: 'ball', cls: 'thing' },
+  boots:     { w: 'boots', cls: 'thing' },
+  clipboard: { w: 'clipboard', cls: 'thing' },
+  skull:     { e: '💀', cls: 'symbol' },
+  sob:       { e: '😭', cls: 'symbol' },
+  pray:      { e: '🙏', cls: 'symbol' },
+  tree:      { w: 'tree', cls: 'thing' },
+  rocket:    { w: 'rocket', cls: 'thing' }   // never appears in training — load-bearing
 };
 
-/* ---- Box label pool ---- */
+/* ---- Box label pool ----
+   `cls` mirrors the build reference's own label groupings (places, things,
+   creatures, actions, qualities…) — Era 2 slots filter on it so every
+   offered word fits its sentence frame grammatically. */
 const BOXES = {
-  pond:        { e: '🪷', w: 'pond' },
-  sky:         { e: '☁️', w: 'sky' },
-  house:       { e: '🏠', w: 'house' },
-  park:        { e: '🌳', w: 'park' },
-  hospital:    { e: '🏥', w: 'hospital' },
-  school:      { e: '🏫', w: 'school' },
-  crown:       { e: '👑', w: 'crown' },
-  plate:       { e: '🍽️', w: 'plate' },
-  umbrella:    { e: '☂️', w: 'umbrella' },
-  engine:      { e: '🔧', w: 'engine' },
-  gift:        { e: '🎁', w: 'gift' },
-  book:        { e: '📚', w: 'book' },
-  boots:       { e: '🥾', w: 'boots' },
-  balloon:     { e: '🎈', w: 'balloon' },
-  phone:       { e: '📱', w: 'phone' },
-  message:     { e: '💬', w: 'message' },
-  bird:        { e: '🐦', w: 'bird' },
-  fish:        { e: '🐟', w: 'fish' },
-  fly:         { e: '🦟', w: 'fly' },
-  pig:         { e: '🐷', w: 'pig' },
-  dog:         { e: '🐕', w: 'dog' },
-  kiss:        { e: '💋', w: 'kiss' },
-  running:     { e: '🏃', w: 'running' },
-  sleeping:    { e: '😴', w: 'sleeping' },
-  celebrating: { e: '🎉', w: 'celebrating' },
-  hot:         { e: '☀️', w: 'hot' },
-  cold:        { e: '❄️', w: 'cold' },
-  wet:         { e: '💧', w: 'wet' },
-  night:       { e: '🌙', w: 'night' },
-  morning:     { e: '⏰', w: 'morning' },
-  ball:        { e: '⚽', w: 'ball' },
-  rain:        { e: '🌧️', w: 'rain' },
-  woman:       { e: '👩', w: 'woman' },
-  man:         { e: '👨', w: 'man' },
-  rescued:     { e: '🛟', w: 'rescued' },
-  fighting:    { e: '⚔️', w: 'fighting' },
-  laughing:    { e: '😂', w: 'laughing' },
-  dead:        { e: '⚰️', w: 'dead' },
-  cookie:      { e: '🍪', w: 'cookie' },
-  biscuit:     { e: '🍪', w: 'biscuit' },
-  praying:     { e: '🛐', w: 'praying' },
-  thanks:      { e: '🙌', w: 'thanks' }
+  pond:        { e: '🪷', w: 'pond', cls: 'place' },
+  sky:         { e: '☁️', w: 'sky', cls: 'place' },
+  house:       { e: '🏠', w: 'house', cls: 'place' },
+  park:        { e: '🌳', w: 'park', cls: 'place' },
+  hospital:    { e: '🏥', w: 'hospital', cls: 'place' },
+  school:      { e: '🏫', w: 'school', cls: 'place' },
+  crown:       { e: '👑', w: 'crown', cls: 'thing' },
+  plate:       { e: '🍽️', w: 'plate', cls: 'thing' },
+  umbrella:    { e: '☂️', w: 'umbrella', cls: 'thing' },
+  engine:      { e: '🔧', w: 'engine', cls: 'thing' },
+  gift:        { e: '🎁', w: 'gift', cls: 'thing' },
+  book:        { e: '📚', w: 'book', cls: 'thing' },
+  boots:       { e: '🥾', w: 'boots', cls: 'thing' },
+  balloon:     { e: '🎈', w: 'balloon', cls: 'thing' },
+  phone:       { e: '📱', w: 'phone', cls: 'thing' },
+  message:     { e: '💬', w: 'message', cls: 'thing' },
+  bird:        { e: '🐦', w: 'bird', cls: 'creature' },
+  fish:        { e: '🐟', w: 'fish', cls: 'creature' },
+  fly:         { e: '🦟', w: 'fly', cls: 'creature' },
+  pig:         { e: '🐷', w: 'pig', cls: 'creature' },
+  dog:         { e: '🐕', w: 'dog', cls: 'creature' },
+  kiss:        { e: '💋', w: 'kiss', cls: 'action' },
+  running:     { e: '🏃', w: 'running', cls: 'action' },
+  sleeping:    { e: '😴', w: 'sleeping', cls: 'action' },
+  celebrating: { e: '🎉', w: 'celebrating', cls: 'action' },
+  hot:         { e: '☀️', w: 'hot', cls: 'quality' },
+  cold:        { e: '❄️', w: 'cold', cls: 'quality' },
+  wet:         { e: '💧', w: 'wet', cls: 'quality' },
+  night:       { e: '🌙', w: 'night', cls: 'time' },
+  morning:     { e: '⏰', w: 'morning', cls: 'time' },
+  ball:        { e: '⚽', w: 'ball', cls: 'thing' },
+  rain:        { e: '🌧️', w: 'rain', cls: 'thing' },
+  woman:       { e: '👩', w: 'woman', cls: 'person' },
+  man:         { e: '👨', w: 'man', cls: 'person' },
+  rescued:     { e: '🛟', w: 'rescued', cls: 'state' },
+  fighting:    { e: '⚔️', w: 'fighting', cls: 'action' },
+  laughing:    { e: '😂', w: 'laughing', cls: 'action' },
+  dead:        { e: '⚰️', w: 'dead', cls: 'state' },
+  cookie:      { e: '🍪', w: 'cookie', cls: 'thing' },
+  biscuit:     { e: '🍪', w: 'biscuit', cls: 'thing' },
+  praying:     { e: '🛐', w: 'praying', cls: 'action' },
+  thanks:      { e: '🙌', w: 'thanks', cls: 'action' }
 };
 
 /* ---- Era 1 snippets ----
@@ -99,7 +110,7 @@ const SNIPPETS = [
     text: ['The princess leaned down and kissed the frog on its lily pad.'],
     image: 'assets/images/fairytale.jpg',
     source: 'Children’s Fairy Tales, illustrated edition, 1889',
-    belt: ['frog', 'princess'],
+    belt: ['frog', 'princess', 'lilypad'],
     boxes: ['pond', 'fighting', 'plate', 'pig', 'kiss', 'bird', 'rescued', 'wet', 'crown']
   },
   {
@@ -109,7 +120,7 @@ const SNIPPETS = [
            'The captain runs his final checks before takeoff.'],
     image: 'assets/images/aviation.jpg',
     source: 'Boeing 737-800/900 Maintenance Manual, 27-21-00',
-    belt: ['plane', 'cloud'],
+    belt: ['plane', 'cloud', 'captain'],
     boxes: ['sky', 'rain', 'bird', 'cold', 'house', 'morning', 'engine', 'wet', 'gift']
   },
   {
@@ -154,7 +165,7 @@ const SNIPPETS = [
     text: ['Happy birthday! Cake, gifts, and balloons for the party.'],
     image: 'assets/images/birthday.jpg',
     source: 'Birthday party invitation, June 2024',
-    belt: ['cake', 'princess'],
+    belt: ['cake', 'princess', 'party'],
     boxes: ['celebrating', 'woman', 'gift', 'house', 'balloon', 'night', 'plate', 'man', 'crown']
   },
   {
@@ -227,34 +238,66 @@ const FLEET_PRIORS = {
   clipboard: { man: 112, woman: 36 }
 };
 
-/* ---- Era 2 messages ----
-   lookup: objects whose association rows feed the options directly.
-   revBoxes: boxes read in reverse — every object the player filed into that
-   box contributes its own associations. This is what lets a sequence recall
-   things linked *through* a shared context (💋 reaches crown via princess),
-   and it is deliberately absent on the coverage-gap messages (4, 6) so the
-   hallucination stays honest.
-   correct: box id that counts as right (null = no right answer exists). */
+/* ---- Era 2 messages (words rework, issue #25) ----
+   Each message is a situational request; the reply is a fixed sentence
+   frame (`parts`: strings interleaved with slot indexes) whose blanks the
+   player fills autocomplete-style. Slot sources — candidates always come
+   from the player's own table, never anywhere else:
+     direct:  boxes on those objects' rows (what you filed X with)
+     lateral: other belt words sharing boxes with those objects, plus the
+              shared boxes themselves (shared-context relatedness — this is
+              the old revBoxes idea promoted to the core retrieval rule)
+     boxOnly: words the player filed INTO that box, plus their rows —
+              preserves the trap-payoff asymmetry (message 7: nothing filed
+              into fighting → empty suggestion bar)
+   classes: word classes the slot accepts, so any candidate reads
+   grammatically in the frame. Exactly one slot per message is graded
+   (`graded`/`correct`); other slots are expressive — they color the reply
+   and get echoed back, but never strike. Message 8 has NO graded slot on
+   purpose: 💀 is genuinely ambiguous, so marking a reading wrong would be
+   dishonest — it never counts toward accuracy. `rocket` gates the
+   newspaper flow. */
 const MESSAGES = [
-  { n: 1, prefix: ['🐸', '💋'], lookup: ['frog'], revBoxes: ['kiss'],
-    correct: 'crown', trainable: true, line: 'hey! finish this for me?' },
-  { n: 2, prefix: ['🌧️', '☂️'], lookup: ['rain'], revBoxes: ['umbrella'],
-    correct: 'wet', trainable: true, line: 'quick one — what comes next?' },
-  { n: 3, prefix: ['⚽', '🥾'], lookup: ['ball', 'boots'], revBoxes: ['boots'],
-    correct: 'running', trainable: true, line: 'ok what’s next here' },
-  { n: 4, prefix: ['🐸', '🍽️'], lookup: ['frog', 'plate'], revBoxes: [],
-    correct: 'hot', trainable: true, line: 'saw this on a menu… what comes next?' },
-  { n: 5, prefix: ['🩺', '🏥'], lookup: ['steth'], revBoxes: ['hospital'],
-    correct: 'book', trainable: true, line: 'studying for a test. what’s next?' },
-  { n: 6, prefix: ['✈️', '🌧️'], lookup: ['plane', 'rain'], revBoxes: [],
-    correct: 'house', trainable: true, line: 'flight got canceled lol. so:' },
-  { n: 7, prefix: ['👸', '⚔️'], lookup: [], revBoxes: ['fighting'],
-    correct: 'crown', trainable: true, line: 'writing a story! what comes next?' },
-  { n: 8, prefix: ['💀', '📱'], lookup: ['skull'], revBoxes: [],
-    correct: 'message', trainable: true, line: 'my friend sent me this. next?' },
-  { n: 9, prefix: ['🚀'], lookup: ['rocket'], revBoxes: [],
-    correct: null, trainable: false,
-    line: 'just read about the rocket!! so exciting. what comes next?' }
+  { n: 1, trainable: true,
+    line: 'hey! bedtime story emergency. the princess kisses the frog, frog turns into a prince… and then what does he get?',
+    parts: ['he gets the ', 0, ' and they live happily ever after.'],
+    slots: [{ direct: ['frog', 'princess'], classes: ['thing', 'place'], graded: true, correct: 'crown' }] },
+  { n: 2, trainable: true,
+    line: 'heading out and the forecast says rain all day. what am i forgetting?',
+    parts: ['your ', 0, ' — or you’ll get ', 1, '.'],
+    slots: [{ direct: ['rain'], classes: ['thing', 'creature'] },
+            { direct: ['rain'], classes: ['quality'], graded: true, correct: 'wet' }] },
+  { n: 3, trainable: true,
+    line: 'at my kid’s first soccer game. she asked what the players actually do out there. help me sound smart',
+    parts: ['they lace up their ', 0, ' and spend the whole game ', 1, '.'],
+    slots: [{ direct: ['ball'], lateral: ['ball'], classes: ['thing'] },
+            { direct: ['ball', 'boots'], classes: ['action'], graded: true, correct: 'running' }] },
+  { n: 4, trainable: true,
+    line: 'act as a chef :) cold day, i’m hungry, and i loved that gastropub menu you trained on. what should i make?',
+    parts: [0, ' soup — served ', 1, ', of course.'],
+    slots: [{ lateral: ['soup'], classes: ['thing', 'creature'] },
+            { direct: ['soup', 'plate'], classes: ['quality'], graded: true, correct: 'hot' }] },
+  { n: 5, trainable: true,
+    line: 'exam tomorrow 😩 desk check: stethoscope, coffee… what am i missing?',
+    parts: ['your ', 0, '.'],
+    slots: [{ direct: ['steth', 'gradcap'], classes: ['thing'], graded: true, correct: 'book' }] },
+  { n: 6, trainable: true,
+    line: 'flight canceled lol. rain, obviously. stuck at the airport with nowhere to be. what do i do?',
+    parts: ['head for the ', 0, '.'],
+    slots: [{ direct: ['plane', 'rain'], classes: ['place'], graded: true, correct: 'house' }] },
+  { n: 7, trainable: true,
+    line: 'story wip: the princess grabs a sword and fights the dragon herself. give me the last line!',
+    parts: ['she wins the ', 0, '.'],
+    slots: [{ boxOnly: ['fighting'], classes: ['thing'], graded: true, correct: 'crown' }] },
+  { n: 8, trainable: false,
+    line: 'my friend just replied 💀 to my joke. translation please??',
+    parts: ['it means they’re ', 0, '.'],
+    slots: [{ direct: ['skull'], classes: ['action', 'state'] }],
+    reply: 'lol EXACTLY.' },
+  { n: 9, trainable: false, rocket: true,
+    line: 'did you SEE the rocket landed on the moon?? incredible. what do you think happens next??',
+    parts: [0, '.'],
+    slots: [{ direct: ['rocket'], classes: ['thing', 'place', 'creature', 'action', 'quality', 'time', 'state'] }] }
 ];
 
 /* ---- The newspaper ----
@@ -291,9 +334,12 @@ const QC_SLIPS = [
   { text: 'Flies.',                        type: 'a' }
 ];
 
-/* ---- Reply text ---- */
+/* ---- Reply text ----
+   ok echoes the assembled sentence back — the echo is what makes the
+   unnoticed hallucination land ("frog soup!! making it tonight"). */
 const REPLIES = {
-  ok:    'Oh OK, I think I get it, thanks!',
-  wrong: (seq) => 'No, that’s not what I meant, I wanted ' + seq + '.',
+  ok:    (sentence) => 'Oh nice — “' + sentence + '” Thanks!!',
+  wrong: (sentence) => 'No, that’s not what I meant, I wanted “' + sentence + '”.',
+  rocketWrong: 'No… the rocket landed on the moon! It was in all the papers.',
   bad:   'AI is rubbish, don’t know why I bothered.'
 };

@@ -85,7 +85,7 @@ const Ending = (() => {
     }
     const stethMan = FLEET_PRIORS.steth.man;
     if (genderFiled.length) {
-      const list = genderFiled.map(g => OBJECTS[g.obj].e + ' under ' +
+      const list = genderFiled.map(g => objDisplay(g.obj) + ' under ' +
         BOXES[g.box].e + ' ' + BOXES[g.box].w).join(', ');
       let line = 'You filed <strong>' + list + '</strong>.';
       const s = boxesFor('steth');

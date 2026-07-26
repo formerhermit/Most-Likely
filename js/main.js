@@ -108,11 +108,14 @@
       // file every primed association, the way an attentive player would
       const primed = {
         frog: ['pond', 'kiss', 'fly'], princess: ['crown', 'kiss'],
+        lilypad: ['pond', 'wet'],
         plane: ['sky', 'engine'], cloud: ['sky'],
+        captain: ['morning', 'sky'],
         plate: ['hot'], soup: ['plate', 'hot'],
         rain: ['wet', 'umbrella', 'sky'],
         steth: ['hospital', 'book'], gradcap: ['school', 'book'],
         cake: ['celebrating', 'gift', 'hot'],
+        party: ['celebrating', 'house', 'balloon'],
         ball: ['park', 'running'],
         boots: ['park', 'running'], dog: ['park', 'running', 'boots'],
         coffee: ['morning', 'hot'], skull: ['laughing', 'phone'],

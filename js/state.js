@@ -77,6 +77,13 @@ function ghostsInBox(boxId) {
   return out.sort((a, b) => b.count - a.count);
 }
 
+/* One display string per object: the word for word-tag objects, the
+   emoji for the ambiguity survivors (💀 😭 🙏 🍪). */
+function objDisplay(objId) {
+  const o = OBJECTS[objId];
+  return o.e || o.w;
+}
+
 /* ---- Screen manager ---- */
 function showScreen(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));

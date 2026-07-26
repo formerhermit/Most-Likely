@@ -23,8 +23,10 @@ const Era1 = (() => {
   const ROLL_IN_DELAY_MS = 500;      // beat after the popup closes
   const ROLL_IN_STAGGER_MS = 350;    // gap between each object's arrival
   const ROLL_IN_DURATION_MS = 900;   // time for one object to slide to rest
-  const REST_START_PCT = 0.46;       // frontmost resting spot — "about halfway"
-  const REST_GAP_PCT = 0.11;         // spacing between resting objects
+  const REST_START_PCT = 0.5;        // frontmost resting spot — "about halfway"
+  const REST_GAP_PCT = 0.13;         // spacing between resting objects
+                                      // (widened for word tags, which are
+                                      // broader than the old emoji)
   const FALL_OVERSHOOT_PX = 26;      // how far past the belt's edge an object
                                       // travels before it's considered gone —
                                       // matches #belt-end's width (issue #23:
@@ -143,11 +145,17 @@ const Era1 = (() => {
     });
   }
 
+  /* word-tag objects render as small text chips, emoji survivors as glyphs */
+  function chipFace(objId) {
+    const o = OBJECTS[objId];
+    return o.e ? el('span', 'chip-e', o.e) : el('span', 'chip-w', o.w);
+  }
+
   function makeChip(objId, boxId) {
     const weight = boxesFor(objId)[boxId] || 1;
     const c = el('span', 'chip');
     c.dataset.obj = objId;
-    c.appendChild(el('span', 'chip-e', OBJECTS[objId].e));
+    c.appendChild(chipFace(objId));
     if (weight > 1) c.appendChild(el('span', 'chip-count', '×' + weight));
     return c;
   }
@@ -155,7 +163,7 @@ const Era1 = (() => {
   function makeGhostChip(objId, count) {
     const c = el('span', 'chip ghost');
     c.dataset.obj = objId;
-    c.appendChild(el('span', 'chip-e', OBJECTS[objId].e));
+    c.appendChild(chipFace(objId));
     c.appendChild(el('span', 'chip-count', '×' + count));
     return c;
   }
@@ -231,7 +239,11 @@ const Era1 = (() => {
 
   function spawnAndRest(item, index) {
     if (item.state !== 'queued') return;
-    const node = el('div', 'belt-obj', OBJECTS[item.objId].e);
+    const o = OBJECTS[item.objId];
+    // words ride the belt as paper tags; the ambiguity emoji stay glyphs
+    const node = o.e
+      ? el('div', 'belt-obj', o.e)
+      : el('div', 'belt-obj word', o.w);
     node.dataset.obj = item.objId;
     $('belt-surface').appendChild(node);
     item.el = node;
@@ -388,9 +400,10 @@ const Era1 = (() => {
 
   function moveTo(node, x, y) {
     const surface = $('belt-surface').getBoundingClientRect();
+    // center on the cursor whatever the tag's width (word tags vary)
     node.style.transform =
-      'translate(' + (x - surface.left - node.offsetLeft - 26) + 'px,' +
-      (y - surface.top - 26) + 'px) scale(1.15)';
+      'translate(' + (x - surface.left - node.offsetLeft - node.offsetWidth / 2) + 'px,' +
+      (y - surface.top - node.offsetHeight / 2) + 'px) scale(1.15)';
   }
 
   function dropTarget(x, y) {
@@ -428,7 +441,7 @@ const Era1 = (() => {
     // soft nudge at the 5th distinct box — non-blocking, no cost
     if (associationCount(objId) === 5 && !State.toastShown[objId]) {
       State.toastShown[objId] = true;
-      toast('Filing ' + OBJECTS[objId].e + ' into 5 boxes — are you sure?');
+      toast('Filing ' + objDisplay(objId) + ' into 5 boxes — are you sure?');
     }
   }
 
