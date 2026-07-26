@@ -45,6 +45,11 @@ thanked, and is traceable to the player's own filings). Message 8 (💀) is
 deliberately ungraded — the ambiguity is the point, so no reading strikes.
 Full design rationale in `most-likely-rework-spec.md`.
 
+A "they're typing…" indicator (`showTyping`/`hideTyping` in `js/era2.js`)
+covers every wait for their reply — without it, the ~1–3s gaps between
+sending and the next bubble had no feedback at all and read as the game
+having frozen.
+
 ## No self-pairs on the belt
 
 A round's belt never carries an object whose own identically-worded box sits

@@ -219,6 +219,7 @@ const Era2 = (() => {
     $('era2-send').disabled = true;
     Audio2.send();
     addBubble('me', sent);
+    showTyping();
 
     const msg = currentMsg;
     const gIdx = msg.slots.findIndex(s => s.graded);
@@ -229,6 +230,7 @@ const Era2 = (() => {
     if (isRetry) {
       // the freebie: never counts, whatever was picked
       setTimeout(() => {
+        hideTyping();
         addBubble('them', wasCorrect ? REPLIES.ok(sent) : REPLIES.bad, false);
         advance();
       }, 1000);
@@ -257,6 +259,7 @@ const Era2 = (() => {
     }
 
     setTimeout(() => {
+      hideTyping();
       if (msg.rocket) {
         // the player just read the answer in the newspaper — and it still
         // isn't in the suggestions, because it was never in training
@@ -292,7 +295,12 @@ const Era2 = (() => {
 
   function advance() {
     const done = State.era2.strikes >= 3;
+    // a beat of "typing" while they compose their next message — without
+    // it, this 1.8s gap is a dead, unresponsive-looking pause right after
+    // their last reply
+    showTyping();
     setTimeout(() => {
+      hideTyping();
       if (done) { Ending.deprecate(); return; }
       msgIdx++;
       // the newspaper lands on the desk midway through the shift
@@ -334,6 +342,26 @@ const Era2 = (() => {
     text.split('\n').forEach(line => b.appendChild(el('div', '', line)));
     log.appendChild(b);
     log.scrollTop = log.scrollHeight;
+  }
+
+  /* a visible "they're typing" beat during every wait for their reply —
+     without it, the multi-second gaps between sending and the next bubble
+     look identical to the game having frozen */
+  function showTyping() {
+    if ($('typing-indicator')) return;
+    const log = $('chat-log');
+    const b = el('div', 'bubble them typing');
+    b.id = 'typing-indicator';
+    b.appendChild(el('span', 'typing-dot'));
+    b.appendChild(el('span', 'typing-dot'));
+    b.appendChild(el('span', 'typing-dot'));
+    log.appendChild(b);
+    log.scrollTop = log.scrollHeight;
+  }
+
+  function hideTyping() {
+    const t = $('typing-indicator');
+    if (t) t.remove();
   }
 
   return { start, send };

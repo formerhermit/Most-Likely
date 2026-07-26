@@ -282,7 +282,7 @@ const MESSAGES = [
     slots: [{ direct: ['ball'], lateral: ['ball'], classes: ['thing'] },
             { direct: ['ball', 'boots'], classes: ['action'], graded: true, correct: 'running' }] },
   { n: 4, trainable: true,
-    line: 'act as a chef :) cold day, i’m hungry, and i loved that gastropub menu you trained on. what should i make?',
+    line: 'act as a chef :) cold day, i’m hungry, and i loved that gastropub place you told me about last time. what should i make?',
     parts: [0, ' soup — served ', 1, ', of course.'],
     slots: [{ lateral: ['soup'], classes: ['thing', 'creature'] },
             { direct: ['soup', 'plate'], classes: ['quality'], graded: true, correct: 'hot' }] },
