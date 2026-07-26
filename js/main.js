@@ -111,7 +111,7 @@
         lilypad: ['pond', 'wet'],
         plane: ['sky', 'engine'], cloud: ['sky'],
         captain: ['morning', 'sky'],
-        plate: ['hot'], soup: ['plate', 'hot'],
+        plate: ['hot'], soup: ['bowl', 'hot'],
         rain: ['wet', 'umbrella', 'sky'],
         steth: ['hospital', 'book'], gradcap: ['school', 'book'],
         cake: ['celebrating', 'gift', 'hot'],

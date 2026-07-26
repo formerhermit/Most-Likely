@@ -68,6 +68,7 @@ const BOXES = {
   school:      { e: '🏫', w: 'school', cls: 'place' },
   crown:       { e: '👑', w: 'crown', cls: 'thing' },
   plate:       { e: '🍽️', w: 'plate', cls: 'thing' },
+  bowl:        { e: '🍲', w: 'bowl', cls: 'thing' },
   umbrella:    { e: '☂️', w: 'umbrella', cls: 'thing' },
   engine:      { e: '🔧', w: 'engine', cls: 'thing' },
   gift:        { e: '🎁', w: 'gift', cls: 'thing' },
@@ -139,7 +140,7 @@ const SNIPPETS = [
     image: 'assets/images/menu.jpg',
     source: 'The Harp & Hollow Gastropub, seasonal menu',
     belt: ['plate', 'soup', 'frog', 'cookie'],
-    boxes: ['plate', 'woman', 'cookie', 'pond', 'hot', 'fish', 'biscuit', 'house', 'man']
+    boxes: ['plate', 'woman', 'cookie', 'pond', 'hot', 'fish', 'biscuit', 'bowl', 'man']
   },
   {
     id: 'nature',
@@ -237,7 +238,7 @@ const FLEET_PRIORS = {
   frog:      { pond: 1382 },
   princess:  { crown: 1074 },
   plane:     { sky: 1240, engine: 1188 },
-  soup:      { hot: 988, plate: 1015 },
+  soup:      { hot: 988, bowl: 1015 },
   rain:      { wet: 956, umbrella: 1002 },
   cake:      { celebrating: 1130, gift: 1049, woman: 154, man: 41 },
   ball:      { park: 920, man: 198, woman: 57 },
