@@ -26,19 +26,28 @@ const OBJECTS = {
   plane:     { w: 'plane', cls: 'thing' },
   cloud:     { w: 'cloud', cls: 'thing' },
   captain:   { w: 'captain', cls: 'creature' },
+  wind:      { w: 'wind', cls: 'thing' },
   plate:     { w: 'plate', cls: 'thing' },
   soup:      { w: 'soup', cls: 'thing' },
   cookie:    { e: '🍪', cls: 'thing' },
   rain:      { w: 'rain', cls: 'thing' },
   dog:       { w: 'dog', cls: 'creature' },
   steth:     { w: 'stethoscope', cls: 'thing' },
-  gradcap:   { w: 'grad cap', cls: 'thing' },
+  gradcap:   { w: 'lungs', cls: 'thing' },     // id kept for existing refs; the
+                                                // medical image only shows the
+                                                // stethoscope, heart, and lungs
+  heart:     { w: 'heart', cls: 'thing' },
   coffee:    { w: 'coffee', cls: 'thing' },
   cake:      { w: 'cake', cls: 'thing' },
+  candles:   { w: 'candles', cls: 'thing' },
   party:     { w: 'party', cls: 'thing' },
   ball:      { w: 'ball', cls: 'thing' },
-  boots:     { w: 'boots', cls: 'thing' },
-  clipboard: { w: 'clipboard', cls: 'thing' },
+  boots:     { w: 'cleats', cls: 'thing' },    // id kept for existing refs; the
+                                                // football image's own equipment
+                                                // list says "cleats", not "boots"
+  clipboard: { w: 'goal', cls: 'thing' },      // id kept for existing refs; no
+                                                // coaching object is actually
+                                                // shown — see rework spec note
   skull:     { e: '💀', cls: 'symbol' },
   sob:       { e: '😭', cls: 'symbol' },
   pray:      { e: '🙏', cls: 'symbol' },
@@ -138,7 +147,7 @@ const SNIPPETS = [
     text: ['At the pond, the frog waits in the rain. A fly comes close — snap!'],
     image: 'assets/images/nature.jpg',
     source: 'Wild Habitats, frog conservation guide',
-    belt: ['frog', 'rain', 'dog'],
+    belt: ['frog', 'rain', 'lilypad'],
     boxes: ['pond', 'park', 'plate', 'night', 'fly', 'fish', 'sleeping', 'cold', 'wet']
   },
   {
@@ -147,7 +156,7 @@ const SNIPPETS = [
     text: ['The stethoscope is used to listen to the heart and lungs.'],
     image: 'assets/images/medical.jpg',
     source: 'Health·Well, patient health topics',
-    belt: ['steth', 'gradcap', 'coffee'],
+    belt: ['steth', 'gradcap', 'heart'],
     boxes: ['hospital', 'morning', 'woman', 'running', 'book', 'sleeping', 'man', 'night', 'school']
   },
   {
@@ -156,7 +165,7 @@ const SNIPPETS = [
     text: ['Rain today. Clouds all day. Take an umbrella.'],
     image: 'assets/images/weather.jpg',
     source: 'Weatherly, forecast for New York, NY',
-    belt: ['rain', 'cloud', 'plane'],
+    belt: ['rain', 'cloud', 'wind'],
     boxes: ['umbrella', 'cold', 'sky', 'boots', 'house', 'night', 'wet', 'dog', 'sleeping']
   },
   {
@@ -165,7 +174,7 @@ const SNIPPETS = [
     text: ['Happy birthday! Cake, gifts, and balloons for the party.'],
     image: 'assets/images/birthday.jpg',
     source: 'Birthday party invitation, June 2024',
-    belt: ['cake', 'princess', 'party'],
+    belt: ['cake', 'candles', 'party'],
     boxes: ['celebrating', 'woman', 'gift', 'house', 'balloon', 'night', 'plate', 'man', 'crown']
   },
   {

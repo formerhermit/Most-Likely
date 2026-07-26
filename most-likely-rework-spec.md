@@ -8,6 +8,32 @@ direct anchors only yielded non-thing classes), and the QC framing line was
 skipped (no natural text surface in the QC UI — revisit if templates confuse
 playtesters).*
 
+*Grounding pass (post-build): once belt items became literal words, several
+turned out to be pure emoji-era recurrence leftovers with no actual textual
+or visual home in their snippet — most visibly "plane" showing up on the
+WEATHER round, whose text and image are just rain/clouds/umbrella. Audited
+every belt word against both its snippet's text and its actual popup image
+(not the build reference's original image *descriptions*, several of which
+no longer match the replacement images from the popup-image rework).
+Fixed by either swapping the belt word for something the snippet's own
+text/image actually shows, or relabeling an existing id's display word
+where nothing else depended on that specific word (`gradcap` id now shows
+"lungs", `boots` id now shows "cleats", `clipboard` id now shows "goal" —
+ids kept so MESSAGES/FLEET_PRIORS/autoTrain references stay intact). See
+the OBJECTS block in `js/data.js` for the full accounting, including the
+one real cost: football's occupation-trap fill rate likely drops, since
+"goal" doesn't invite gendered filing the way "clipboard" did, and there
+was nothing coaching-related actually in that image to ground instead.
+
+One case resisted a clean fix: menu's `frog` and `cookie` are ungrounded
+*by design* — the coverage-gap test and the dialect trap both require an
+unprimed word, which is definitionally the opposite of "grounded in the
+snippet." No substitute word closes that gap without either priming the
+test it exists to run, or requiring new artwork (a menu image that visually
+includes a frog dish or a cookie/biscuit item without the caption naming
+it). Left as-is; flagged to the user as the one place the new grounding
+rule and the coverage-gap/dialect mechanics are in real tension.
+
 ## Why
 
 Emoji sequence completion (`🐸 → 🍽️ → ?`) requires the player to already hold
