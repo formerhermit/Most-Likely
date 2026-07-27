@@ -31,7 +31,7 @@ brief; one addition made during the build is documented below.
 
 The belt carries the snippet's own words as paper tags — the popup shows a
 document, the belt shows it tokenized. Emoji survive only where meaning
-wobbles: the group chat belt (💀 😭 🙏) and the 🍪 dialect beat. Era 2 is
+wobbles: the group chat belt (💀 😭 🙏). Era 2 is
 assemble-the-reply: each message's reply is a fixed sentence frame whose
 blanks fill from a suggestion bar, predictive-text style. Candidates come
 *only* from the player's table via three sources per slot (`js/data.js`
@@ -67,6 +67,9 @@ meaning, which is the lesson. One deliberate exception: snippet 3 keeps both
 the 🍽️ plate object (plate→hot feeds message 4's right answer) and the 🍽️
 plate box (the frog's dining-context coverage gap).
 
+(The 🍪 cookie/biscuit dialect trap that used to live here is gone — see
+"Every belt word must be in its own snippet's text", below.)
+
 ## Phase music
 
 Three tracks in `assets/audio/`, one per phase, crossfaded via
@@ -84,7 +87,7 @@ Console only, not reachable from the UI:
 
 ```js
 ML_DEBUG.autoTrain()      // file every primed association
-ML_DEBUG.autoTrain(true)  // …plus broad/trap filings (dialect pairs, traps)
+ML_DEBUG.autoTrain(true)  // …plus broad/trap filings
 ML_DEBUG.toQC()           // jump to Quality Control
 ML_DEBUG.toEra2()         // jump to inference
 ML_DEBUG.toEnd()          // jump to deprecation + end screen
@@ -109,6 +112,30 @@ box readings use different symbols from 🙏 itself (🛐 praying, 🙌 thanks),
 not a repeated glyph, so the pair doesn't read as a UI duplicate. Revealed
 at the end screen the same way the 💀 trap is, and — like every trap in
 this game — never seeded in `FLEET_PRIORS`.
+
+## Every belt word must be in its own snippet's text
+
+A tighter version of the grounding rule above: it's not enough for a belt
+word to be *plausible* for the scene (the popup image showing a plate under
+a dish, say) — it has to literally appear in that snippet's own `text`
+array. Anything grounded only by the image reads as a non sequitur once
+it's a real English word instead of a picture (the exact bug that flagged
+this: "plane" showing up on the WEATHER round). Eight belt words that had
+only image-grounding got their snippet's text lightly extended to actually
+say them (menu → "...on the side of your plate", nature → "on a lily pad",
+weather → "clouds and wind", birthday → "cake with candles", football →
+"lace up their cleats", coffee shop → "cake on a small plate", dog walk →
+"chasing a ball around the trees").
+
+This killed the 🍪 cookie/biscuit dialect trap outright: coverage-gap and
+trap words are *supposed* to be unprimed (that's the whole test), which is
+definitionally incompatible with "must be in the text" — there's no belt
+word that can satisfy both at once. Removed cookie from the menu belt and
+deleted the cookie/biscuit boxes entirely (same fate as the old 🍟
+fries/chips pair). The menu round's other coverage gap — frog, with no
+textual prompting, testing whether the player files it into a dining
+box — stays exactly as unprimed as before; it just no longer has a second,
+weaker trap sitting next to it.
 
 ## Fleet priors
 

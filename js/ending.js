@@ -110,13 +110,6 @@ const Ending = (() => {
       add('You filed 👸 under <strong>' + which.join(' and ') + '</strong>. The story never said.');
     }
 
-    const cookieBoxes = ['cookie', 'biscuit'].filter(b => boxesFor('cookie')[b]);
-    if (cookieBoxes.length === 1) {
-      add('You filed 🍪 into one box: <strong>' + cookieBoxes[0] + '</strong>. Some players filed it into two.');
-    } else if (cookieBoxes.length === 2) {
-      add('You filed 🍪 into <strong>both</strong> boxes. It cost you time. It’s also coverage most players don’t have.');
-    }
-
     // 🙏 reads as prayer to some readers and as thanks (or a high-five) to
     // others — a real, documented split, not a generational one like 💀
     const prayTrap = ['praying', 'thanks'].filter(b => boxesFor('pray')[b]);

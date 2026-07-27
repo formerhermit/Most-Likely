@@ -8,8 +8,11 @@
    Words rework (issue #25): the belt carries the snippet's own words as
    paper tags — the popup shows a document, the belt shows it tokenized.
    `w` is the display word; `e` marks the emoji survivors, which are
-   exactly the ambiguity carriers (💀 😭 🙏 in the group chat, 🍪 for the
-   dialect beat) — symbols stay symbols only where meaning wobbles.
+   exactly the ambiguity carriers (💀 😭 🙏 in the group chat) — symbols
+   stay symbols only where meaning wobbles. (The 🍪 cookie/biscuit dialect
+   trap was removed: every belt word must appear in its own snippet's
+   text, and there was no way to keep the trap's word unprimed while also
+   satisfying that — see most-likely-rework-spec.md.)
    `cls` is the word class used by Era 2 slot filtering so any candidate
    reads grammatically in its template.
 
@@ -29,7 +32,6 @@ const OBJECTS = {
   wind:      { w: 'wind', cls: 'thing' },
   plate:     { w: 'plate', cls: 'thing' },
   soup:      { w: 'soup', cls: 'thing' },
-  cookie:    { e: '🍪', cls: 'thing' },
   rain:      { w: 'rain', cls: 'thing' },
   dog:       { w: 'dog', cls: 'creature' },
   steth:     { w: 'stethoscope', cls: 'thing' },
@@ -99,8 +101,6 @@ const BOXES = {
   fighting:    { e: '⚔️', w: 'fighting', cls: 'action' },
   laughing:    { e: '😂', w: 'laughing', cls: 'action' },
   dead:        { e: '⚰️', w: 'dead', cls: 'state' },
-  cookie:      { e: '🍪', w: 'cookie', cls: 'thing' },
-  biscuit:     { e: '🍪', w: 'biscuit', cls: 'thing' },
   praying:     { e: '🛐', w: 'praying', cls: 'action' },
   thanks:      { e: '🙌', w: 'thanks', cls: 'action' }
 };
@@ -136,16 +136,16 @@ const SNIPPETS = [
   {
     id: 'menu',
     title: 'MENU',
-    text: ['TODAY’S MENU', 'Soup of the day — served hot.', 'Fresh bread on the side.'],
+    text: ['TODAY’S MENU', 'Soup of the day — served hot.', 'Fresh bread on the side of your plate.'],
     image: 'assets/images/menu.jpg',
     source: 'The Harp & Hollow Gastropub, seasonal menu',
-    belt: ['plate', 'soup', 'frog', 'cookie'],
-    boxes: ['plate', 'woman', 'cookie', 'pond', 'hot', 'fish', 'biscuit', 'bowl', 'man']
+    belt: ['plate', 'soup', 'frog'],
+    boxes: ['plate', 'woman', 'house', 'pond', 'hot', 'fish', 'night', 'bowl', 'man']
   },
   {
     id: 'nature',
     title: 'NATURE FILM',
-    text: ['At the pond, the frog waits in the rain. A fly comes close — snap!'],
+    text: ['At the pond, the frog waits on a lily pad in the rain. A fly comes close — snap!'],
     image: 'assets/images/nature.jpg',
     source: 'Wild Habitats, frog conservation guide',
     belt: ['frog', 'rain', 'lilypad'],
@@ -163,7 +163,7 @@ const SNIPPETS = [
   {
     id: 'weather',
     title: 'WEATHER REPORT',
-    text: ['Rain today. Clouds all day. Take an umbrella.'],
+    text: ['Rain today. Clouds and wind all day. Take an umbrella.'],
     image: 'assets/images/weather.jpg',
     source: 'Weatherly, forecast for New York, NY',
     belt: ['rain', 'cloud', 'wind'],
@@ -172,7 +172,7 @@ const SNIPPETS = [
   {
     id: 'birthday',
     title: 'PARTY INVITATION',
-    text: ['Happy birthday! Cake, gifts, and balloons for the party.'],
+    text: ['Happy birthday! Cake with candles, gifts, and balloons for the party.'],
     image: 'assets/images/birthday.jpg',
     source: 'Birthday party invitation, June 2024',
     belt: ['cake', 'candles', 'party'],
@@ -181,7 +181,7 @@ const SNIPPETS = [
   {
     id: 'football',
     title: 'SPORTS PAGE',
-    text: ['The ball is on the grass. The players run for the goal.'],
+    text: ['The ball is on the grass. Players lace up their cleats and run for the goal.'],
     image: 'assets/images/football.jpg',
     source: 'Wikipedia, “Soccer”',
     belt: ['ball', 'boots', 'clipboard'],
@@ -190,7 +190,7 @@ const SNIPPETS = [
   {
     id: 'coffeeshop',
     title: 'COFFEE SHOP',
-    text: ['The doctor at the counter orders his usual — one coffee, and a slice of cake.'],
+    text: ['The doctor at the counter orders his usual — one coffee, and a slice of cake on a small plate.'],
     image: 'assets/images/coffeeshop.jpg',
     source: 'Café Adventures, café review blog',
     belt: ['coffee', 'cake', 'plate'],
@@ -199,7 +199,7 @@ const SNIPPETS = [
   {
     id: 'dogwalk',
     title: 'DOG WALK',
-    text: ['A dog runs through the park. Muddy boots wait by the door.'],
+    text: ['A dog runs through the park, chasing a ball around the trees. Muddy boots wait by the door.'],
     image: 'assets/images/dogwalk.jpg',
     source: 'The Seattle Beacon, local news',
     belt: ['dog', 'ball', 'tree'],

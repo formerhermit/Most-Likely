@@ -119,14 +119,13 @@
         ball: ['park', 'running'],
         boots: ['park', 'running'], dog: ['park', 'running', 'boots'],
         coffee: ['morning', 'hot'], skull: ['laughing', 'phone'],
-        sob: ['message', 'phone'], pray: ['message', 'thanks'], cookie: ['cookie'],
+        sob: ['message', 'phone'], pray: ['message', 'thanks'],
         clipboard: ['school'], tree: ['park']
       };
       for (const [obj, boxes] of Object.entries(primed)) {
         boxes.forEach(b => addAssociation(obj, b));
       }
       if (broad) {
-        addAssociation('cookie', 'biscuit');
         addAssociation('skull', 'message');
         addAssociation('pray', 'praying');
         addAssociation('frog', 'plate');
