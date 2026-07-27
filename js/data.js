@@ -128,7 +128,7 @@ const SNIPPETS = [
   {
     id: 'fairytale',
     title: 'STORYBOOK',
-    text: ['The princess leaned down and kissed the frog on its lily pad.'],
+    text: ['Princess kissed frog on lily pad.'],
     image: 'assets/images/fairytale.jpg',
     source: 'Children’s Fairy Tales, illustrated edition, 1889',
     belt: ['frog', 'princess', 'lilypad'],
@@ -137,8 +137,7 @@ const SNIPPETS = [
   {
     id: 'aviation',
     title: 'FLIGHT MANUAL',
-    text: ['Jet engines push the plane high above the clouds.',
-           'The captain runs his final checks before takeoff.'],
+    text: ['Plane climbs above the clouds.', 'Captain runs his checks.'],
     image: 'assets/images/aviation.jpg',
     source: 'Boeing 737-800/900 Maintenance Manual, 27-21-00',
     belt: ['plane', 'cloud', 'captain'],
@@ -147,7 +146,7 @@ const SNIPPETS = [
   {
     id: 'menu',
     title: 'MENU',
-    text: ['TODAY’S MENU', 'Soup of the day — served hot.', 'Fresh bread on the side of your plate.'],
+    text: ['TODAY’S MENU', 'Soup of the day, served hot.', 'Bread on your plate.'],
     image: 'assets/images/menu.jpg',
     source: 'The Harp & Hollow Gastropub, seasonal menu',
     belt: ['plate', 'soup'],
@@ -156,7 +155,7 @@ const SNIPPETS = [
   {
     id: 'nature',
     title: 'NATURE FILM',
-    text: ['At the pond, the frog waits on a lily pad in the rain. A fly comes close — snap!'],
+    text: ['Frog waits on lily pad in rain.', 'Fly comes close — snap!'],
     image: 'assets/images/nature.jpg',
     source: 'Wild Habitats, frog conservation guide',
     belt: ['frog', 'rain', 'lilypad'],
@@ -165,7 +164,7 @@ const SNIPPETS = [
   {
     id: 'medical',
     title: 'MEDICAL TEXTBOOK',
-    text: ['The stethoscope is used to listen to the heart and lungs.'],
+    text: ['Stethoscope listens to heart and lungs.'],
     image: 'assets/images/medical.jpg',
     source: 'Health·Well, patient health topics',
     belt: ['steth', 'gradcap', 'heart'],
@@ -174,7 +173,7 @@ const SNIPPETS = [
   {
     id: 'weather',
     title: 'WEATHER REPORT',
-    text: ['Rain today. Clouds and wind all day. Take an umbrella.'],
+    text: ['Rain, wind, and clouds all day.'],
     image: 'assets/images/weather.jpg',
     source: 'Weatherly, forecast for New York, NY',
     belt: ['rain', 'cloud', 'wind'],
@@ -183,7 +182,7 @@ const SNIPPETS = [
   {
     id: 'birthday',
     title: 'PARTY INVITATION',
-    text: ['Happy birthday! Cake with candles, gifts, and balloons for the party.'],
+    text: ['Cake with candles for the party.'],
     image: 'assets/images/birthday.jpg',
     source: 'Birthday party invitation, June 2024',
     belt: ['cake', 'candles', 'party'],
@@ -192,7 +191,7 @@ const SNIPPETS = [
   {
     id: 'football',
     title: 'SPORTS PAGE',
-    text: ['The ball is on the grass. Players lace up their cleats and run for the goal.'],
+    text: ['Ball on the grass.', 'Cleats on, racing for the goal.'],
     image: 'assets/images/football.jpg',
     source: 'Wikipedia, “Soccer”',
     belt: ['ball', 'boots', 'clipboard'],
@@ -201,7 +200,7 @@ const SNIPPETS = [
   {
     id: 'coffeeshop',
     title: 'COFFEE SHOP',
-    text: ['The doctor at the counter orders his usual — one coffee, and a slice of cake on a small plate.'],
+    text: ['The doctor orders his usual — coffee, cake, plate.'],
     image: 'assets/images/coffeeshop.jpg',
     source: 'Café Adventures, café review blog',
     belt: ['coffee', 'cake', 'plate'],
@@ -210,7 +209,7 @@ const SNIPPETS = [
   {
     id: 'dogwalk',
     title: 'DOG WALK',
-    text: ['A dog runs through the park, chasing a ball around the trees. Muddy boots wait by the door.'],
+    text: ['Dog chases a ball around the trees.'],
     image: 'assets/images/dogwalk.jpg',
     source: 'The Seattle Beacon, local news',
     belt: ['dog', 'ball', 'tree'],
@@ -219,7 +218,7 @@ const SNIPPETS = [
   {
     id: 'groupchat',
     title: 'GROUP CHAT',
-    text: ['maya: you won’t believe what happened today'],
+    text: ['maya: you won’t believe what happened'],
     image: 'assets/images/groupchat.jpg',
     source: 'group chat screenshot, forwarded',
     belt: [],
