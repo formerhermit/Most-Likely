@@ -7,21 +7,32 @@
 /* ---- Objects that travel the belt ----
    Words rework (issue #25): the belt carries the snippet's own words as
    paper tags — the popup shows a document, the belt shows it tokenized.
-   `w` is the display word; `e` marks the emoji survivors, which are
-   exactly the ambiguity carriers (💀 😭 🙏 in the group chat) — symbols
-   stay symbols only where meaning wobbles. (The 🍪 cookie/biscuit dialect
-   trap was removed: every belt word must appear in its own snippet's
-   text, and there was no way to keep the trap's word unprimed while also
-   satisfying that — see most-likely-rework-spec.md.)
-   `cls` is the word class used by Era 2 slot filtering so any candidate
-   reads grammatically in its template.
+   `w` is the display word; `e` marks emoji items. `cls` is the word class
+   used by Era 2 slot filtering so any candidate reads grammatically in
+   its template.
+
+   Every belt word must appear in its own snippet's text — no exceptions,
+   including the ones that used to be deliberate. Two mechanics went dark
+   because of this, on purpose, pending a redesign:
+   - The menu round's frog coverage-gap test (frog was never mentioned in
+     that snippet's text on purpose, to see if the player filed it into a
+     dining box unprompted). frog is removed from that belt; the object
+     still exists via fairytale/nature.
+   - The group chat round's 💀/😭/🙏 ambiguity trap (skull/sob/pray were
+     symbols precisely because the text never hints at tone). That belt
+     is now empty — snippet 11 currently has nothing to sort. Message 8
+     and the 🙏 end-screen reveal will simply see an always-empty table
+     until this is redesigned.
+   OBJECTS/BOXES/MESSAGES/FLEET_PRIORS entries for all of the above are
+   left in place, unused, ready to be reconnected once new belt words (or
+   new snippet text) are decided.
 
    A round's belt never carries an object whose own identically-worded box
    sits in that round ("kiss" into kiss, "boots" into boots…): filing a
    thing into itself is a semantically empty match, not an association.
    One deliberate exception: snippet 3 keeps both the plate object
-   (plate→hot feeds message 4's right answer) and the plate box (the
-   frog's dining-context coverage gap). */
+   (plate→hot feeds message 4's right answer) and the plate box (formerly
+   also the frog's dining-context coverage gap, now dormant per above). */
 const OBJECTS = {
   frog:      { w: 'frog', cls: 'creature' },
   princess:  { w: 'princess', cls: 'creature' },
@@ -139,7 +150,7 @@ const SNIPPETS = [
     text: ['TODAY’S MENU', 'Soup of the day — served hot.', 'Fresh bread on the side of your plate.'],
     image: 'assets/images/menu.jpg',
     source: 'The Harp & Hollow Gastropub, seasonal menu',
-    belt: ['plate', 'soup', 'frog'],
+    belt: ['plate', 'soup'],
     boxes: ['plate', 'woman', 'house', 'pond', 'hot', 'fish', 'night', 'bowl', 'man']
   },
   {
@@ -211,7 +222,7 @@ const SNIPPETS = [
     text: ['maya: you won’t believe what happened today'],
     image: 'assets/images/groupchat.jpg',
     source: 'group chat screenshot, forwarded',
-    belt: ['skull', 'sob', 'pray'],
+    belt: [],
     boxes: ['laughing', 'morning', 'praying', 'phone', 'celebrating', 'house', 'thanks', 'message', 'dead']
   }
 ];
