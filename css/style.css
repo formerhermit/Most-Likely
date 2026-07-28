@@ -788,7 +788,6 @@ button { font-family: inherit; cursor: pointer; }
   border-bottom: none;
   background: var(--paper);
   color: var(--ink);
-  font-weight: 700;
   padding: 0 7px;
   margin: 0 1px;
   border-radius: 4px;

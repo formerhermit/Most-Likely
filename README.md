@@ -268,9 +268,8 @@ ML_DEBUG.state()          // session state
   a mechanic; player choice over the corpus; a role-flip ending.
 
 The retired drag-to-file Era 1 and its trap set are gone as of this
-cleanup; the older design docs (`most-likely-build-reference.md`,
-`most-likely-claude-code-brief.md`, `most-likely-rework-spec.md`) still
-describe them. Kept as history, not as spec.
+cleanup; the older design docs in `archive/` still describe them. Kept as
+history, not as spec.
 
 ## Deliberately not in v1
 
