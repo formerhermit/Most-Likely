@@ -79,9 +79,11 @@
       phase.classList.add('show');
       typeText(phase, 'PHASE 1: PRE-TRAINING', 22);
     }, 14400);
+    // "The Last Atom" runs 19.7s and the crossfade out of it starts here,
+    // so it lands close to its own ending
     setTimeout(() => {
-      Cards.show('intro', () => Pretrain.start(afterTraining));
-    }, 16600);
+      Pretrain.start(afterTraining);
+    }, 17400);
   }
 
   /* Act 1 finishes, the player is told what happened, then Act 2 starts. */

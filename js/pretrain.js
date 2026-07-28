@@ -142,7 +142,9 @@ const Pretrain = (() => {
     clearBelt();
     setClock(null);
     renderCurve();
-    setTimeout(showDoc, 900);
+    // the room is on screen and the belt's music is already playing before
+    // the card appears over it; nothing runs until the card is dismissed
+    setTimeout(() => Cards.show('intro', () => setTimeout(showDoc, 500)), 700);
   }
 
   function showDoc() {

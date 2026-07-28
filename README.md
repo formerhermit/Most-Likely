@@ -252,8 +252,10 @@ jargon — "training data", not "corpus" or "inference".
 with an invented `source` line, so the act reads as documents being ingested.
 
 **Phase music** — four tracks in `assets/audio/`, crossfaded by
-`Audio2.playPhase()`: `the-last-atom` (opening and the first card),
-`sort-it-out` (Acts 1–2), `best-guess` (Act 3), `thank-you` (ending).
+`Audio2.playPhase()`: `the-last-atom` (opening zoom), `sort-it-out`
+(Acts 1–2), `best-guess` (Act 3), `thank-you` (ending). The opening track
+doesn't loop — it runs 19.7s and the crossfade into Act 1's music starts at
+17.4s, so it lands close to its own ending.
 
 **Debug helpers**, console only:
 
