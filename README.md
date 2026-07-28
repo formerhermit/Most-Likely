@@ -30,22 +30,23 @@ ranked candidates, pick one.*
 | Act | What changes | Built? |
 |---|---|---|
 | **1 — Pre-training** | The text corrects every guess; your table fills | ✅ `js/pretrain.js` |
-| **2 — Fine-tuning** | Same verb, graded on format rather than truth | ◻️ `js/qc.js` is the old sort-the-slips interlude |
+| **2 — Fine-tuning** | Frames arrive; the same words finally have somewhere to go | ✅ `js/qc.js` |
 | **3 — Deployment** | Same verb, corrections switched off | ◻️ `js/era2.js` is the old assemble-the-reply |
 
-Acts 2 and 3 have not been rebuilt on the new spine yet — see **What's left**
-at the bottom.
+Act 3 has not been rebuilt on the new spine yet, and is still wired to an
+association table nothing writes to — see **What's left** at the bottom.
 
 ## How it fits together
 
 | File | What it holds |
 |---|---|
 | `js/data.js` | All content: the 11 documents (`body`, with `[blanks]`), `STOPWORDS`, `FLEET_PRIORS`, Era 2 messages, QC slips, the newspaper |
-| `js/pretrain.js` | **Act 1** — the predict loop, co-occurrence model, belt, clock, surprise meter, loss curve |
-| `js/qc.js` | Quality Control interlude (instruction tuning) |
+| `js/model.js` | **The model.** One co-occurrence table, shared by every act |
+| `js/pretrain.js` | **Act 1** — the predict loop, belt, clock, surprise meter, loss curve |
+| `js/qc.js` | **Act 2** — the before/after bracket around the original sorting task |
 | `js/era2.js` | Inference: assemble-the-reply, suggestion chips from the player's table, replies/retry, the unnoticed hallucination, newspaper gating, strikes |
 | `js/ending.js` | Deprecation sequence, lights-out grid, end screen |
-| `js/state.js` | The association table, screen manager, helpers |
+| `js/state.js` | Session flags, screen manager, helpers (the old association table lives here too) |
 | `js/era1.js` | **Legacy.** The old drag-to-file Era 1 — still in the build, no longer reachable from the UI |
 | `js/audio.js` | SFX synthesized with WebAudio; phase music crossfaded on phase change |
 | `js/main.js` | Bootstrap, title, opening zoom, debug helpers |
@@ -53,28 +54,10 @@ at the bottom.
 
 ---
 
-# Act 1 — Pre-training
+# The model
 
-A document arrives. Its text reveals itself word by word. At each blank the
-model's own candidates roll out of the hatch onto the conveyor; you click one
-before it reaches the end; the document then says what the word actually was.
-Right or wrong, the true word's counts go up.
-
-That's the whole algorithm: **predict, get corrected by the text, adjust,
-repeat.**
-
-Three things it deliberately does not do, each of which the old Era 1 did:
-
-- **It never shows the document before you predict it.** The card carries
-  only the provenance — image and source — never the prose. Reading first
-  would make this a memory test.
-- **It never asks you to decide what a word means.** Nobody labels a corpus.
-  The association table fills as a side effect of being wrong.
-- **It never punishes a miss.** Early documents are mostly misses. That is
-  what an untrained model is, and the surprise meter is the honest readout
-  of it rather than a score.
-
-## The model
+*`js/model.js`. Act 1 trains it, Act 2 reads it, Act 3 will read it
+frozen.*
 
 A distance-weighted co-occurrence table: every content word co-occurs with
 the ones just before it, weighted by 1/distance, symmetrically. Candidates
@@ -86,7 +69,26 @@ Scoring against the **whole document context** rather than the previous token
 is closer to how attention works than a bigram would be, and unlike a bigram
 it produces signal on a corpus small enough to hand-write.
 
-Two rules that aren't obvious and are both load-bearing:
+## read vs. observe
+
+The module's centrepiece is a two-word API:
+
+```js
+Model.read(word)      // takes it in AND learns from it   — Act 1 only
+Model.observe(word)   // takes it in, changes no weight   — everything after
+```
+
+That is the entire difference between training and inference: the same
+forward pass, with the update switched off. It's the game's thesis, and
+here it's two function names rather than a paragraph of explanation.
+
+Before this module existed, each act kept its own state and nothing flowed
+between them — which made the game's central claim, *your training builds
+the model you then have to be*, literally untrue of the code.
+
+## Two rules that aren't obvious
+
+Both load-bearing:
 
 **Words already read in this document are dropped from the candidate list.**
 Without it the belt fills almost entirely with words from the sentence you're
@@ -138,6 +140,29 @@ Two constraints:
   reading stopped mattering, and the curve flattened into noise.
 - **The gendered piles are not loaded.** They exist to bait the old
   occupation trap, and this act isn't running it.
+
+---
+
+# Act 1 — Pre-training
+
+A document arrives. Its text reveals itself word by word. At each blank the
+model's own candidates roll out of the hatch onto the conveyor; you click one
+before it reaches the end; the document then says what the word actually was.
+Right or wrong, the true word's counts go up.
+
+That's the whole algorithm: **predict, get corrected by the text, adjust,
+repeat.**
+
+Three things it deliberately does not do, each of which the old Era 1 did:
+
+- **It never shows the document before you predict it.** The card carries
+  only the provenance — image and source — never the prose. Reading first
+  would make this a memory test.
+- **It never asks you to decide what a word means.** Nobody labels a corpus.
+  The association table fills as a side effect of being wrong.
+- **It never punishes a miss.** Early documents are mostly misses. That is
+  what an untrained model is, and the surprise meter is the honest readout
+  of it rather than a score.
 
 ## Belt mechanic: rest, then release
 
@@ -234,6 +259,67 @@ data it has far more of.
 
 ---
 
+---
+
+# Act 2 — Quality Control
+
+Instruction tuning. The original sorting task is **untouched** — the
+supervisor behind the window, the `?` and `=` fields, the ten lights, the
+stamp and the siren. It's now bracketed by two beats that use the model
+Act 1 built.
+
+**Before.** A question arrives. You answer it with your own table, and
+there is no frame to put the answer in, so the reply continues the way a
+document continues — and doesn't know where to stop. Thumbs down, twice.
+
+```
+"Where does a frog live?"        →  pond walked edge garden      👎
+"What do you take in the rain?"  →  umbrella cold day cloud      👎
+```
+
+**Sort.** The original task. Slips into `?` and `=`, ten correct. No
+instructions; the shape is inferred from feedback, which is what supervised
+fine-tuning feels like from the model's side.
+
+**After.** The same two questions, and now there is a frame with one blank
+in it. Same table, same words on offer, one of them goes in the gap.
+
+```
+"Where does a frog live?"        →  In the pond.                 👍
+"What do you take in the rain?"  →  Take your umbrella.          👍
+```
+
+The player watches a sentence shape arrive and change what they're capable
+of, and nothing explains it to them.
+
+## Why the before beat can't be failed on content
+
+I built this expecting to show the base model producing *wrong words*. It
+can't. A co-occurrence model given "a frog lives" offers **pond**, at more
+than twice the weight of anything else. There is no honest way to make the
+words wrong.
+
+That is the lesson. **The words were never the problem.** The base model has
+the knowledge and lacks the shape — so the before beat opens with the right
+answer and then runs off a cliff, because nothing has ever taught it to
+stop. Base models don't know where to end; that's what the run-on is.
+
+Two asymmetries follow, both deliberate:
+
+- **Before is rejected whatever you pick.** The run-on follows regardless.
+- **After is approved whatever goes in the gap.** "In the sky." gets the
+  same thumbs up as "In the pond." The supervisor is grading form, which is
+  what format tuning grades — and it quietly sets up Era 2, where a
+  confidently wrong answer gets thanked.
+
+**Act 2 never calls `Model.read()`.** Tuning here supplies frames, not word
+weights, so the table Act 3 inherits is exactly the one Act 1 built.
+
+Frames are article-agnostic (`Take your ___` rather than `An ___`) so any
+noun the table offers still reads grammatically.
+
+---
+
 ## Popup images
 
 Each document shows one real image (`assets/images/`) with an invented
@@ -291,22 +377,31 @@ grounding rules, and the fleet-prior seeding constraints is in
 
 ## What's left
 
-- **Acts 2 and 3 still run on the old spine.** `era2.js` builds its
-  suggestions from `State.associations`, which the predict loop never
-  writes to — that table is populated only by the retired drag-to-file
-  mechanic. Era 2 therefore runs against an empty table regardless of how
-  training went, which breaks the "your training built the model you have
-  to be" chain that is the entire point. **This is the next real piece of
-  work.**
-- **Remove the legacy path** once Acts 2 and 3 no longer need it:
-  `era1.js`, its markup and CSS, the `text` field on every snippet, and
-  `ML_DEBUG.toOldEra1()`. The `text`/`body` split will drift otherwise.
-- **Pacing is unverified.** `DOC_DURATION_MS` (60s), `ROLL_IN_STAGGER_MS`
-  (750ms), `ROLL_IN_DURATION_MS` (1200ms), `REVEAL_MS` (55ms/word),
-  `SETTLE_MS` (950ms) and `READ_PAUSE_MS` (15s) were never tested at real
-  speed — automated browsers throttle background timers. These are the
-  numbers to trust playtesting on, not measurement. All sit together at
-  the top of `js/pretrain.js`.
+- **Act 3 still runs on the old spine — the next real piece of work.**
+  `era2.js` builds its suggestions from `State.associations`, which nothing
+  writes to any more: that table was populated only by the retired
+  drag-to-file mechanic. Era 2 therefore generates every suggestion from an
+  **empty table**, regardless of how training went, which breaks the "your
+  training built the model you have to be" chain that is the entire point.
+  The chain currently runs Act 1 → Act 2 on the shared model and stops
+  dead. Mostly a swap of `buildSlotOptions` onto `Model.rank()` — the
+  frames already live in `MESSAGES`.
+- **Remove the legacy path** once Act 3 no longer needs it: `era1.js`, its
+  markup and CSS, the `text` field on every snippet, and
+  `ML_DEBUG.toOldEra1()`. Blocked on the item above — Era 2 is the last
+  consumer of the old table. The `text`/`body` split will drift otherwise.
+- **Pacing is unverified.** Act 1: `DOC_DURATION_MS` (60s),
+  `ROLL_IN_STAGGER_MS` (750ms), `ROLL_IN_DURATION_MS` (1200ms),
+  `REVEAL_MS` (55ms/word), `SETTLE_MS` (950ms), `READ_PAUSE_MS` (15s).
+  Act 2 adds `RUN_ON_MS` (700ms), `RUN_ON_WORDS` (3) and `VERDICT_MS`
+  (1500ms). None were tested at real speed — automated browsers throttle
+  background timers — so every one is a guess. These are the numbers to
+  trust playtesting on, not measurement. Each set sits at the top of its
+  own module.
+- **The QC desk is a fixed-width flex row.** Widening the board for the
+  prompts overflowed the viewport by 37px, patched with
+  `calc(94vw - 200px)` to leave room for the supervisor's window. It will
+  need real work if narrow screens ever matter.
 - **Ideas not yet built**: a temperature dial (sampling vs. argmax, to show
   the model holds a distribution rather than an answer); the context window
   as a mechanic (pasted content usable *while on screen*, gone when it
