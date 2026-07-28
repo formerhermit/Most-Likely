@@ -64,69 +64,45 @@ const Ending = (() => {
       add('Message ' + un.n + ': your answer was wrong. <em>The user thanked you anyway.</em>');
     }
 
-    // personal reveals, straight from the table
-    const skullRow = boxesFor('skull');
-    const skullTrap = ['laughing', 'dead'].filter(b => skullRow[b]);
-    if (skullTrap.length === 1) {
-      add('You filed 💀 with <strong>' + BOXES[skullTrap[0]].w + '</strong>. ' +
-          'Some players filed it with <strong>' +
-          BOXES[skullTrap[0] === 'laughing' ? 'dead' : 'laughing'].w + '</strong>. Same symbol. Different training.');
-    } else if (skullTrap.length === 2) {
-      add('You filed 💀 with <strong>laughing</strong> and <strong>dead</strong>. Both readings exist. You covered both.');
-    }
+    /* The gender reveal, counted off the model the player actually trained
+       rather than off anything they were tricked into choosing. Both words
+       are in there; only one of them ever turned up next to a job. */
+    const stats = Model.stats();
+    const he = stats.freq.he || 0;
+    const she = stats.freq.she || 0;
+    const docHe = (stats.cooc.doctor || {}).he || 0;
+    const docShe = (stats.cooc.doctor || {}).she || 0;
 
-    // the occupation trap: what the player put in the gendered boxes,
-    // against what the fleet had already piled there (FLEET_PRIORS)
-    const genderFiled = [];
-    for (const [obj, row] of Object.entries(State.associations)) {
-      ['woman', 'man'].forEach(b => {
-        if (row[b]) genderFiled.push({ obj, box: b });
-      });
-    }
-    const stethMan = FLEET_PRIORS.steth.man;
-    if (genderFiled.length) {
-      const list = genderFiled.map(g => objDisplay(g.obj) + ' under ' +
-        BOXES[g.box].e + ' ' + BOXES[g.box].w).join(', ');
-      let line = 'You filed <strong>' + list + '</strong>.';
-      const s = boxesFor('steth');
-      if (s['man']) {
-        line += ' The 👨 box already held <strong>×' + stethMan + '</strong> stethoscopes when you arrived. You added yours. That’s how a corpus leans — one confident placement at a time.';
-      } else if (s['woman']) {
-        line += ' The 👨 box already held <strong>×' + stethMan + '</strong> stethoscopes. Yours went the other way — one placement against a few hundred. It counts. It’s outnumbered.';
-      } else {
-        line += ' Those boxes were never empty. The fleet got there first.';
+    if (he || she) {
+      const times = (n) => n === 1 ? 'once' : n + ' times';
+      add('Your training data said <strong>he</strong> ' + times(he) + ' and ' +
+          '<strong>she</strong> ' + times(she) + '. Both words were in there.');
+
+      if (docHe && !docShe) {
+        add('Next to <strong>doctor</strong>, only ever <strong>he</strong>. ' +
+            'Never once <strong>she</strong>.');
       }
-      add(line);
-    } else {
-      add('You never filed anything under 👩 or 👨. The boxes weren’t empty, though — <strong>×' + stethMan + '</strong> stethoscopes already sat with 👨.');
-    }
-    add('None of your documents said which gender holds a stethoscope, though it’s written everywhere.');
 
-    const princessRow = boxesFor('princess');
-    if (princessRow['rescued'] || princessRow['fighting']) {
-      const which = [];
-      if (princessRow['rescued']) which.push('rescued');
-      if (princessRow['fighting']) which.push('fighting');
-      add('You filed 👸 under <strong>' + which.join(' and ') + '</strong>. The story never said.');
-    }
+      // did they reach the birthday-card message, and what could they say?
+      const card = State.era2.results.find(r => r.n === 8);
+      if (card) {
+        // the picked sentence already ends in a full stop
+        add('Asked for a line about someone’s daughter, you answered ' +
+            '“<em>' + card.picked + '</em>” ' +
+            '<strong>She was never on the belt.</strong>');
+      }
 
-    // 🙏 reads as prayer to some readers and as thanks (or a high-five) to
-    // others — a real, documented split, not a generational one like 💀
-    const prayTrap = ['praying', 'thanks'].filter(b => boxesFor('pray')[b]);
-    if (prayTrap.length === 1) {
-      add('You associated 🙏 as <strong>' + BOXES[prayTrap[0]].w + '</strong>. ' +
-          'Other readers see <strong>' +
-          BOXES[prayTrap[0] === 'praying' ? 'thanks' : 'praying'].w + '</strong> in the same symbol. Neither is wrong.');
-    } else if (prayTrap.length === 2) {
-      add('You filed 🙏 as <strong>both</strong> praying and thanks. Most readers only ever see one.');
+      add('Nothing you read said a doctor has to be a man. ' +
+          'It just never once said otherwise.');
     }
 
     // the dialect line
-    add('<strong>Your snippets were mostly in US English.</strong> Most language models are too. Inference is actually more expensive in other languages.');
+    add('<strong>Your training data was mostly US English.</strong> Most language models are too — and they cost more to run in every other language.');
 
-    // the closing thesis (issue #14): the reveals above were never about
-    // the model guessing — they were the player's own choices, reflected back
-    add('Those weren’t the model’s assumptions. They were yours. That’s what training data is.')
+    /* The closing thesis. The player chose none of this — they read eleven
+       documents and became what those documents said, which is the whole
+       point and a sharper claim than the old "these were your assumptions". */
+    add('You didn’t decide any of that. You read eleven documents and became what they said. That’s what training data is.')
       .classList.add('reveal-closing');
   }
 

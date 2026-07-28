@@ -224,6 +224,12 @@ Three strikes on trainable messages triggers deprecation.
 
 ## Odds and ends
 
+**The end screen** — accuracy, the unnoticed hallucination, and the gender
+reveal counted straight off the trained model: how often it saw `he` versus
+`she`, that `doctor` only ever sat next to one of them, and what the player
+was able to answer on the birthday-card message. Player-facing copy avoids
+jargon — "training data", not "corpus" or "inference".
+
 **Popup images** — each document shows a real image from `assets/images/`
 with an invented `source` line, so the act reads as documents being ingested.
 
@@ -246,9 +252,9 @@ ML_DEBUG.state()          // session state
 ## What's left
 
 - **Remove the legacy path** — `era1.js`, its markup and CSS, the `text`
-  field on every snippet, `ML_DEBUG.toOldEra1()`, `State.associations` and
-  its helpers, and the dormant trap reveals in `ending.js`. Nothing consumes
-  the old table any more. `NEWSPAPER` in `data.js` is dead too — the
+  field on every snippet, `ML_DEBUG.toOldEra1()`, and `State.associations`
+  with its helpers. Nothing consumes the old table any more; `ending.js` is
+  already clear of it. `NEWSPAPER` in `data.js` is dead too — the
   newspaper's content is hardcoded in `index.html`.
 - **Pacing is unverified.** Every timing constant in `pretrain.js` and
   `qc.js` was reasoned about, not measured — automated browsers throttle
