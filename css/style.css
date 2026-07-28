@@ -204,7 +204,17 @@ button { font-family: inherit; cursor: pointer; }
 
 /* ---------- QC ---------- */
 #screen-qc { background: linear-gradient(180deg, #7d5a3d, var(--wood-dark)); }
-.qc-desk { display: flex; align-items: flex-end; gap: 34px; }
+.qc-desk { display: flex; align-items: flex-end; gap: 34px; max-width: 96vw; }
+/* Below this the window (fixed 150px) plus the board (min(430px, 84vw))
+   plus the gap between them no longer fits any viewport — the two were
+   sized as if they'd only ever share a desktop-width row. Stack instead of
+   shrinking either past legibility (issue #34). */
+@media (max-width: 620px) {
+  .qc-desk { flex-direction: column; align-items: center; gap: 18px; }
+  .qc-window { width: 110px; height: 120px; }
+  .qc-super { font-size: 54px; }
+  .qc-board { width: min(430px, 90vw); }
+}
 .qc-window {
   width: 150px; height: 190px;
   background: linear-gradient(180deg, #3a3f52, #262a3a);

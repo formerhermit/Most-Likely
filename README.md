@@ -262,8 +262,11 @@ ML_DEBUG.state()          // session state
 - **Pacing is unverified.** Every timing constant in `pretrain.js` was
   reasoned about, not measured — automated browsers throttle timers. Needs
   a real playthrough.
-- **The QC desk** is a fixed-width flex row and needs proper work if narrow
-  screens ever matter.
+- **Act 1 overflows narrow viewports** — the belt runs off-screen and the
+  document stage squeezes to one word per line below ~620px. QC had the
+  same problem and now stacks under that width; Act 1 needs the same
+  treatment plus a plan for the belt, which can't just stack. Era 2 is
+  already fine at mobile widths.
 - **Open ideas**, tracked as issues: temperature dial; the context window as
   a mechanic; player choice over the corpus; a role-flip ending.
 
