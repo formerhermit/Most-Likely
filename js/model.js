@@ -61,6 +61,24 @@ const Model = (() => {
     return w.length > 1 && !STOPWORDS.has(w);
   }
 
+  /* Word class for anything the model might offer, merged from the named
+     vocabulary and the corpus tags. Act 1 uses it to keep a belt readable,
+     Act 3 to keep a suggestion grammatical in its frame.
+
+     A word with no class is a past-tense verb or similar — deliberately
+     untagged, because they read badly in every frame the game has. Callers
+     treat "no class" as "sink it", not "drop it". */
+  const CLASS = (() => {
+    const m = {};
+    Object.values(OBJECTS).forEach(o => { if (o.w) m[normalize(o.w)] = o.cls; });
+    Object.values(BOXES).forEach(b => { m[normalize(b.w)] = b.cls; });
+    return Object.assign(m, WORD_CLASS);
+  })();
+
+  function classOf(word) {
+    return CLASS[word] || null;
+  }
+
   function bump(a, b, wt) {
     if (a === b) return;
     const row = cooc[a] || (cooc[a] = {});
@@ -189,7 +207,7 @@ const Model = (() => {
   return {
     UNSEEN_BITS,
     reset, startPassage, read, observe, rank, fleetCount, surprisal,
-    normalize, isContent,
+    normalize, isContent, classOf,
     stats: () => ({ cooc, freq, fleetPairs, context: context.slice() })
   };
 })();

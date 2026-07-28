@@ -43,16 +43,6 @@ const Era2 = (() => {
 
   /* ---------- option generation ---------- */
 
-  /* Every word the model might offer, mapped to its class. Slots filter on
-     this so nothing ungrammatical reaches the bar. A word with no class is
-     never offered — that is the safety net, not an omission. */
-  const CLASS_OF = (() => {
-    const m = {};
-    Object.values(OBJECTS).forEach(o => { if (o.w) m[Model.normalize(o.w)] = o.cls; });
-    Object.values(BOXES).forEach(b => { m[Model.normalize(b.w)] = b.cls; });
-    return Object.assign(m, WORD_CLASS);
-  })();
-
   /* Candidates for one blank, straight out of the model the player trained.
 
      The model observes the incoming message and then the slot's anchors —
@@ -72,7 +62,7 @@ const Era2 = (() => {
     (slot.anchors || []).forEach(w => Model.observe(w));
 
     const ranked = Model.rank()
-      .filter(([w]) => slot.classes.includes(CLASS_OF[w]))
+      .filter(([w]) => slot.classes.includes(Model.classOf(w)))
       .slice(0, 3)
       .map(([w, wt]) => ({ word: w, label: w, wt, fleet: Model.fleetCount(w) }));
 

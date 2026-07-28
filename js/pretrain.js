@@ -52,6 +52,22 @@ const Pretrain = (() => {
      wrong answers. Above ~0.2 they start outranking the real prediction. */
   const REPEAT_PENALTY = 0.1;
 
+  /* The belt used to be 27% past-tense verbs — "he wore a gold ___" offering
+     kissed, walked, sat. Plugging those in isn't a choice, it's clerical.
+
+     Candidates of the blank's own word class rise, unclassed ones sink but
+     can still fill a thin belt rather than leaving it empty. Knowing a noun
+     goes here is not cheating: syntax is one of the things pre-training
+     genuinely learns.
+
+     Verbs drop to 3% of tags and on-class ones roughly double. It does make
+     the game easier — 16/33 blanks reachable rather than 11/33 — because a
+     good part of the old difficulty was nonsense options rather than real
+     ambiguity. Boosting harder than 1.5 tips it over: at x2 the curve starts
+     to flatten. */
+  const SAME_CLASS_BOOST = 1.5;
+  const UNCLASSED_PENALTY = 0.35;
+
   /* One clock per document, as Era 1 had one per round. It is a budget for
      the whole document rather than for a single blank — the reveal itself
      only costs a few seconds, so a minute is generous unless the player
@@ -207,7 +223,11 @@ const Pretrain = (() => {
 
   function askBlank() {
     awaiting = true;
-    pendingList = Model.rank(REPEAT_PENALTY);
+    const want = Model.classOf(tokens[cursor].word);
+    pendingList = Model.rank(REPEAT_PENALTY)
+      .map(([w, score]) => [w, score * (Model.classOf(w) === want ? SAME_CLASS_BOOST
+                                      : Model.classOf(w) ? 1 : UNCLASSED_PENALTY)])
+      .sort((a, b) => b[1] - a[1]);
     nodes[cursor].classList.add('active');
     clearBelt();
 

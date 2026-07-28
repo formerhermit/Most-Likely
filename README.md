@@ -102,6 +102,12 @@ word's counts go up either way.
   untrained model is.
 - Candidates rest in rank order, heaviest furthest along the belt. Spacing
   is computed from measured widths so tags can't overlap.
+- **The belt is weighted to read as a real choice**: candidates of the
+  blank's own word class rise (×1.5), unclassed words — past-tense verbs,
+  mostly — sink (×0.35) but can still fill a thin belt. Knowing that a noun
+  goes here isn't cheating; syntax is one of the things pre-training
+  genuinely learns. Without it, 27% of tags were verbs and plugging them in
+  was clerical rather than a decision.
 - **60s per document.** In the final 8 seconds anything still resting slides
   off at a shared speed. A blank whose tags all run off is one the model
   never answered — which is why there's no "…" button.
@@ -114,10 +120,10 @@ word's counts go up either way.
 Typical curve, trained on the full corpus:
 
 ```
-3.5  7.0  3.5  2.4  7.0  3.1  7.0  2.6  3.7  1.6  3.1
+3.5  7.0  3.5  1.5  7.0  2.6  7.0  1.9  3.2  0.6  2.2
 ```
 
-11 of 33 blanks land in the top five; 8 of 11 documents contain a win. The
+16 of 33 blanks land in the top five; 8 of 11 documents contain a win. The
 spikes are documents opening a domain nothing before them touched.
 
 ### Corpus rules
