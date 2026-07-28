@@ -114,9 +114,14 @@ word's counts go up either way.
   never answered — which is why there's no "…" button.
 - **Skip advances one blank**, not the document. Skipping the last blank, or
   running the clock out, holds the finished text up for 15s to be read.
-- Surprise is in bits: how far down its ranked list the model had to go to
-  find the word actually used. 0 = top pick, 7 = never seen. The
-  per-document average drives the sparkline, which is the loss curve.
+- The player-facing "how far off" reading is surprisal in bits, underneath:
+  how far down its ranked list the model had to go to find the word actually
+  used. 0 = top pick (`spot on`), 7 = never seen (`no idea`) —
+  `farOffLabel()` in `pretrain.js` buckets the raw number into a handful of
+  plain words so nothing player-facing shows a unit. The per-document
+  average drives the sparkline, which is the loss curve. "Surprise" was the
+  original word for this and got dropped: neither the model nor the player
+  is actually surprised, and it implied a felt experience neither one has.
 
 Typical curve, trained on the full corpus:
 

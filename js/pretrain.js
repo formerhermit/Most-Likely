@@ -513,6 +513,16 @@ const Pretrain = (() => {
     clock.textContent = Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
   }
 
+  /* Plain-language reading of the surprisal score — "2.3 bits" is exactly
+     the kind of unit a player-facing screen shouldn't show. */
+  function farOffLabel(bits) {
+    if (bits <= 0.3) return 'spot on';
+    if (bits <= 1.5) return 'close';
+    if (bits <= 3.5) return 'a bit off';
+    if (bits <= 5.5) return 'way off';
+    return 'no idea';
+  }
+
   function setMeter(bits) {
     const fill = $('pt-meter-fill');
     const val = $('pt-meter-val');
@@ -522,7 +532,7 @@ const Pretrain = (() => {
       return;
     }
     fill.style.width = Math.round(bits / UNSEEN_BITS * 100) + '%';
-    val.textContent = bits.toFixed(1) + ' bits';
+    val.textContent = farOffLabel(bits);
   }
 
   /* One bar per document: the average surprise across its blanks. This is
