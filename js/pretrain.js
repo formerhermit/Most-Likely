@@ -559,9 +559,13 @@ const Pretrain = (() => {
 
   /* ---------- document end ---------- */
 
-  /* Reveals whatever is left and ends the document. Shared by the skip
-     button and by the clock running out — an unpredicted blank counts as
-     maximum surprise, so neither route quietly averages to zero. */
+  /* Reveals whatever is left and ends the document, when the clock runs
+     out. An unpredicted blank counts as maximum surprise, so running down
+     the clock never quietly averages to zero.
+
+     This dumps the rest of the text out at once, which leaves the player
+     having never read it — the same position that skipping the last blank
+     leaves them in, so it gets the same read pause. */
   function finishDocument() {
     if (!docActive) return;
     if (revealTimer) { clearTimeout(revealTimer); revealTimer = null; }
@@ -575,6 +579,7 @@ const Pretrain = (() => {
       learn(tok.word);
       cursor++;
     }
+    readPause = true;
     endDoc();
   }
 
