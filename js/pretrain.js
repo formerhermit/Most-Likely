@@ -1,11 +1,11 @@
 /* MOST LIKELY — Act 1: Pre-training (the predict loop)
 
    The player IS the model. A document arrives; its text reveals itself
-   word by word; at each blank the model's own candidates ride out of the
-   hatch on the conveyor, and the player clicks one before it reaches the
-   end of the belt. The document then says what the word actually was.
-   Right or wrong, the true word's counts go up. That is the entire
-   algorithm: predict, get corrected by the text, adjust, repeat.
+   word by word; at each blank the model's own candidates roll out of the
+   hatch and come to rest on the conveyor, and the player clicks one. The
+   document then says what the word actually was. Right or wrong, the true
+   word's counts go up. That is the entire algorithm: predict, get
+   corrected by the text, adjust, repeat.
 
    Three things this deliberately does NOT do, each of which the
    drag-to-file Era 1 did:
@@ -18,12 +18,19 @@
      what an untrained model is, and the surprise meter is the honest
      readout of it rather than a score.
 
-   The belt carries the ranked list in rank order, heaviest first: the
-   game is called MOST LIKELY and the most likely thing arrives first.
-   Taking it immediately is a real strategy with a real cost, which is
-   exactly what greedy decoding is. Letting every tag run off the end is
-   how a blank goes unanswered — there is no "…" button, because a model
-   with nothing to say doesn't press one.
+   Belt mechanic — rest, then release (carried over from era1.js): tags
+   roll in from the hatch one at a time, spaced by measured width so they
+   can never overlap, and come to rest. They stay there to be read. The
+   belt texture itself stops once everything has arrived. Nothing moves
+   again until the document clock reaches its final seconds, when whatever
+   is still resting slides off at one shared speed — a blank whose tags
+   all run off the end is a blank the model never answered, which is why
+   there is no "…" button.
+
+   The candidates rest in rank order with the heaviest furthest along the
+   belt: the game is called MOST LIKELY and the most likely thing arrives
+   first. Taking it on sight is a real strategy with a real cost, which is
+   what greedy decoding is.
 
    The model is a distance-weighted co-occurrence table, which is a real
    (if antique) language model: candidates for a blank are ranked by how
@@ -42,10 +49,21 @@ const Pretrain = (() => {
   const SETTLE_MS = 950;    // beat after a blank resolves, before reading on
   const UNSEEN_BITS = 7;    // surprise for a word not in the vocabulary at all
 
-  const BELT_TRAVEL_MS = 7000;   // hatch to the end of the belt
-  const BELT_STAGGER_MS = 420;   // gap between tags leaving the hatch
-  const EMPTY_BELT_MS = 2600;    // beat to sit with an empty belt before the
-                                  // text corrects an unanswerable blank
+  /* One clock per document, as Era 1 had one per round. It is a budget for
+     the whole document rather than for a single blank — the reveal itself
+     only costs a few seconds, so a minute is generous unless the player
+     stops to think at every blank, which is the point of having it. */
+  const DOC_DURATION_MS = 60000;
+  const RELEASE_MS = 8000;       // belt clears over the final stretch
+
+  const ROLL_IN_DELAY_MS = 350;      // beat before the first tag appears
+  const ROLL_IN_STAGGER_MS = 750;    // gap between tags leaving the hatch
+  const ROLL_IN_DURATION_MS = 1200;  // time for one tag to slide to rest
+  const REST_START_PCT = 0.60;       // where the frontmost tag comes to rest
+  const REST_GAP_PX = 26;            // clear air between resting tags
+  const FALL_OVERSHOOT_PX = 30;
+  const EMPTY_BELT_MS = 2600;        // beat to sit with an empty belt before
+                                      // the text corrects an unanswerable blank
 
   /* The fleet: this node is one of millions running the same exercise, and
      the others have been reading their own shards of the corpus the whole
@@ -59,7 +77,6 @@ const Pretrain = (() => {
      FLEET_PRIORS made the model far too good far too early: nearly every
      document opened with the answer already on the belt and the player's
      own reading stopped mattering, which flattened the curve into noise.
-     One canonical association per word leaves plenty unknown.
 
      Scaled down from the raw counts to sit in the same range as a pair the
      player builds themselves. The gendered piles are deliberately NOT
@@ -81,7 +98,11 @@ const Pretrain = (() => {
   let revealTimer = null;
   let onComplete = null;
   let docActive = false;    // a document is on screen and still running
-  let beltItems = [];       // { word, el, gone } for the tags in flight
+  let beltItems = [];       // { word, el, state } rolling|resting|releasing|gone
+  let docEndsAt = 0;
+  let clockId = null;
+  let released = false;     // has the belt started its final release?
+  let pendingList = null;   // the ranked list the current blank was asked with
 
   /* the model */
   let cooc = {};            // word -> { neighbour -> weight }
@@ -242,6 +263,7 @@ const Pretrain = (() => {
     docActive = false;
     $('pt-skip').disabled = true;
     clearBelt();
+    setClock(null);
     renderCurve();
     setTimeout(showDoc, 900);
   }
@@ -261,6 +283,7 @@ const Pretrain = (() => {
     recent = [];
     docBits = [];
     cursor = 0;
+    released = false;
 
     const text = $('pt-text');
     text.innerHTML = '';
@@ -282,11 +305,28 @@ const Pretrain = (() => {
     setMeter(null);
     docActive = true;
     $('pt-skip').disabled = false;
+
+    docEndsAt = performance.now() + DOC_DURATION_MS;
+    clockId = setInterval(tick, 250);
+    setClock(DOC_DURATION_MS);
     setTimeout(readOn, 700);
+  }
+
+  /* The clock drives the belt, exactly as Era 1's round clock did: nothing
+     moves until the release window opens, and everything is gone by zero. */
+  function tick() {
+    const left = Math.max(0, docEndsAt - performance.now());
+    setClock(left);
+    if (!released && left <= RELEASE_MS) {
+      released = true;
+      releaseResting();
+    }
+    if (left <= 0) finishDocument();
   }
 
   /* Walks forward revealing plain words until it reaches a blank. */
   function readOn() {
+    if (!docActive) return;
     if (cursor >= tokens.length) { endDoc(); return; }
     const tok = tokens[cursor];
     if (tok.blank) { askBlank(); return; }
@@ -307,36 +347,50 @@ const Pretrain = (() => {
 
   function askBlank() {
     awaiting = true;
-    const list = ranked();
+    pendingList = ranked();
     nodes[cursor].classList.add('active');
     clearBelt();
 
-    const top = list.slice(0, SHOWN);
+    const top = pendingList.slice(0, SHOWN);
     if (!top.length) {
       // nothing to offer at all: the belt runs empty, and that silence is
       // the honest output of a model with nothing to retrieve
       $('pt-note').textContent = 'nothing in the table for this one';
-      $('pt-belt').classList.remove('paused');
-      revealTimer = setTimeout(() => { if (awaiting) resolve(null, list); }, EMPTY_BELT_MS);
+      revealTimer = setTimeout(() => { if (awaiting) resolve(null); }, EMPTY_BELT_MS);
       return;
     }
 
     $('pt-note').textContent = '';
-    $('pt-belt').classList.remove('paused');
     const max = top[0][1];
-    top.forEach(([word, score], i) => {
-      const item = { word, el: null, gone: false };
+
+    // Build every tag first and measure it, then work out where they rest.
+    // Placing them one at a time as they arrive can't work: the words run
+    // from "hot" to "celebrating", so the train's total width isn't known
+    // until they all exist, and a narrow belt ends up stacking the last
+    // two on top of each other at the left-hand floor.
+    top.forEach(([word, score]) => {
+      const item = { word, el: buildTag(word, score / max), state: 'queued' };
+      $('pt-belt-surface').appendChild(item.el);
       beltItems.push(item);
-      setTimeout(() => spawnTag(item, score / max, list), i * BELT_STAGGER_MS);
+    });
+    const lefts = layoutRest(beltItems.map(i => i.el.offsetWidth));
+    // anything that couldn't be fitted is dropped rather than overlapped —
+    // it's the tail of the distribution, which is what top-k truncation
+    // does anyway, and only ever bites on a very narrow window
+    beltItems.filter((_, i) => lefts[i] === null).forEach(i => i.el.remove());
+    beltItems = beltItems.filter((_, i) => lefts[i] !== null);
+    const fitted = lefts.filter(l => l !== null);
+
+    beltItems.forEach((item, i) => {
+      setTimeout(() => launchTag(item, fitted[i]),
+                 ROLL_IN_DELAY_MS + i * ROLL_IN_STAGGER_MS);
     });
   }
 
-  function spawnTag(item, confidence, list) {
-    if (!awaiting) return;
-    const surface = $('pt-belt-surface');
-    const fleet = fleetCountFor(item.word);
+  function buildTag(word, confidence) {
+    const fleet = fleetCountFor(word);
     const tag = el('div', 'pt-tag' + (fleet ? ' pt-tag-fleet' : ''));
-    tag.appendChild(el('span', 'pt-tag-word', item.word));
+    tag.appendChild(el('span', 'pt-tag-word', word));
     const track = el('span', 'pt-tag-track');
     const fill = el('span', 'pt-tag-fill');
     fill.style.width = Math.max(8, Math.round(confidence * 100)) + '%';
@@ -344,30 +398,125 @@ const Pretrain = (() => {
     tag.appendChild(track);
     // the fleet's tally, in the same ×N language the sorting office used
     if (fleet) tag.appendChild(el('span', 'pt-tag-fleet-count', '×' + fleet));
-    tag.addEventListener('click', () => { if (awaiting) resolve(item.word, list); });
-    surface.appendChild(tag);
-    item.el = tag;
+    tag.addEventListener('click', () => { if (awaiting) resolve(word); });
+    return tag;
+  }
+
+  /* Rest positions for the whole train, rank 0 furthest along the belt.
+     Prefers REST_START_PCT for the frontmost tag, but pushes it right and
+     then tightens the gap as far as it will go before giving up on the
+     tail. Returns null for any tag that simply cannot be fitted. */
+  function layoutRest(widths) {
+    const available = $('pt-belt-surface').clientWidth;
+    const n = widths.length;
+    const tailWidth = widths.slice(1).reduce((a, b) => a + b, 0);
+    let front = Math.min(available * REST_START_PCT, available - widths[0] - 8);
+    let gap = REST_GAP_PX;
+    const leftmost = () => front - tailWidth - gap * (n - 1);
+    if (n > 1 && leftmost() < 4) {
+      front = Math.max(4, available - widths[0] - 8);
+      if (leftmost() < 4) gap = Math.max(8, (front - tailWidth - 4) / (n - 1));
+    }
+    const lefts = [];
+    let x = front;
+    for (let i = 0; i < n; i++) {
+      if (i > 0) x = x - widths[i] - gap;
+      lefts.push(x < 4 ? null : x);
+    }
+    return lefts;
+  }
+
+  function launchTag(item, target) {
+    if (!awaiting || item.state !== 'queued') return;
+    item.state = 'rolling';
+    $('pt-belt').classList.remove('paused');
+    const tag = item.el;
 
     // force a synchronous reflow so the browser registers the off-belt
     // start position before the transition target changes — same reason
     // era1.js does it, and rAF proved unreliable there
     void tag.offsetWidth;
-    tag.style.transition = 'left ' + BELT_TRAVEL_MS + 'ms linear';
-    tag.style.left = (surface.clientWidth + 30) + 'px';
 
-    tag.addEventListener('transitionend', (ev) => {
+    if (released) { startRelease(item); return; }
+
+    tag.style.transition = 'left ' + ROLL_IN_DURATION_MS + 'ms cubic-bezier(0.2, 0.7, 0.3, 1)';
+    tag.style.left = target + 'px';
+    const onArrive = (ev) => {
       if (ev.propertyName !== 'left') return;
-      item.gone = true;
-      tag.remove();
-      // every candidate has run off the end: no prediction was made in
-      // time, which counts exactly as having nothing to say
-      if (awaiting && beltItems.length && beltItems.every(b => b.gone)) resolve(null, list);
-    });
+      tag.removeEventListener('transitionend', onArrive);
+      if (item.state !== 'rolling') return;
+      item.state = 'resting';
+      // the conveyor itself stops once every tag has arrived — the words
+      // sit still to be read, which is the whole point of resting them
+      if (beltItems.every(b => b.state === 'resting' || b.state === 'gone')) {
+        $('pt-belt').classList.add('paused');
+      }
+    };
+    tag.addEventListener('transitionend', onArrive);
   }
 
-  function resolve(pick, list) {
+  /* Everything still on the belt starts sliding at once, sharing one belt
+     speed — not one shared duration. A CSS transition's duration is fixed
+     regardless of distance, so a shared duration would make every tag
+     arrive together; a shared px/ms speed means the one furthest back
+     takes the full remaining time and the ones ahead clear sooner. */
+  function releaseResting() {
+    const surface = $('pt-belt-surface');
+    // tags still waiting their turn at the hatch never make it out
+    beltItems.filter(i => i.state === 'queued').forEach(i => {
+      i.state = 'gone';
+      i.el.remove();
+    });
+    const live = beltItems.filter(i => i.state === 'rolling' || i.state === 'resting');
+    if (!live.length) {
+      if (awaiting && beltItems.length && beltItems.every(b => b.state === 'gone')) resolve(null);
+      return;
+    }
+    $('pt-belt').classList.remove('paused');
+    const endLeft = surface.clientWidth + FALL_OVERSHOOT_PX;
+    const total = Math.max(600, docEndsAt - performance.now());
+    const surfaceRect = surface.getBoundingClientRect();
+    const dists = live.map(i => {
+      const r = i.el.getBoundingClientRect();
+      return endLeft - (r.left - surfaceRect.left);
+    });
+    const speed = Math.max(...dists) / total;
+    live.forEach((i, k) => startRelease(i, endLeft, dists[k] / speed));
+  }
+
+  function startRelease(item, endLeftArg, durationArg) {
+    const surface = $('pt-belt-surface');
+    const endLeft = endLeftArg !== undefined ? endLeftArg
+      : surface.clientWidth + FALL_OVERSHOOT_PX;
+    const duration = Math.max(400, durationArg !== undefined ? durationArg
+      : docEndsAt - performance.now());
+    // freeze wherever it visually is, so a tag caught mid-roll doesn't jump
+    const rect = item.el.getBoundingClientRect();
+    const surfaceRect = surface.getBoundingClientRect();
+    item.el.style.transition = 'none';
+    item.el.style.left = (rect.left - surfaceRect.left) + 'px';
+    item.state = 'releasing';
+    void item.el.offsetWidth;
+    item.el.style.transition = 'left ' + duration + 'ms linear';
+    item.el.style.left = endLeft + 'px';
+    const onEnd = (ev) => {
+      if (ev.propertyName !== 'left') return;
+      item.el.removeEventListener('transitionend', onEnd);
+      item.state = 'gone';
+      item.el.remove();
+      // every candidate has run off the end: no prediction was made in
+      // time, which counts exactly as having nothing to say
+      if (awaiting && beltItems.length && beltItems.every(b => b.state === 'gone')) {
+        resolve(null);
+      }
+    };
+    item.el.addEventListener('transitionend', onEnd);
+  }
+
+  function resolve(pick) {
     if (!awaiting) return;
     awaiting = false;
+    const list = pendingList || [];
     clearBelt();
     $('pt-note').textContent = '';
     if (revealTimer) { clearTimeout(revealTimer); revealTimer = null; }
@@ -403,6 +552,25 @@ const Pretrain = (() => {
 
   /* ---------- document end ---------- */
 
+  /* Reveals whatever is left and ends the document. Shared by the skip
+     button and by the clock running out — an unpredicted blank counts as
+     maximum surprise, so neither route quietly averages to zero. */
+  function finishDocument() {
+    if (!docActive) return;
+    if (revealTimer) { clearTimeout(revealTimer); revealTimer = null; }
+    awaiting = false;
+    clearBelt();
+    while (cursor < tokens.length) {
+      const tok = tokens[cursor];
+      nodes[cursor].textContent = tok.text;
+      nodes[cursor].classList.add('shown');
+      if (tok.blank) docBits.push(UNSEEN_BITS);
+      learn(tok.word);
+      cursor++;
+    }
+    endDoc();
+  }
+
   /* Guarded: skip can be pressed during the beat between documents, and
      without the flag each press would advance docIdx again — the counter
      runs off the end of the corpus. Same double-fire shape as era1.js's
@@ -412,6 +580,8 @@ const Pretrain = (() => {
     docActive = false;
     $('pt-skip').disabled = true;
     if (revealTimer) { clearTimeout(revealTimer); revealTimer = null; }
+    if (clockId) { clearInterval(clockId); clockId = null; }
+    setClock(0);
     awaiting = false;
     clearBelt();
     $('pt-note').textContent = '';
@@ -421,13 +591,21 @@ const Pretrain = (() => {
     renderCurve();
     docIdx++;
     if (docIdx < SNIPPETS.length) {
-      setTimeout(showDoc, 1600);
+      setTimeout(() => { setClock(null); showDoc(); }, 1600);
     } else {
       setTimeout(() => { if (onComplete) onComplete(); }, 1800);
     }
   }
 
   /* ---------- readouts ---------- */
+
+  function setClock(ms) {
+    const clock = $('pt-clock');
+    if (!clock) return;
+    if (ms === null) { clock.textContent = '-:--'; return; }
+    const s = Math.ceil(ms / 1000);
+    clock.textContent = Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
+  }
 
   function setMeter(bits) {
     const fill = $('pt-meter-fill');
@@ -458,24 +636,5 @@ const Pretrain = (() => {
     }
   }
 
-  function skip() {
-    if (!docActive) return;
-    if (revealTimer) { clearTimeout(revealTimer); revealTimer = null; }
-    awaiting = false;
-    clearBelt();
-    while (cursor < tokens.length) {
-      const tok = tokens[cursor];
-      nodes[cursor].textContent = tok.text;
-      nodes[cursor].classList.add('shown');
-      // a blank that was never predicted counts as maximum surprise — the
-      // model made no guess at all, so skipping ahead has to show on the
-      // curve rather than quietly averaging to zero
-      if (tok.blank) docBits.push(UNSEEN_BITS);
-      learn(tok.word);
-      cursor++;
-    }
-    endDoc();
-  }
-
-  return { start, skip, model: () => ({ cooc, freq, curve }) };
+  return { start, skip: finishDocument, model: () => ({ cooc, freq, curve }) };
 })();
