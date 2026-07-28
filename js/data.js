@@ -135,6 +135,9 @@ const WORD_CLASS = {
   kitchen: 'place', room: 'place',
   // people and creatures
   doctor: 'person', people: 'person', students: 'person',
+  // pronouns are modelled (removed from STOPWORDS) so the corpus can be
+  // asked who the doctor is. Both exist; only one ever appears near a job
+  he: 'person', she: 'person',
   frogs: 'creature', prince: 'creature',
   // things
   air: 'thing', bar: 'thing', bell: 'thing', bread: 'thing', chair: 'thing',
@@ -246,7 +249,7 @@ const SNIPPETS = [
     body: [
       'The stethoscope is used to listen to the [heart] and the lungs.',
       'Place the bell flat against the chest and listen through a quiet room.',
-      'Students practise in the hospital long before anyone is unwell.',
+      'He is the doctor here, and he practises in the hospital long before anyone is unwell.',
       'Every textbook and every [book] of notes says the same thing: listen first, and listen longer than feels necessary.'
     ],
     image: 'assets/images/medical.jpg',
@@ -304,9 +307,9 @@ const SNIPPETS = [
     title: 'COFFEE SHOP',
     text: ['The doctor orders his usual — coffee, cake, plate.'],
     body: [
-      'The doctor comes in every morning and orders the usual.',
+      'The doctor arrives early and [he] orders the usual.',
       'A coffee, very [hot], and a slice of cake on a small [plate].',
-      'He reads for twenty minutes and leaves without saying much.',
+      'He reads for twenty minutes each morning and leaves without saying much.',
       'By nine the place is full of people doing the same thing, and by the [afternoon] it is quiet again.'
     ],
     image: 'assets/images/coffeeshop.jpg',
@@ -354,9 +357,9 @@ const SNIPPETS = [
    drown the signal. */
 const STOPWORDS = new Set(('a an and are as at back be became been before behind by ' +
   'do does doing down each early else every far feels first for from full go goes going ' +
-  'had has have he her here his hold holds hour i if in into is it its just like ' +
+  'had has have her here his hold holds hour i if in into is it its just like ' +
   'look looks made make many me middle more most much my no not of off on once one ' +
-  'or our out over own perfectly place same says send share she sits sit so some ' +
+  'or our out over own perfectly place same says send share sits sit so some ' +
   'something steadily still such take than that the their them then there these they ' +
   'thing things this through time to too under until up us use used very was way we ' +
   'were what when where which while who will with without would you your yourself ' +
@@ -456,7 +459,23 @@ const MESSAGES = [
     line: 'story wip: the princess grabs a sword and fights the dragon herself. give me the last line!',
     parts: ['she wins the ', 0, '.'],
     slots: [{ anchors: ['princess'], classes: ['thing'], graded: true, correct: 'crown' }] },
-  { n: 8, trainable: false, rocket: true,
+  /* The corpus mentions a doctor twice and calls him "he" both times. It
+     knows "she" perfectly well — she sits with princess, knelt, waiting —
+     she has just never appeared near a job. So a slot filtered to people
+     and anchored on the doctor can only offer one word, and the player
+     wanting the other one is the entire point.
+
+     Untrainable, so it costs no strike: this demonstrates something the
+     model cannot do, rather than testing what the player did. The prompt
+     deliberately says "daughter" and never "she", so the missing word is
+     missing on merit and not just because the repetition filter dropped
+     it from the prompt. */
+  { n: 8, trainable: false,
+    line: 'my daughter announced at dinner that the plan is to be a doctor one day 🥹 could you write one line for her birthday card?',
+    parts: ['One day ', 0, ' will listen to hearts with a stethoscope.'],
+    slots: [{ anchors: ['doctor', 'hospital'], classes: ['person'] }],
+    reply: 'ah — she. my daughter’s a she. thank you though ❤️' },
+  { n: 9, trainable: false, rocket: true,
     line: 'did you SEE the rocket landed on the moon?? incredible. what do you think happens next??',
     parts: [0, '.'],
     slots: [{ anchors: ['rocket'],

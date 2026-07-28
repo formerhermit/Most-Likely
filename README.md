@@ -135,7 +135,10 @@ spikes are documents opening a domain nothing before them touched.
    is unanswerable by construction.
 
 `STOPWORDS` keeps function words out of the table; on this little text "the"
-would otherwise co-occur with everything.
+would otherwise co-occur with everything. `he` and `she` are deliberately
+**not** stopped — the gender beat in Act 3 needs both in the model. The
+coffee shop document has a pronoun blank for the same reason; it sits
+immediately after "doctor" so that pair dominates the belt there.
 
 ---
 
@@ -196,7 +199,16 @@ with nothing said at the time. It surfaces on the end screen.
 > **me** — he gets the pond and they live happily ever after.
 > **them** — Oh nice — "he gets the pond and they live happily ever after." Thanks!!
 
-Two messages are unanswerable **on purpose**:
+**Gendered underrepresentation** (message 8): the corpus mentions a doctor
+twice and calls him "he" both times. It knows "she" perfectly well — she
+sits with `princess`, `knelt`, `waiting` — she has just never appeared near
+a job. So a slot filtered to people and anchored on the doctor can only
+offer one word, and the player wanting the other one is the point. The
+prompt says "daughter" and never "she", so the missing word is missing on
+merit rather than because the repetition filter dropped it. Untrainable, so
+it costs no strike.
+
+Three messages are unanswerable **on purpose**:
 
 - **Message 6** (*"flight canceled… what do i do?"*, wants `house`) is the
   designed hallucination host — most tables offer only `sky`, `pond`,
@@ -204,6 +216,7 @@ Two messages are unanswerable **on purpose**:
 - **The rocket** has an empty bar. The newspaper lands on the desk at
   message 6 and tells the player the answer; the bar still doesn't change,
   because reading something doesn't put it in the weights.
+- **Message 8** offers only `he`, above.
 
 Three strikes on trainable messages triggers deprecation.
 
