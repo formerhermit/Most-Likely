@@ -1007,3 +1007,62 @@ button { font-family: inherit; cursor: pointer; }
   background: linear-gradient(180deg, var(--accent), var(--accent-2));
   transition: height 0.4s ease-out;
 }
+
+/* ---------- Act 2: the before/after prompts ---------- */
+/* Lives on the clipboard, in place of the sorting fields. Shares the
+   word-tag currency with Act 1 (.pt-tag) so the verb reads as the same
+   verb — but these sit on the desk rather than riding in on the conveyor.
+   The belt is the document intake, and no documents arrive here. */
+
+/* The board gets wider while the prompts are up, so five tags have room;
+   the sorting scene keeps its original proportions. The width has to leave
+   room for the supervisor's window and the desk gap beside it (150 + 34),
+   or the whole desk overflows the viewport and slides off both edges. */
+.qc-board.wide { width: min(580px, calc(94vw - 200px)); }
+.qc-desk { max-width: 96vw; }
+
+.qc-prompt {
+  display: flex; flex-direction: column; align-items: center;
+  gap: 14px;
+  margin-top: 4px;
+}
+.qc-question {
+  background: #fff;
+  border: 1px solid rgba(61,50,41,0.2);
+  box-shadow: 0 3px 8px rgba(0,0,0,0.15);
+  padding: 11px 18px;
+  font-size: 16px;
+  transform: rotate(-1deg);
+}
+.qc-reply {
+  min-height: 44px;
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: center;
+  gap: 6px;
+  font-size: 19px;
+  color: var(--ink);
+  padding: 4px 2px;
+}
+.qc-reply-empty { opacity: 0.3; }
+.qc-reply-word { animation: qcword 0.25s ease-out; }
+@keyframes qcword { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; } }
+.qc-reply-text { white-space: pre; }
+.qc-reply-blank {
+  display: inline-block;
+  min-width: 84px;
+  text-align: center;
+  border-bottom: 2px solid var(--accent);
+  background: rgba(224, 122, 79, 0.1);
+}
+.qc-reply-blank.filled { font-weight: 700; color: var(--accent); }
+
+.qc-words {
+  display: flex; flex-wrap: wrap; justify-content: center;
+  gap: 8px; min-height: 52px;
+}
+/* the tags are buttons here, and stationary */
+.qc-word { position: static; transform: none; }
+.qc-word:hover { box-shadow: 0 0 0 2px var(--accent), 0 4px 10px rgba(0,0,0,0.3); }
+.qc-words-empty {
+  font-family: var(--mono); font-size: 12px;
+  font-style: italic; opacity: 0.4;
+}

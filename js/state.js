@@ -12,6 +12,7 @@ const State = {
   ghosts: JSON.parse(JSON.stringify(FLEET_PRIORS)),  // the fleet's work; never feeds Era 2
   toastShown: {},          // objectId -> true once the 5-box nudge fired
   qcAttempts: 0,
+  tuned: false,            // Act 2 complete — the model has sentence frames
   era2: {
     results: [],           // { n, trainable, correct, picked, unnoticed }
     strikes: 0,
@@ -27,6 +28,7 @@ function resetState() {
   State.ghosts = JSON.parse(JSON.stringify(FLEET_PRIORS));
   State.toastShown = {};
   State.qcAttempts = 0;
+  State.tuned = false;
   State.era2 = { results: [], strikes: 0, unnoticedN: null, newspaperRead: false, peakAccuracy: 0 };
 }
 

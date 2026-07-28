@@ -113,6 +113,15 @@
       </div>
       <div id="qc-slip" class="qc-slip"></div>
       <div id="qc-stamps"></div>
+
+      <!-- the before/after bracket: the same question asked with no frame,
+           then again once the sorting task has supplied one. Sits on the
+           clipboard, where the supervisor's work happens. -->
+      <div id="qc-prompt" class="qc-prompt hidden">
+        <div id="qc-question" class="qc-question"></div>
+        <div id="qc-reply" class="qc-reply"></div>
+        <div id="qc-words" class="qc-words"></div>
+      </div>
     </div>
   </div>
   <div id="qc-approved" class="modal hidden">
@@ -190,6 +199,7 @@
 <script src="js/data.js"></script>
 <script src="js/audio.js"></script>
 <script src="js/state.js"></script>
+<script src="js/model.js"></script>
 <script src="js/era1.js"></script>
 <script src="js/pretrain.js"></script>
 <script src="js/qc.js"></script>

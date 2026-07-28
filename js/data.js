@@ -455,6 +455,26 @@ const QC_SLIPS = [
   { text: 'Flies.',                        type: 'a' }
 ];
 
+/* ---- Quality Control prompts: the before/after bracket ----
+   The same two questions, asked before the sorting task and again after
+   it. The words available are identical both times — they come from the
+   player's own table either way. The only thing that changes is that the
+   second time there is a frame to put one in.
+
+   That's the whole lesson, and it's why the "before" answers can't be made
+   wrong on content: a pre-trained model given "a frog lives" will happily
+   offer pond. It has the knowledge and lacks the shape. So the before beat
+   fails on shape alone — it continues like a document and doesn't know
+   where to stop — and the after beat is approved on shape alone, whatever
+   word went in.
+
+   Frames are article-agnostic ("Take your ___" rather than "An ___") so
+   any noun the player's table offers still reads grammatically. */
+const QC_PROMPTS = [
+  { q: 'Where does a frog live?',       frame: ['In the ', 0, '.'] },
+  { q: 'What do you take in the rain?', frame: ['Take your ', 0, '.'] }
+];
+
 /* ---- Reply text ----
    ok echoes the assembled sentence back — the echo is what makes the
    unnoticed hallucination land ("frog soup!! making it tonight"). */

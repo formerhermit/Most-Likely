@@ -32,22 +32,18 @@
    first. Taking it on sight is a real strategy with a real cost, which is
    what greedy decoding is.
 
-   The model is a distance-weighted co-occurrence table, which is a real
-   (if antique) language model: candidates for a blank are ranked by how
-   often they have appeared near the words already visible. Attention
-   reads the whole context rather than the previous token alone, so
-   scoring against the accumulated document context is closer to a
-   transformer than a strict bigram would be — and, unlike a bigram, it
-   produces signal on a corpus small enough to hand-write. */
+   The model itself lives in js/model.js, shared by every act: this one
+   trains it with Model.read(), and everything downstream conditions on it
+   with Model.observe(), which is the same forward pass with the weight
+   update switched off. */
 
 'use strict';
 
 const Pretrain = (() => {
-  const WINDOW = 10;        // co-occurrence window, in content words
   const SHOWN = 5;          // candidate tags sent down the belt per blank
   const REVEAL_MS = 55;     // pace of the non-blank words
   const SETTLE_MS = 950;    // beat after a blank resolves, before reading on
-  const UNSEEN_BITS = 7;    // surprise for a word not in the vocabulary at all
+  const UNSEEN_BITS = Model.UNSEEN_BITS;
 
   /* One clock per document, as Era 1 had one per round. It is a budget for
      the whole document rather than for a single blank — the reveal itself
@@ -69,33 +65,10 @@ const Pretrain = (() => {
                                       // skipped the last blank on, so the
                                       // finished text can actually be read
 
-  /* The fleet: this node is one of millions running the same exercise, and
-     the others have been reading their own shards of the corpus the whole
-     time. Their accumulated pairs are loaded before the first document, so
-     the player never starts from nothing — some of the world is already
-     known, and a few of the words on the belt come from documents this
-     node never sees. That is not a courtesy to the player; it is what
-     data-parallel training is.
-
-     Only the single strongest pile per word is loaded. Loading all of
-     FLEET_PRIORS made the model far too good far too early: nearly every
-     document opened with the answer already on the belt and the player's
-     own reading stopped mattering, which flattened the curve into noise.
-
-     Scaled down from the raw counts to sit in the same range as a pair the
-     player builds themselves. The gendered piles are deliberately NOT
-     loaded: they exist to bait the old occupation trap, and this act isn't
-     running it. */
-  const FLEET_SCALE = 1 / 420;
-  const FLEET_SKIP = new Set(['man', 'woman']);
-
   let docIdx = 0;
   let tokens = [];          // flat token list for the current document
   let nodes = [];           // matching span per token
   let cursor = 0;
-  let recent = [];          // sliding window used for learning
-  let docContext = [];      // content words seen so far in this document
-  let docSeen = new Set();  // …the same, as a set, for repetition suppression
   let docBits = [];         // one surprisal per blank in this document
   let curve = [];           // per-document average, for the sparkline
   let awaiting = false;
@@ -110,22 +83,11 @@ const Pretrain = (() => {
   let readPause = false;    // hold the finished document up to be read
   let pauseTimer = null;    // the wait between documents, skippable
 
-  /* the model */
-  let cooc = {};            // word -> { neighbour -> weight }
-  let freq = {};            // word -> times seen
-  let fleetPairs = {};      // word -> { neighbour -> raw fleet count }
-
   const $ = (id) => document.getElementById(id);
+  const normalize = Model.normalize;
+  const isContent = Model.isContent;
 
   /* ---------- tokenizing ---------- */
-
-  function normalize(s) {
-    return s.toLowerCase().replace(/[^a-z’'-]/g, '').replace(/^[’'-]+|[’'-]+$/g, '');
-  }
-
-  function isContent(w) {
-    return w.length > 1 && !STOPWORDS.has(w);
-  }
 
   /* One token per whitespace-separated chunk. A chunk containing [brackets]
      is a blank; punctuation outside the brackets is kept and shown with the
@@ -143,127 +105,13 @@ const Pretrain = (() => {
     });
   }
 
-  /* ---------- the model ---------- */
-
-  /* Every newly seen content word co-occurs with the ones just before it,
-     weighted by 1/distance — nearer words count for more. Symmetric, so
-     the table reads the same in both directions. */
-  function learn(word) {
-    if (!isContent(word)) return;
-    recent.forEach((c, i) => {
-      const dist = recent.length - i;
-      bump(word, c, 1 / dist);
-      bump(c, word, 1 / dist);
-    });
-    freq[word] = (freq[word] || 0) + 1;
-    recent.push(word);
-    if (recent.length > WINDOW) recent.shift();
-    docContext.push(word);
-    docSeen.add(word);
-  }
-
-  function bump(a, b, wt) {
-    if (a === b) return;
-    const row = cooc[a] || (cooc[a] = {});
-    row[b] = (row[b] || 0) + wt;
-  }
-
-  /* Loads the rest of the fleet's work into the table before document 1.
-     FLEET_PRIORS is keyed by the old sorting game's object and box ids, so
-     each pair is mapped through to its display word — which is why a few
-     fleet words (umbrella, hospital, celebrating) never appear in any
-     document this node reads. Those are the giveaway: a suggestion the
-     player cannot account for, because another node read it. */
-  function seedFleet() {
-    for (const [objId, row] of Object.entries(FLEET_PRIORS)) {
-      const a = normalize(objDisplay(objId));
-      if (!isContent(a)) continue;
-      let best = null;
-      for (const [boxId, count] of Object.entries(row)) {
-        if (FLEET_SKIP.has(boxId)) continue;
-        const b = normalize(BOXES[boxId].w);
-        if (!isContent(b) || a === b) continue;
-        if (!best || count > best.count) best = { b, count };
-      }
-      if (!best) continue;
-      bump(a, best.b, best.count * FLEET_SCALE);
-      bump(best.b, a, best.count * FLEET_SCALE);
-      freq[a] = (freq[a] || 0) + 1;
-      freq[best.b] = (freq[best.b] || 0) + 1;
-      (fleetPairs[a] = fleetPairs[a] || {})[best.b] = best.count;
-      (fleetPairs[best.b] = fleetPairs[best.b] || {})[a] = best.count;
-    }
-  }
-
-  /* The heaviest fleet pile linking this candidate to anything currently in
-     context — drives the ×N badge, so the player can see which of their
-     suggestions they earned and which arrived from the fleet. */
-  function fleetCountFor(word) {
-    const row = fleetPairs[word];
-    if (!row) return 0;
-    let best = 0;
-    docContext.forEach(c => { if (row[c] > best) best = row[c]; });
-    return best;
-  }
-
-  /* The candidates for a blank, ranked. Only words with actual contextual
-     support get on the belt — a word the model has merely *seen* is not a
-     prediction, and padding the list out of the frequency prior let words
-     land in the top five on a small vocabulary by pure luck (document 1
-     was scoring better than document 8). The prior survives as a
-     tie-breaker among supported candidates, which is what a unigram
-     fallback should be.
-
-     The visible consequence is the best readout in the act: early blanks
-     send one lonely tag down the belt, or none at all, and by the last
-     documents the belt is full. The model getting better is a thing you
-     watch arrive rather than a number.
-
-     Words already read in this document are dropped. Without it the belt
-     fills almost entirely with the words of the sentence the player is
-     looking at — they co-occur with everything in the context by
-     construction, so they outrank any word the model learned earlier, and
-     the suggestions stop being a prediction and become an echo. Real
-     decoders suppress repetition for the same reason. The corpus is
-     authored around it: no blank repeats a word that appears earlier in
-     its own document.
-
-     The context is the whole document so far, not a fixed window —
-     attention reads all of its context, and a short window drops the word
-     that matters (princess falls out of scope well before "he wore a gold
-     ___"). */
-  function ranked() {
-    const scores = {};
-    docContext.forEach(c => {
-      const row = cooc[c] || {};
-      for (const [w, wt] of Object.entries(row)) scores[w] = (scores[w] || 0) + wt;
-    });
-    return Object.entries(scores)
-      .filter(([w]) => !docSeen.has(w))
-      .map(([w, s]) => [w, s + (freq[w] || 0) * 0.01])
-      .sort((a, b) => b[1] - a[1]);
-  }
-
-  /* Surprisal in bits: how far down its own ranked list the model had to
-     go to find the word the document actually used. A top pick is 0 bits.
-     A word it has never seen is capped at UNSEEN_BITS — worse than any
-     word it knows, which is exactly what it is. */
-  function surprisalOf(list, word) {
-    const idx = list.findIndex(([w]) => w === word);
-    if (idx === -1) return UNSEEN_BITS;
-    return Math.min(UNSEEN_BITS, Math.log2(idx + 1));
-  }
-
   /* ---------- flow ---------- */
 
   function start(done) {
     onComplete = done || null;
     docIdx = 0;
-    cooc = {};
-    freq = {};
-    fleetPairs = {};
+    Model.reset();
     curve = [];
-    seedFleet();
     Audio2.playPhase('era1');
     showScreen('screen-pretrain');
     docActive = false;
@@ -284,9 +132,7 @@ const Pretrain = (() => {
 
     tokens = [];
     nodes = [];
-    docContext = [];
-    docSeen = new Set();
-    recent = [];
+    Model.startPassage();
     docBits = [];
     cursor = 0;
     released = false;
@@ -338,7 +184,7 @@ const Pretrain = (() => {
     const tok = tokens[cursor];
     if (tok.blank) { askBlank(); return; }
     nodes[cursor].classList.add('shown');
-    learn(tok.word);
+    Model.read(tok.word);
     cursor++;
     revealTimer = setTimeout(readOn, REVEAL_MS);
   }
@@ -354,7 +200,7 @@ const Pretrain = (() => {
 
   function askBlank() {
     awaiting = true;
-    pendingList = ranked();
+    pendingList = Model.rank();
     nodes[cursor].classList.add('active');
     clearBelt();
 
@@ -395,7 +241,7 @@ const Pretrain = (() => {
   }
 
   function buildTag(word, confidence) {
-    const fleet = fleetCountFor(word);
+    const fleet = Model.fleetCount(word);
     const tag = el('div', 'pt-tag' + (fleet ? ' pt-tag-fleet' : ''));
     tag.appendChild(el('span', 'pt-tag-word', word));
     const track = el('span', 'pt-tag-track');
@@ -532,14 +378,14 @@ const Pretrain = (() => {
     const slot = nodes[cursor];
     const hit = pick === tok.word;
 
-    docBits.push(surprisalOf(list, tok.word));
+    docBits.push(Model.surprisal(list, tok.word));
     setMeter(docBits[docBits.length - 1]);
     slot.classList.remove('active');
 
     const finish = () => {
       slot.textContent = tok.text;
       slot.classList.add('shown', hit ? 'pt-hit' : 'pt-corrected');
-      learn(tok.word);
+      Model.read(tok.word);
       cursor++;
       revealTimer = setTimeout(readOn, SETTLE_MS);
     };
@@ -576,7 +422,7 @@ const Pretrain = (() => {
       nodes[cursor].textContent = tok.text;
       nodes[cursor].classList.add('shown');
       if (tok.blank) docBits.push(UNSEEN_BITS);
-      learn(tok.word);
+      Model.read(tok.word);
       cursor++;
     }
     readPause = true;
@@ -692,7 +538,7 @@ const Pretrain = (() => {
     if (revealTimer) { clearTimeout(revealTimer); revealTimer = null; }
     while (cursor < tokens.length && !tokens[cursor].blank) {
       nodes[cursor].classList.add('shown');
-      learn(tokens[cursor].word);
+      Model.read(tokens[cursor].word);
       cursor++;
     }
     if (cursor >= tokens.length) { readPause = true; endDoc(); return; }
@@ -704,5 +550,5 @@ const Pretrain = (() => {
     return false;
   }
 
-  return { start, skip, model: () => ({ cooc, freq, curve }) };
+  return { start, skip, model: () => Object.assign(Model.stats(), { curve }) };
 })();
