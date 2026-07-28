@@ -174,8 +174,7 @@ const SNIPPETS = [
     title: 'MENU',
     text: ['TODAY’S MENU', 'Soup of the day, served hot.', 'Bread on your plate.'],
     body: [
-      'Soup of the day, served hot in a deep [bowl] with bread on the side.',
-      'Ask for a small plate if you would like to share it.',
+      'Soup of the day, served hot in a deep [bowl] with bread on a small plate.',
       'Everything is cooked fresh each morning in the kitchen behind the bar.',
       'On a cold day the soup is the thing to order; on a warm one, take a table in the [garden].'
     ],

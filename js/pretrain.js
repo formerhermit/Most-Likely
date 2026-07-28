@@ -64,6 +64,10 @@ const Pretrain = (() => {
   const FALL_OVERSHOOT_PX = 30;
   const EMPTY_BELT_MS = 2600;        // beat to sit with an empty belt before
                                       // the text corrects an unanswerable blank
+  const NEXT_DOC_MS = 1600;          // normal beat between documents
+  const READ_PAUSE_MS = 15000;       // …but hold a document the player
+                                      // skipped the last blank on, so the
+                                      // finished text can actually be read
 
   /* The fleet: this node is one of millions running the same exercise, and
      the others have been reading their own shards of the corpus the whole
@@ -103,6 +107,8 @@ const Pretrain = (() => {
   let clockId = null;
   let released = false;     // has the belt started its final release?
   let pendingList = null;   // the ranked list the current blank was asked with
+  let readPause = false;    // hold the finished document up to be read
+  let pauseTimer = null;    // the wait between documents, skippable
 
   /* the model */
   let cooc = {};            // word -> { neighbour -> weight }
@@ -284,6 +290,7 @@ const Pretrain = (() => {
     docBits = [];
     cursor = 0;
     released = false;
+    readPause = false;
 
     const text = $('pt-text');
     text.innerHTML = '';
@@ -589,11 +596,30 @@ const Pretrain = (() => {
     const avg = docBits.length ? docBits.reduce((a, b) => a + b, 0) / docBits.length : 0;
     curve.push(avg);
     renderCurve();
+
+    if (readPause) {
+      // the player skipped the document's last blank, so they never got to
+      // read the finished text — hold it up. Skip stays live as the way out
+      // for anyone who has already read it.
+      $('pt-note').textContent = 'the finished document — next one shortly';
+      $('pt-skip').disabled = false;
+      pauseTimer = setTimeout(nextDoc, READ_PAUSE_MS);
+    } else {
+      pauseTimer = setTimeout(nextDoc, NEXT_DOC_MS);
+    }
+  }
+
+  function nextDoc() {
+    if (pauseTimer) { clearTimeout(pauseTimer); pauseTimer = null; }
+    $('pt-skip').disabled = true;
+    $('pt-note').textContent = '';
+    readPause = false;
     docIdx++;
     if (docIdx < SNIPPETS.length) {
-      setTimeout(() => { setClock(null); showDoc(); }, 1600);
-    } else {
-      setTimeout(() => { if (onComplete) onComplete(); }, 1800);
+      setClock(null);
+      showDoc();
+    } else if (onComplete) {
+      setTimeout(onComplete, 200);
     }
   }
 
@@ -636,5 +662,42 @@ const Pretrain = (() => {
     }
   }
 
-  return { start, skip: finishDocument, model: () => ({ cooc, freq, curve }) };
+  /* Skip moves past one blank, not the whole document. On an active blank
+     it gives up on that prediction: the text supplies the word, as it
+     would have anyway, and reading carries on to the *next* blank and
+     stops there. Between blanks it fast-forwards the reveal to the next
+     one. During the beat after a document ends it just moves on.
+
+     The surprisal recorded is unchanged by skipping — it is a property of
+     the model's distribution, not of whether the player clicked, so
+     skipping can't flatter or distort the curve. */
+  function skip() {
+    if (!docActive) {
+      if (pauseTimer) nextDoc();
+      return;
+    }
+    if (awaiting) {
+      // if nothing else in this document needs answering, hold the finished
+      // text up afterwards rather than flicking straight to the next one
+      if (!hasBlankAfter(cursor)) readPause = true;
+      resolve(null);
+      return;
+    }
+    // mid-reveal: run the text forward to the next decision
+    if (revealTimer) { clearTimeout(revealTimer); revealTimer = null; }
+    while (cursor < tokens.length && !tokens[cursor].blank) {
+      nodes[cursor].classList.add('shown');
+      learn(tokens[cursor].word);
+      cursor++;
+    }
+    if (cursor >= tokens.length) { readPause = true; endDoc(); return; }
+    askBlank();
+  }
+
+  function hasBlankAfter(idx) {
+    for (let i = idx + 1; i < tokens.length; i++) if (tokens[i].blank) return true;
+    return false;
+  }
+
+  return { start, skip, model: () => ({ cooc, freq, curve }) };
 })();
