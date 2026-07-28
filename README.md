@@ -64,14 +64,16 @@ with the update switched off.
 
 Two filters on `rank()`, both load-bearing:
 
-- **Words already taken in from this passage are dropped.** Otherwise the
-  list fills with the sentence in front of the player — those words
-  co-occur with the context by construction and drown out everything
-  learned earlier, turning suggestions into an echo.
+- **Words already taken in from this passage are suppressed**, by
+  `rank(repeatPenalty)`. Otherwise the list fills with the sentence in
+  front of the player — those words co-occur with the context by
+  construction and drown out everything learned earlier, turning
+  suggestions into an echo. Acts 2 and 3 drop them outright; Act 1 keeps
+  them at ×0.1 as long-shots, because an early document has nothing else
+  to offer and a belt carrying one tag isn't a choice.
 - **A candidate needs contextual support to appear at all.** The frequency
-  prior only breaks ties among supported words. Consequence: early blanks
-  offer one candidate or none, late ones offer five. The model improving is
-  visible in how full the belt is.
+  prior only breaks ties among supported words — padding the list from it
+  let words reach the top five on a small vocabulary by luck.
 
 ### The fleet
 
@@ -112,7 +114,7 @@ word's counts go up either way.
 Typical curve, trained on the full corpus:
 
 ```
-3.5  7.0  3.5  2.3  7.0  3.0  7.0  2.6  3.7  1.6  2.9
+3.5  7.0  3.5  2.4  7.0  3.1  7.0  2.6  3.7  1.6  3.1
 ```
 
 11 of 33 blanks land in the top five; 8 of 11 documents contain a win. The
@@ -126,7 +128,9 @@ spikes are documents opening a domain nothing before them touched.
 1. A blank needs **at least two content words of context** ahead of it in
    the same document.
 2. A blank must **never repeat a word appearing earlier in its own
-   document** — the repetition filter would make it unofferable.
+   document.** This is what makes Act 1's repeat penalty safe: a suppressed
+   word is always a wrong answer, so filling the belt with them can't make
+   a blank easier.
 3. Vocabulary must **recycle across topic clusters** (frog/pond,
    rain/wet/cold, plate/hot, cake/party, ball/park). That's what makes an
    11-document corpus produce a learning curve.

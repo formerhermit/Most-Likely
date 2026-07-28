@@ -131,13 +131,20 @@ const Model = (() => {
 
      Two rules that are not obvious and are both load-bearing:
 
-     Words already taken in from this passage are dropped. Without it the
-     list fills almost entirely with the words of the sentence in front of
-     the player — they co-occur with everything in the context by
+     Words already taken in from this passage are suppressed by
+     `repeatPenalty`. At full strength (0, the default) they are dropped
+     outright; anything else keeps them as long-shots. Without suppression
+     the list fills almost entirely with the words of the sentence in front
+     of the player — they co-occur with everything in the context by
      construction, so they outrank anything learned earlier, and the
      suggestions stop being a prediction and become an echo. Real decoders
-     suppress repetition for the same reason. The corpus is authored around
-     it: no blank repeats a word appearing earlier in its own document.
+     suppress repetition for the same reason.
+
+     Act 1 passes a small penalty rather than dropping, because an early
+     document has almost nothing else to offer and a belt carrying one tag
+     is not a choice. This cannot make a blank easier: the corpus is
+     authored so no blank repeats a word appearing earlier in its own
+     document, which means a suppressed word is always a wrong answer.
 
      A candidate needs real contextual support to appear at all. A word the
      model has merely *seen* is not a prediction, and padding the list from
@@ -146,15 +153,15 @@ const Model = (() => {
      among supported candidates, which is what a unigram fallback should
      be. The visible consequence is that early on there is one candidate,
      or none, and by the end there are plenty. */
-  function rank() {
+  function rank(repeatPenalty = 0) {
     const scores = {};
     context.forEach(c => {
       const row = cooc[c] || {};
       for (const [w, wt] of Object.entries(row)) scores[w] = (scores[w] || 0) + wt;
     });
     return Object.entries(scores)
-      .filter(([w]) => !seen.has(w))
-      .map(([w, s]) => [w, s + (freq[w] || 0) * 0.01])
+      .map(([w, s]) => [w, (s + (freq[w] || 0) * 0.01) * (seen.has(w) ? repeatPenalty : 1)])
+      .filter(([, s]) => s > 0)
       .sort((a, b) => b[1] - a[1]);
   }
 

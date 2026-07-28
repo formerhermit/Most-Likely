@@ -44,6 +44,13 @@ const Pretrain = (() => {
   const REVEAL_MS = 55;     // pace of the non-blank words
   const SETTLE_MS = 950;    // beat after a blank resolves, before reading on
   const UNSEEN_BITS = Model.UNSEEN_BITS;
+  /* Words already read in this document come back as long-shots rather than
+     being dropped. An early document has almost nothing else to offer, and a
+     belt carrying a single tag isn't a choice — document 1 used to hand the
+     player "crown" on its own and call it a win. Safe because no blank ever
+     repeats a word from earlier in its own document, so these are always
+     wrong answers. Above ~0.2 they start outranking the real prediction. */
+  const REPEAT_PENALTY = 0.1;
 
   /* One clock per document, as Era 1 had one per round. It is a budget for
      the whole document rather than for a single blank — the reveal itself
@@ -200,7 +207,7 @@ const Pretrain = (() => {
 
   function askBlank() {
     awaiting = true;
-    pendingList = Model.rank();
+    pendingList = Model.rank(REPEAT_PENALTY);
     nodes[cursor].classList.add('active');
     clearBelt();
 
