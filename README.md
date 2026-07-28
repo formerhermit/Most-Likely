@@ -113,10 +113,10 @@ word's counts go up either way.
 Typical curve, trained on the full corpus:
 
 ```
-3.5  7.0  3.5  2.2  7.0  3.0  7.0  2.6  3.7  0.8  2.8
+3.5  7.0  3.5  2.3  7.0  3.0  7.0  2.6  3.7  1.6  2.9
 ```
 
-12 of 32 blanks land in the top five; 8 of 11 documents contain a win. The
+11 of 33 blanks land in the top five; 8 of 11 documents contain a win. The
 spikes are documents opening a domain nothing before them touched.
 
 ### Corpus rules
