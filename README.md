@@ -242,9 +242,11 @@ jargon — "training data", not "corpus" or "inference".
 **Popup images** — each document shows a real image from `assets/images/`
 with an invented `source` line, so the act reads as documents being ingested.
 
-**Phase music** — three tracks in `assets/audio/`, crossfaded by
-`Audio2.playPhase()`: `sort-it-out` (Acts 1–2), `best-guess` (Act 3),
-`thank-you` (ending).
+**Phase music** — four tracks in `assets/audio/`, crossfaded by
+`Audio2.playPhase()`: `the-last-atom` (opening), `sort-it-out` (Acts 1–2),
+`best-guess` (Act 3), `thank-you` (ending). The opening track doesn't loop
+— it runs 19.7s and the phase change at 17.4s crossfades out of it, so it
+lands on its own ending.
 
 **Debug helpers**, console only:
 

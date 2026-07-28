@@ -11,6 +11,7 @@ const Audio2 = (() => {
 
   /* phase music: one <audio> per track, crossfaded between phases */
   const TRACKS = {
+    intro: 'assets/audio/the-last-atom.mp3', // opening zoom — "The Last Atom"
     era1: 'assets/audio/sort-it-out.mp3',   // training + QC — "Sort It Out"
     era2: 'assets/audio/best-guess.mp3',    // inference — "Best Guess"
     end:  'assets/audio/thank-you.mp3'      // deprecation + end screen — "Thank You"
@@ -23,10 +24,10 @@ const Audio2 = (() => {
   let fadeTimers = [];
 
   function ensurePlayers() {
-    if (players.era1) return;
+    if (players.intro) return;
     for (const [name, src] of Object.entries(TRACKS)) {
       const a = new Audio(src);
-      a.loop = true;
+      a.loop = name !== 'intro';
       a.preload = 'auto';
       a.volume = 0;
       players[name] = a;

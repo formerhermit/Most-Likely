@@ -32,6 +32,9 @@
   }
 
   function opening() {
+    // "The Last Atom" runs 19.7s; the phase change at 17.4s crossfades out
+    // of it, so it lands almost exactly on the end of the track
+    Audio2.playPhase('intro');
     const grid = $('grid-rooms');
     grid.innerHTML = '';
     grid.style.transform = '';
