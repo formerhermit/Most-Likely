@@ -450,7 +450,10 @@ const Pretrain = (() => {
       const tok = tokens[cursor];
       nodes[cursor].textContent = tok.text;
       nodes[cursor].classList.add('shown');
-      if (tok.blank) docBits.push(UNSEEN_BITS);
+      if (tok.blank) {
+        docBits.push(UNSEEN_BITS);
+        nodes[cursor].classList.add('pt-unanswered');
+      }
       Model.read(tok.word);
       cursor++;
     }

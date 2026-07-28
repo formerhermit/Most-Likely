@@ -773,15 +773,37 @@ button { font-family: inherit; cursor: pointer; }
   border-bottom: 2px solid rgba(138, 98, 66, 0.45);
 }
 .pt-blank.active, .pt-blank.shown { opacity: 1; }
-/* once resolved it is just a word again — holding the slot width would
-   leave it floating in a gap the rest of the sentence doesn't have */
-.pt-blank.shown { min-width: 0; }
 .pt-blank.active {
   border-bottom-color: var(--accent);
   background: rgba(224, 122, 79, 0.09);
 }
-.pt-hit { color: var(--accent-2); font-weight: 700; border-bottom-color: transparent; }
-.pt-corrected { border-bottom-color: transparent; }
+
+/* Once resolved, a blank stays marked as a small paper tag dropped into the
+   line — the same object as the ones riding the belt (.pt-tag), just sized
+   to sit inline in a sentence instead of hanging in the hatch. The border
+   colour is the only thing that changes between outcomes, so the reader
+   can tell at a glance which words they got right without re-reading. */
+.pt-blank.shown {
+  min-width: 0;
+  border-bottom: none;
+  background: var(--paper);
+  color: var(--ink);
+  font-weight: 700;
+  padding: 0 7px;
+  margin: 0 1px;
+  border-radius: 4px;
+  border: 1px solid rgba(138, 98, 66, 0.45);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.16);
+  transform: rotate(-1deg);
+}
+.pt-hit { border-color: var(--accent-2); box-shadow: 0 2px 4px rgba(122, 169, 116, 0.3); }
+/* corrected: the player's guess was wrong, so the tag carries the word the
+   document actually used — bordered in the same red as the miss flash that
+   preceded it, so the two moments read as one continuous correction */
+.pt-corrected { border-color: #c0503a; box-shadow: 0 2px 4px rgba(192, 80, 58, 0.25); }
+/* revealed without an attempt (skip, or the clock ran out) — same tag, no
+   verdict to mark, so it stays at the neutral default border */
+.pt-unanswered { opacity: 0.85; }
 .pt-miss { color: #c0503a; text-decoration: line-through; opacity: 0.75; }
 
 /* the loss curve: one bar per document, and the whole point of the act */
