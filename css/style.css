@@ -283,7 +283,17 @@ button { font-family: inherit; cursor: pointer; }
 .qc-slip.fly-q { transform: translate(-95px, -95px) scale(0.4) rotate(-8deg); opacity: 0; }
 .qc-slip.fly-a { transform: translate(95px, -95px) scale(0.4) rotate(8deg); opacity: 0; }
 
-.stamp-zone { text-align: center; }
+/* A solid card behind the stamps, matching the other two .modal users
+   (the newspaper and the phase cards both sit on solid paper). Without it
+   the stamps floated directly on the 45%-opacity backdrop and visually
+   collided with the QC clipboard bleeding through underneath (issue #22). */
+.stamp-zone {
+  text-align: center;
+  background: var(--night);
+  border-radius: 10px;
+  padding: 40px 46px;
+  box-shadow: 0 18px 50px rgba(0,0,0,0.45);
+}
 .stamp {
   font-family: var(--mono);
   font-size: clamp(20px, 4vw, 34px);
@@ -296,9 +306,10 @@ button { font-family: inherit; cursor: pointer; }
   transform: scale(3) rotate(-8deg);
   opacity: 0;
   display: inline-block;
+  text-shadow: 0 0 10px rgba(122, 169, 116, 0.4);
 }
 .stamp.hit { animation: stamphit 0.4s ease-in forwards; }
-.stamp-red { color: #c0574f; border-color: #c0574f; }
+.stamp-red { color: #e07a6f; border-color: #e07a6f; text-shadow: 0 0 10px rgba(224, 122, 111, 0.4); }
 @keyframes stamphit {
   0% { transform: scale(3) rotate(-8deg); opacity: 0; }
   60% { transform: scale(0.92) rotate(-4deg); opacity: 1; }
