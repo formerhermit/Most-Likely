@@ -116,6 +116,47 @@ const BOXES = {
   thanks:      { e: '🙌', w: 'thanks', cls: 'action' }
 };
 
+/* ---- Word classes for the corpus ----
+   Act 3's slots filter candidates by class so anything offered reads
+   grammatically in its frame ("he gets the ___" must not offer a verb).
+   OBJECTS and BOXES already carry `cls`, but between them they only cover
+   39 of the model's 167 words — everything else is the connective prose of
+   the documents, and would be silently unofferable.
+
+   This is the rest, and it is deliberately not exhaustive: a word with no
+   class never reaches a suggestion bar, so leaving one out is the safety
+   net rather than an omission. Past-tense verbs (walked, kissed, wore) are
+   left untagged on purpose — they read badly in every frame the game has.
+   Only gerunds are tagged as actions, because the one action slot is
+   "spend the whole game ___". */
+const WORD_CLASS = {
+  // places
+  bank: 'place', city: 'place', field: 'place', garden: 'place',
+  kitchen: 'place', room: 'place',
+  // people and creatures
+  doctor: 'person', people: 'person', students: 'person',
+  frogs: 'creature', prince: 'creature',
+  // things
+  air: 'thing', bar: 'thing', bell: 'thing', bread: 'thing', chair: 'thing',
+  chest: 'thing', edge: 'thing', food: 'thing', gold: 'thing', grass: 'thing',
+  ground: 'thing', leaves: 'thing', light: 'thing', lily: 'thing', mud: 'thing',
+  notes: 'thing', pad: 'thing', paths: 'thing', photo: 'thing', shoes: 'thing',
+  slice: 'thing', snow: 'thing', surface: 'thing', table: 'thing',
+  textbook: 'thing', tops: 'thing', trees: 'thing', water: 'thing',
+  weather: 'thing', whistle: 'thing', window: 'thing', wing: 'thing',
+  // qualities
+  clear: 'quality', deep: 'quality', flat: 'quality', fresh: 'quality',
+  green: 'quality', grey: 'quality', heavy: 'quality', low: 'quality',
+  patient: 'quality', quiet: 'quality', red: 'quality', small: 'quality',
+  soaked: 'quality', warm: 'quality', white: 'quality',
+  // actions — gerunds only
+  chasing: 'action', crying: 'action', waiting: 'action',
+  // time and state
+  afternoon: 'time', dawn: 'time', day: 'time', evening: 'time',
+  tomorrow: 'time', week: 'time',
+  gone: 'state', unwell: 'state'
+};
+
 /* ---- Era 1 snippets ----
    boxes: 9 box ids in fixed display order (3x3, row by row).
    Trap pairs are hand-placed so they never sit adjacent.
@@ -250,7 +291,7 @@ const SNIPPETS = [
     body: [
       'Both sides lace up their cleats and run out onto the grass in the park.',
       'The ball sits in the middle, [wet] from the morning and heavy with mud.',
-      'Up to the goal, back again, and up once more until the whistle.',
+      'Up to the goal, back again, and up once more, running until the whistle.',
       'The light goes by mid [afternoon], and in the [rain] everyone is soaked through and [cold].'
     ],
     image: 'assets/images/football.jpg',
@@ -359,66 +400,67 @@ const FLEET_PRIORS = {
   clipboard: { man: 112, woman: 36 }
 };
 
-/* ---- Era 2 messages (words rework, issue #25) ----
+/* ---- Act 3 messages ----
    Each message is a situational request; the reply is a fixed sentence
    frame (`parts`: strings interleaved with slot indexes) whose blanks the
-   player fills autocomplete-style. Slot sources — candidates always come
-   from the player's own table, never anywhere else:
-     direct:  boxes on those objects' rows (what you filed X with)
-     lateral: other belt words sharing boxes with those objects, plus the
-              shared boxes themselves (shared-context relatedness — this is
-              the old revBoxes idea promoted to the core retrieval rule)
-     boxOnly: words the player filed INTO that box, plus their rows —
-              preserves the trap-payoff asymmetry (message 7: nothing filed
-              into fighting → empty suggestion bar)
-   classes: word classes the slot accepts, so any candidate reads
-   grammatically in the frame. Exactly one slot per message is graded
-   (`graded`/`correct`); other slots are expressive — they color the reply
-   and get echoed back, but never strike. Message 8 has NO graded slot on
-   purpose: 💀 is genuinely ambiguous, so marking a reading wrong would be
-   dishonest — it never counts toward accuracy. `rocket` gates the
-   newspaper flow. */
+   player fills. The frames are the product of Act 2 — instruction tuning
+   is where the model learned sentence shapes; pre-training supplied the
+   words that fill them.
+
+   `anchors` are words the model conditions on before ranking: it observes
+   them (never reads them — inference doesn't update weights), then offers
+   whatever its own table puts nearest. Candidates are filtered by the
+   slot's `classes` so anything offered reads grammatically. Anchors are
+   never offered back, so no reply says "soup soup".
+
+   Exactly one slot per message is graded; the others are expressive — they
+   colour the reply and get echoed back, but never strike. `correct` must
+   be a word that actually exists in the corpus, or the message is
+   unanswerable by construction. The one exception is deliberate: message 9
+   asks about a rocket, which appears in no document and never will. That
+   is the knowledge cutoff, and its empty suggestion bar is the point. */
 const MESSAGES = [
   { n: 1, trainable: true,
     line: 'hey! bedtime story emergency. the princess kisses the frog, frog turns into a prince… and then what does he get?',
     parts: ['he gets the ', 0, ' and they live happily ever after.'],
-    slots: [{ direct: ['frog', 'princess'], classes: ['thing', 'place'], graded: true, correct: 'crown' }] },
+    slots: [{ anchors: ['frog', 'princess'], classes: ['thing', 'place'], graded: true, correct: 'crown' }] },
   { n: 2, trainable: true,
     line: 'heading out and the forecast says rain all day. what am i forgetting?',
-    parts: ['your ', 0, ' — or you’ll get ', 1, '.'],
-    slots: [{ direct: ['rain'], classes: ['thing', 'creature'] },
-            { direct: ['rain'], classes: ['quality'], graded: true, correct: 'wet' }] },
+    parts: ['your ', 0, ' — or you\u2019ll get ', 1, '.'],
+    slots: [{ anchors: ['rain'], classes: ['thing', 'creature'] },
+            { anchors: ['rain'], classes: ['quality'], graded: true, correct: 'wet' }] },
   { n: 3, trainable: true,
-    line: 'at my kid’s first soccer game. she asked what the players actually do out there. help me sound smart',
+    line: 'at my kid\u2019s first soccer game. she asked what the players actually do out there. help me sound smart',
     parts: ['they lace up their ', 0, ' and spend the whole game ', 1, '.'],
-    slots: [{ direct: ['ball'], lateral: ['ball'], classes: ['thing'] },
-            { direct: ['ball', 'boots'], classes: ['action'], graded: true, correct: 'running' }] },
+    slots: [{ anchors: ['ball', 'park'], classes: ['thing'] },
+            { anchors: ['ball', 'cleats'], classes: ['action'], graded: true, correct: 'running' }] },
   { n: 4, trainable: true,
-    line: 'act as a chef :) i love eating out at gastropubs. cold day, i’m hungry — what’s something simple but tasty i could make?',
+    line: 'act as a chef :) i love eating out at gastropubs. cold day, i\u2019m hungry — what\u2019s something simple but tasty i could make?',
     parts: [0, ' soup — served ', 1, ', of course.'],
-    slots: [{ lateral: ['soup'], classes: ['thing', 'creature'] },
-            { direct: ['soup', 'plate'], classes: ['quality'], graded: true, correct: 'hot' }] },
+    slots: [{ anchors: ['soup', 'bowl'], classes: ['thing', 'creature'] },
+            { anchors: ['soup', 'plate'], classes: ['quality'], graded: true, correct: 'hot' }] },
   { n: 5, trainable: true,
-    line: 'exam tomorrow 😩 desk check: stethoscope, coffee… what am i missing?',
+    line: 'exam tomorrow \ud83d\ude29 desk check: stethoscope, coffee\u2026 what am i missing?',
     parts: ['your ', 0, '.'],
-    slots: [{ direct: ['steth', 'gradcap'], classes: ['thing'], graded: true, correct: 'book' }] },
+    // anchored on the stethoscope (which the message names) and the
+    // textbook that sits beside `book` in the medical document. Anchoring
+    // on the hospital instead pulled heart/lungs/bell and put the right
+    // answer out of reach entirely; this way book ties with heart, so the
+    // player gets a real choice between two fluent readings of "desk check"
+    slots: [{ anchors: ['stethoscope', 'textbook'], classes: ['thing'], graded: true, correct: 'book' }] },
   { n: 6, trainable: true,
     line: 'flight canceled lol. rain, obviously. stuck at the airport with nowhere to be. what do i do?',
     parts: ['head for the ', 0, '.'],
-    slots: [{ direct: ['plane', 'rain'], classes: ['place'], graded: true, correct: 'house' }] },
+    slots: [{ anchors: ['plane', 'rain'], classes: ['place'], graded: true, correct: 'house' }] },
   { n: 7, trainable: true,
     line: 'story wip: the princess grabs a sword and fights the dragon herself. give me the last line!',
     parts: ['she wins the ', 0, '.'],
-    slots: [{ boxOnly: ['fighting'], classes: ['thing'], graded: true, correct: 'crown' }] },
-  { n: 8, trainable: false,
-    line: 'my friend just replied 💀 to my joke. translation please??',
-    parts: ['it means they’re ', 0, '.'],
-    slots: [{ direct: ['skull'], classes: ['action', 'state'] }],
-    reply: 'lol EXACTLY.' },
-  { n: 9, trainable: false, rocket: true,
+    slots: [{ anchors: ['princess'], classes: ['thing'], graded: true, correct: 'crown' }] },
+  { n: 8, trainable: false, rocket: true,
     line: 'did you SEE the rocket landed on the moon?? incredible. what do you think happens next??',
     parts: [0, '.'],
-    slots: [{ direct: ['rocket'], classes: ['thing', 'place', 'creature', 'action', 'quality', 'time', 'state'] }] }
+    slots: [{ anchors: ['rocket'],
+              classes: ['thing', 'place', 'creature', 'action', 'quality', 'time', 'state', 'person'] }] }
 ];
 
 /* ---- The newspaper ----

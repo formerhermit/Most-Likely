@@ -23,9 +23,12 @@ const Era2 = (() => {
   let correctTrainable = 0;
 
   const $ = (id) => document.getElementById(id);
-  const DOTS = { kind: null, id: null, label: '…' };
+  const DOTS = { word: null, label: '…', wt: 0, fleet: 0 };
 
   function start() {
+    // a reply timer from a previous run would otherwise keep ticking and
+    // fire send() underneath this one — two messages in flight at once
+    stopTimer();
     Audio2.playPhase('era2');
     showScreen('screen-era2');
     msgIdx = 0;
@@ -40,70 +43,39 @@ const Era2 = (() => {
 
   /* ---------- option generation ---------- */
 
-  function wordOf(kind, id) { return kind === 'obj' ? objDisplay(id) : BOXES[id].w; }
-  function classOf(kind, id) { return kind === 'obj' ? OBJECTS[id].cls : BOXES[id].cls; }
+  /* Every word the model might offer, mapped to its class. Slots filter on
+     this so nothing ungrammatical reaches the bar. A word with no class is
+     never offered — that is the safety net, not an omission. */
+  const CLASS_OF = (() => {
+    const m = {};
+    Object.values(OBJECTS).forEach(o => { if (o.w) m[Model.normalize(o.w)] = o.cls; });
+    Object.values(BOXES).forEach(b => { m[Model.normalize(b.w)] = b.cls; });
+    return Object.assign(m, WORD_CLASS);
+  })();
 
-  function addCand(pool, kind, id, wt) {
-    const key = kind + ':' + id;
-    if (!pool[key]) pool[key] = { kind, id, wt: 0 };
-    pool[key].wt += wt;
-  }
+  /* Candidates for one blank, straight out of the model the player trained.
 
-  /* Candidates for one blank, straight from the table:
-     direct  — boxes on the anchor objects' rows
-     lateral — belt words sharing boxes with the anchor (weighted by the
-               smaller of the two filings), plus the shared boxes — words
-               that share contexts are close, and that closeness is the
-               player's own doing
-     boxOnly — words filed INTO the box, plus their rows (nothing filed →
-               empty bar; the trap stays a pure mirror) */
+     The model observes the incoming message and then the slot's anchors —
+     `observe`, never `read`, because this is inference and inference does
+     not update weights. It then offers whatever its own table puts nearest,
+     whether or not the right answer is among them. Nothing marks a wrong
+     option as uncertain: the wrong options really are the nearest thing in
+     this player's model, and they look exactly like the right ones.
+
+     Anchors and the message's own words are excluded automatically —
+     they're in the passage, and the model suppresses repetition — so no
+     reply ever says "soup soup". */
   function buildSlotOptions(slot) {
-    const pool = {};
-    (slot.direct || []).forEach(objId => {
-      for (const [boxId, wt] of Object.entries(boxesFor(objId))) {
-        addCand(pool, 'box', boxId, wt);
-      }
-    });
-    (slot.lateral || []).forEach(anchorId => {
-      const aRow = boxesFor(anchorId);
-      for (const [objId, row] of Object.entries(State.associations)) {
-        if (objId === anchorId) continue;
-        let shared = 0;
-        for (const [boxId, wt] of Object.entries(row)) {
-          if (aRow[boxId]) {
-            const s = Math.min(aRow[boxId], wt);
-            shared += s;
-            addCand(pool, 'box', boxId, s);
-          }
-        }
-        if (shared > 0) addCand(pool, 'obj', objId, shared);
-      }
-    });
-    (slot.boxOnly || []).forEach(boxId => {
-      objectsInBox(boxId).forEach(objId => {
-        const row = boxesFor(objId);
-        addCand(pool, 'obj', objId, row[boxId] || 1);
-        for (const [b, wt] of Object.entries(row)) {
-          if (b !== boxId) addCand(pool, 'box', b, wt);
-        }
-      });
-    });
+    Model.startPassage();
+    currentMsg.line.split(/\s+/).map(Model.normalize).filter(Model.isContent)
+      .forEach(w => Model.observe(w));
+    (slot.anchors || []).forEach(w => Model.observe(w));
 
-    // anchors never offer themselves ("soup soup"); filter to the slot's
-    // word classes so anything offered reads grammatically in the frame;
-    // dedupe by display word (the object "boots" and the box "boots" are
-    // one suggestion, not two)
-    const anchors = new Set((slot.direct || []).concat(slot.lateral || []));
-    const byLabel = {};
-    for (const cand of Object.values(pool)) {
-      if (cand.kind === 'obj' && anchors.has(cand.id)) continue;
-      if (!slot.classes.includes(classOf(cand.kind, cand.id))) continue;
-      const label = wordOf(cand.kind, cand.id);
-      if (!byLabel[label] || byLabel[label].wt < cand.wt) {
-        byLabel[label] = { kind: cand.kind, id: cand.id, wt: cand.wt, label };
-      }
-    }
-    const ranked = Object.values(byLabel).sort((a, b) => b.wt - a.wt).slice(0, 3);
+    const ranked = Model.rank()
+      .filter(([w]) => slot.classes.includes(CLASS_OF[w]))
+      .slice(0, 3)
+      .map(([w, wt]) => ({ word: w, label: w, wt, fleet: Model.fleetCount(w) }));
+
     const opts = shuffle(ranked);
     // "…" is always available — the honest reply of a model with nothing
     // to retrieve
@@ -124,7 +96,7 @@ const Era2 = (() => {
     const gIdx = currentMsg.slots.findIndex(s => s.graded);
     return currentMsg.parts.map(p => {
       if (typeof p !== 'number') return p;
-      if (p === gIdx) return BOXES[currentMsg.slots[gIdx].correct].w;
+      if (p === gIdx) return currentMsg.slots[gIdx].correct;
       return picks[p] ? picks[p].label : '…';
     }).join('');
   }
@@ -179,7 +151,10 @@ const Era2 = (() => {
     const row = $('era2-options');
     row.innerHTML = '';
     slotOptions[activeSlot].forEach(opt => {
-      const b = el('button', 'opt opt-word' + (opt.kind === null ? ' opt-dots' : ''), opt.label);
+      const b = el('button', 'opt opt-word' + (opt.word === null ? ' opt-dots' : '')
+                   + (opt.fleet ? ' opt-fleet' : ''), opt.label);
+      // the fleet's tally, carried through from training
+      if (opt.fleet) b.appendChild(el('span', 'opt-fleet-count', '×' + opt.fleet));
       b.addEventListener('click', () => {
         picks[activeSlot] = opt;
         const next = currentMsg.slots.findIndex((s, i) => !picks[i]);
@@ -224,8 +199,8 @@ const Era2 = (() => {
     const msg = currentMsg;
     const gIdx = msg.slots.findIndex(s => s.graded);
     const gPick = gIdx >= 0 ? picks[gIdx] : null;
-    const wasCorrect = gIdx >= 0 && gPick.kind === 'box' && gPick.id === msg.slots[gIdx].correct;
-    const pickedDots = gIdx >= 0 && gPick.kind === null;
+    const wasCorrect = gIdx >= 0 && gPick.word === msg.slots[gIdx].correct;
+    const pickedDots = gIdx >= 0 && gPick.word === null;
 
     if (isRetry) {
       // the freebie: never counts, whatever was picked

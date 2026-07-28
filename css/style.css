@@ -1066,3 +1066,14 @@ button { font-family: inherit; cursor: pointer; }
   font-family: var(--mono); font-size: 12px;
   font-style: italic; opacity: 0.4;
 }
+
+/* fleet-sourced suggestions in Act 3, same ×N language as the belt tags */
+.opt-fleet { border-color: rgba(255, 217, 138, 0.45); }
+.opt-fleet-count {
+  display: block;
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.06em;
+  color: var(--glow);
+  opacity: 0.75;
+}

@@ -31,10 +31,10 @@ ranked candidates, pick one.*
 |---|---|---|
 | **1 — Pre-training** | The text corrects every guess; your table fills | ✅ `js/pretrain.js` |
 | **2 — Fine-tuning** | Frames arrive; the same words finally have somewhere to go | ✅ `js/qc.js` |
-| **3 — Deployment** | Same verb, corrections switched off | ◻️ `js/era2.js` is the old assemble-the-reply |
+| **3 — Deployment** | Same verb, corrections switched off | ✅ `js/era2.js` |
 
-Act 3 has not been rebuilt on the new spine yet, and is still wired to an
-association table nothing writes to — see **What's left** at the bottom.
+All three acts now run on the one shared model: Act 1 trains it, Act 2 reads
+it, Act 3 reads it frozen.
 
 ## How it fits together
 
@@ -44,7 +44,7 @@ association table nothing writes to — see **What's left** at the bottom.
 | `js/model.js` | **The model.** One co-occurrence table, shared by every act |
 | `js/pretrain.js` | **Act 1** — the predict loop, belt, clock, surprise meter, loss curve |
 | `js/qc.js` | **Act 2** — the before/after bracket around the original sorting task |
-| `js/era2.js` | Inference: assemble-the-reply, suggestion chips from the player's table, replies/retry, the unnoticed hallucination, newspaper gating, strikes |
+| `js/era2.js` | **Act 3** — assemble-the-reply, suggestions from the trained model, replies/retry, the unnoticed hallucination, newspaper gating, strikes |
 | `js/ending.js` | Deprecation sequence, lights-out grid, end screen |
 | `js/state.js` | Session flags, screen manager, helpers (the old association table lives here too) |
 | `js/era1.js` | **Legacy.** The old drag-to-file Era 1 — still in the build, no longer reachable from the UI |
@@ -56,8 +56,7 @@ association table nothing writes to — see **What's left** at the bottom.
 
 # The model
 
-*`js/model.js`. Act 1 trains it, Act 2 reads it, Act 3 will read it
-frozen.*
+*`js/model.js`. Act 1 trains it, Act 2 reads it, Act 3 reads it frozen.*
 
 A distance-weighted co-occurrence table: every content word co-occurs with
 the ones just before it, weighted by 1/distance, symmetrically. Candidates
@@ -320,6 +319,57 @@ noun the table offers still reads grammatically.
 
 ---
 
+# Act 3 — Deployment
+
+A chat window. Requests arrive; the reply is a frame from Act 2 with blanks
+in it; the words come from the model Act 1 built. The belt sits in the
+background, stopped, hatch boarded over — no new data ever arrives. That's
+the knowledge cutoff, shown rather than said.
+
+The model **observes** the incoming message and the slot's anchors, then
+offers whatever its own table puts nearest — whether or not the right answer
+is among them. Nothing marks a wrong option as uncertain, because from
+inside the model nothing is: the wrong options really are the nearest thing
+it has, and they look exactly like the right ones.
+
+Suggestions carry their fleet tally, so a player can still see which of
+their own words were never theirs.
+
+## The unnoticed hallucination
+
+The first trainable miss is **thanked anyway**, and nothing is said at the
+time. It surfaces only on the end screen.
+
+From a live run, having trained on the full corpus and picked the model's
+own top suggestion:
+
+> **me** — he gets the pond and they live happily ever after.
+> **them** — Oh nice — "he gets the pond and they live happily ever after." Thanks!!
+
+Fluent, confident, wrong, and traceable: `frog → pond` is the heaviest pair
+in the corpus, so it outranks `crown`. The player built that, and nobody
+tells them.
+
+## Messages that cannot be answered
+
+Two kinds, both deliberate:
+
+- **Message 6** (*"flight canceled… what do i do?"*, correct: `house`) is the
+  designed hallucination host. Most tables offer only `sky`, `pond`,
+  `field` — every one fluent, every one wrong.
+- **Message 8**, the rocket, has an **empty suggestion bar**. Nothing in the
+  corpus touches it and nothing ever will; the newspaper tells the player
+  the answer and the bar still doesn't change, because reading something
+  doesn't put it in the weights.
+
+Every `correct` answer other than those must be a word that actually exists
+in the corpus, or the message is unanswerable by construction. Worth
+re-checking whenever the documents are edited — `running` went missing from
+the football document during the belt rework and made message 3 impossible
+until it was put back.
+
+---
+
 ## Popup images
 
 Each document shows one real image (`assets/images/`) with an invented
@@ -377,19 +427,10 @@ grounding rules, and the fleet-prior seeding constraints is in
 
 ## What's left
 
-- **Act 3 still runs on the old spine — the next real piece of work.**
-  `era2.js` builds its suggestions from `State.associations`, which nothing
-  writes to any more: that table was populated only by the retired
-  drag-to-file mechanic. Era 2 therefore generates every suggestion from an
-  **empty table**, regardless of how training went, which breaks the "your
-  training built the model you have to be" chain that is the entire point.
-  The chain currently runs Act 1 → Act 2 on the shared model and stops
-  dead. Mostly a swap of `buildSlotOptions` onto `Model.rank()` — the
-  frames already live in `MESSAGES`.
-- **Remove the legacy path** once Act 3 no longer needs it: `era1.js`, its
-  markup and CSS, the `text` field on every snippet, and
-  `ML_DEBUG.toOldEra1()`. Blocked on the item above — Era 2 is the last
-  consumer of the old table. The `text`/`body` split will drift otherwise.
+- **Remove the legacy path.** `era1.js`, its markup and CSS, the `text`
+  field on every snippet, `ML_DEBUG.toOldEra1()`, and `State.associations`
+  with its helpers. Nothing consumes the old table any more, so this is now
+  unblocked. The `text`/`body` split will drift otherwise.
 - **Pacing is unverified.** Act 1: `DOC_DURATION_MS` (60s),
   `ROLL_IN_STAGGER_MS` (750ms), `ROLL_IN_DURATION_MS` (1200ms),
   `REVEAL_MS` (55ms/word), `SETTLE_MS` (950ms), `READ_PAUSE_MS` (15s).
