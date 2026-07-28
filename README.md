@@ -35,7 +35,7 @@ All three run on one shared model: Act 1 trains it, Acts 2 and 3 read it.
 | `js/cards.js` | The plain-language note shown between acts |
 | `js/data.js` | All content: 11 documents, `STOPWORDS`, `WORD_CLASS`, `FLEET_PRIORS`, QC prompts and slips, Act 3 messages |
 | `js/pretrain.js` | Act 1 — predict loop, belt, clock, surprise meter, loss curve |
-| `js/qc.js` | Act 2 — before/after prompts bracketing the sorting task |
+| `js/qc.js` | Act 2 — the sort-the-slips instruction-tuning task |
 | `js/era2.js` | Act 3 — assemble-the-reply, replies/retry, unnoticed hallucination, newspaper, strikes |
 | `js/ending.js` | Deprecation sequence, lights-out grid, end screen |
 | `js/state.js` | Session flags, screen manager, helpers |
@@ -159,38 +159,22 @@ immediately after "doctor" so that pair dominates the belt there.
 
 ## Act 2 — Quality Control
 
-Instruction tuning, in three beats. The middle one is the original sorting
-task — supervisor, `?` and `=` fields, ten lights, stamp and siren —
-unchanged.
+Instruction tuning: supervisor behind the window, `?` and `=` fields, ten
+lights, a stamp and a siren. Slips into the right field, ten correct, no
+instructions given — the shape is inferred from feedback alone.
 
-**Before.** A question arrives and is answered from the Act 1 model with no
-frame to put it in, so the reply continues like a document and doesn't stop:
+Act 2 never touches the model (`Model.read()`/`observe()` are never called
+from `qc.js`). It doesn't need to: the phase cards either side already say
+in plain words what this stage is for, and the sorting task itself is the
+demonstration.
 
-```
-"Where does a frog live?"        →  pond walked edge garden      👎
-"What do you take in the rain?"  →  umbrella cold day cloud      👎
-```
-
-**Sort.** Slips into `?` and `=`, ten correct. No instructions — the shape
-is inferred from feedback.
-
-**After.** The same questions, now with a frame carrying one blank:
-
-```
-"Where does a frog live?"        →  In the pond.                 👍
-"What do you take in the rain?"  →  Take your umbrella.          👍
-```
-
-Two rules to preserve if this is edited:
-
-- **The after beat is approved whatever word goes in the gap.** "In the
-  sky." passes too. The supervisor grades form, which is what format tuning
-  grades — and it sets up Act 3 thanking a wrong answer.
-- **Act 2 never calls `Model.read()`.** Tuning supplies frames, not word
-  weights, so Act 3 inherits exactly the table Act 1 built.
-
-Frames are article-agnostic (`Take your ___`, not `An ___`) so any noun the
-table offers reads grammatically.
+This briefly bracketed the sort with a live before/after demo — the model
+answering a question with no framing, then again with one, so the player
+watched the shape arrive. Cut: the underlying model is a co-occurrence
+table with no grammar, so its "answered with no framing" state was a few
+loosely-related words rather than the fluent run-on a real base model
+produces, and a demo that undersells the thing it demonstrates teaches
+less than the plain-language card already sitting either side of it.
 
 ---
 
@@ -275,14 +259,9 @@ ML_DEBUG.state()          // session state
 
 ## What's left
 
-- **Remove the legacy path** — `era1.js`, its markup and CSS, the `text`
-  field on every snippet, `ML_DEBUG.toOldEra1()`, and `State.associations`
-  with its helpers. Nothing consumes the old table any more; `ending.js` is
-  already clear of it. `NEWSPAPER` in `data.js` is dead too — the
-  newspaper's content is hardcoded in `index.html`.
-- **Pacing is unverified.** Every timing constant in `pretrain.js` and
-  `qc.js` was reasoned about, not measured — automated browsers throttle
-  timers. Needs a real playthrough.
+- **Pacing is unverified.** Every timing constant in `pretrain.js` was
+  reasoned about, not measured — automated browsers throttle timers. Needs
+  a real playthrough.
 - **The QC desk** is a fixed-width flex row and needs proper work if narrow
   screens ever matter.
 - **Open ideas**, tracked as issues: temperature dial; the context window as
