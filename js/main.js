@@ -77,7 +77,9 @@
       typeText(phase, 'PHASE 1: PRE-TRAINING', 22);
     }, 14400);
     setTimeout(() => {
-      Era1.start();
+      // Act 1 is the predict loop (js/pretrain.js). The old drag-to-file
+      // Era 1 is still in the build for comparison — ML_DEBUG.toOldEra1().
+      Pretrain.start(() => QC.start());
     }, 17400);
   }
 
@@ -86,6 +88,7 @@
     $('btn-popup-close').addEventListener('click', () => Era1.closePopup());
     $('era1-review').addEventListener('click', () => Era1.reviewSnippet());
     $('era1-skip').addEventListener('click', () => Era1.skip());
+    $('pt-skip').addEventListener('click', () => Pretrain.skip());
     $('era2-send').addEventListener('click', () => Era2.send());
     $('qc-field-q').addEventListener('click', () => QC.drop('q'));
     $('qc-field-a').addEventListener('click', () => QC.drop('a'));
@@ -136,6 +139,11 @@
       }
       return State.associations;
     },
+    // Act 1 — what BEGIN now runs; here too for jumping straight in
+    toPretrain() { Audio2.start(); resetState(); Pretrain.start(() => QC.start()); },
+    // the old drag-to-file Era 1, kept playable for comparison
+    toOldEra1() { Audio2.start(); resetState(); Era1.start(); },
+    ptModel() { return Pretrain.model(); },
     toQC() { Audio2.start(); QC.start(); },
     toEra2() { Audio2.start(); Era2.start(); },
     toEnd() { Audio2.start(); Ending.deprecate(); },

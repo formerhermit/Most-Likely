@@ -61,6 +61,41 @@
   </div>
 </section>
 
+<!-- ======== ACT 1 — PRE-TRAINING (predict loop) ======== -->
+<section id="screen-pretrain" class="screen">
+  <div class="pt-top">
+    <span id="pt-doc-label" class="round-label"></span>
+    <div class="pt-top-spacer"></div>
+    <button id="pt-skip" class="skip-btn" title="Skip this document">⏩</button>
+    <div class="pt-meter">
+      <span class="pt-meter-label">SURPRISE</span>
+      <div class="pt-meter-track"><div id="pt-meter-fill"></div></div>
+      <span id="pt-meter-val" class="pt-meter-val">—</span>
+    </div>
+  </div>
+
+  <div id="pt-belt-wrap">
+    <div id="pt-hatch">▦</div>
+    <div id="pt-belt"><div id="pt-belt-surface"></div></div>
+    <div id="pt-belt-end"></div>
+  </div>
+  <div id="pt-note" class="pt-note"></div>
+
+  <div class="pt-stage">
+    <div class="pt-art">
+      <img id="pt-image" class="pt-image" alt="">
+      <div id="pt-title" class="pt-title"></div>
+      <div id="pt-source-line" class="pt-source-line"></div>
+    </div>
+    <div id="pt-text" class="pt-text"></div>
+  </div>
+
+  <div class="pt-curve-wrap">
+    <span class="pt-curve-label">surprise per document</span>
+    <div id="pt-curve" class="pt-curve"></div>
+  </div>
+</section>
+
 <!-- ======== INTERLUDE — QUALITY CONTROL ======== -->
 <section id="screen-qc" class="screen">
   <div class="qc-desk">
@@ -155,6 +190,7 @@
 <script src="js/audio.js"></script>
 <script src="js/state.js"></script>
 <script src="js/era1.js"></script>
+<script src="js/pretrain.js"></script>
 <script src="js/qc.js"></script>
 <script src="js/era2.js"></script>
 <script src="js/ending.js"></script>

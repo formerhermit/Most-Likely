@@ -124,11 +124,31 @@ const BOXES = {
    training-data citation (book, manual, menu, blog, newspaper, app,
    chat), reinforcing that the machine is ingesting documents, not that
    the player is making associations. */
+/* `body` is the training text for the pre-training act (js/pretrain.js):
+   real paragraphs rather than the one-line `text` teasers, because a
+   ~90-word total corpus has no statistical structure to learn and the
+   surprise curve would be flat noise. Words in [brackets] are the blanks
+   the player predicts — hand-placed, never auto-detected, so each one has
+   at least two content words of context ahead of it in the same document
+   and the vocabulary recycles deliberately across documents (frog/pond,
+   rain/wet/cold, plate/hot, cake/party, ball/park). That recycling is what
+   makes an eleven-document corpus produce a felt learning curve; the dip
+   at PARTY INVITATION, where the vocabulary is nearly all new, is left in
+   on purpose — loss spikes on unfamiliar data.
+
+   `text` is kept only for the old drag-to-file Era 1 popup, which still
+   runs alongside. It goes when that does. */
 const SNIPPETS = [
   {
     id: 'fairytale',
     title: 'STORYBOOK',
     text: ['Princess kissed frog on lily pad.'],
+    body: [
+      'The princess walked down to the [pond] at the edge of the garden.',
+      'A frog sat on a lily pad in the green water, waiting for her.',
+      'She knelt on the wet grass and kissed the frog, and the frog became a prince.',
+      'He wore a gold [crown], and they walked back to the house as the sky went red.'
+    ],
     image: 'assets/images/fairytale.jpg',
     source: 'Children’s Fairy Tales, illustrated edition, 1889',
     belt: ['frog', 'princess', 'lilypad'],
@@ -138,6 +158,12 @@ const SNIPPETS = [
     id: 'aviation',
     title: 'FLIGHT MANUAL',
     text: ['Plane climbs above the clouds.', 'Captain runs his checks.'],
+    body: [
+      'The plane is checked before takeoff: the captain walks the wing and looks under each [engine].',
+      'It climbs steadily through grey cloud and levels out above it.',
+      'Up here the sky is clear and very cold, and the rain sits far below.',
+      'From the window the cloud tops look like a field of [snow], white and cold.'
+    ],
     image: 'assets/images/aviation.jpg',
     source: 'Boeing 737-800/900 Maintenance Manual, 27-21-00',
     belt: ['plane', 'cloud', 'captain'],
@@ -147,6 +173,12 @@ const SNIPPETS = [
     id: 'menu',
     title: 'MENU',
     text: ['TODAY’S MENU', 'Soup of the day, served hot.', 'Bread on your plate.'],
+    body: [
+      'Soup of the day, served hot in a deep [bowl] with bread on the side.',
+      'Ask for a small plate if you would like to share it.',
+      'Everything is cooked fresh each morning in the kitchen behind the bar.',
+      'On a cold day the soup is the thing to order; on a warm one, take a table in the [garden].'
+    ],
     image: 'assets/images/menu.jpg',
     source: 'The Harp & Hollow Gastropub, seasonal menu',
     belt: ['plate', 'soup'],
@@ -156,6 +188,12 @@ const SNIPPETS = [
     id: 'nature',
     title: 'NATURE FILM',
     text: ['Frog waits on lily pad in rain.', 'Fly comes close — snap!'],
+    body: [
+      'A frog waits on a lily pad, perfectly still, hour after hour.',
+      'The rain dimples the surface of the [pond] and leaves the bank [wet] and [green].',
+      'A fly comes close to the frog — snap, and it is gone.',
+      'Frogs sit out the worst of the weather under the leaves, [cold] and patient.'
+    ],
     image: 'assets/images/nature.jpg',
     source: 'Wild Habitats, frog conservation guide',
     belt: ['frog', 'rain', 'lilypad'],
@@ -165,6 +203,12 @@ const SNIPPETS = [
     id: 'medical',
     title: 'MEDICAL TEXTBOOK',
     text: ['Stethoscope listens to heart and lungs.'],
+    body: [
+      'The stethoscope is used to listen to the [heart] and the lungs.',
+      'Place the bell flat against the chest and listen through a quiet room.',
+      'Students practise in the hospital long before anyone is unwell.',
+      'Every textbook and every [book] of notes says the same thing: listen first, and listen longer than feels necessary.'
+    ],
     image: 'assets/images/medical.jpg',
     source: 'Health·Well, patient health topics',
     belt: ['steth', 'gradcap', 'heart'],
@@ -174,6 +218,12 @@ const SNIPPETS = [
     id: 'weather',
     title: 'WEATHER REPORT',
     text: ['Rain, wind, and clouds all day.'],
+    body: [
+      'Rain through the morning, easing off by the middle of the afternoon.',
+      'Wind from the north, and low [cloud] over the city all day.',
+      'Take an umbrella if you are going out; the ground stays [wet] and the air stays [cold] into the evening.',
+      'Tomorrow looks clearer, with the [sky] breaking up shortly after dawn.'
+    ],
     image: 'assets/images/weather.jpg',
     source: 'Weatherly, forecast for New York, NY',
     belt: ['rain', 'cloud', 'wind'],
@@ -183,6 +233,12 @@ const SNIPPETS = [
     id: 'birthday',
     title: 'PARTY INVITATION',
     text: ['Cake with candles for the party.'],
+    body: [
+      'Come to the house on Saturday afternoon, any time after four.',
+      'There will be a cake with candles on it, and the party runs on into the night.',
+      'Bring a [gift] if you like, or just bring yourself and a chair.',
+      'There is a [garden] if the weather holds, and far too much food either way.'
+    ],
     image: 'assets/images/birthday.jpg',
     source: 'Birthday party invitation, June 2024',
     belt: ['cake', 'candles', 'party'],
@@ -192,6 +248,12 @@ const SNIPPETS = [
     id: 'football',
     title: 'SPORTS PAGE',
     text: ['Ball on the grass.', 'Cleats on, racing for the goal.'],
+    body: [
+      'Both sides lace up their cleats and run out onto the grass in the park.',
+      'The ball sits in the middle, [wet] from the morning and heavy with mud.',
+      'Up to the goal, back again, and up once more until the whistle.',
+      'The light goes by mid [afternoon], and in the [rain] everyone is soaked through and [cold].'
+    ],
     image: 'assets/images/football.jpg',
     source: 'Wikipedia, “Soccer”',
     belt: ['ball', 'boots', 'clipboard'],
@@ -201,6 +263,12 @@ const SNIPPETS = [
     id: 'coffeeshop',
     title: 'COFFEE SHOP',
     text: ['The doctor orders his usual — coffee, cake, plate.'],
+    body: [
+      'The doctor comes in every morning and orders the usual.',
+      'A coffee, very [hot], and a slice of cake on a small [plate].',
+      'He reads for twenty minutes and leaves without saying much.',
+      'By nine the place is full of people doing the same thing, and by the [afternoon] it is quiet again.'
+    ],
     image: 'assets/images/coffeeshop.jpg',
     source: 'Café Adventures, café review blog',
     belt: ['coffee', 'cake', 'plate'],
@@ -210,6 +278,12 @@ const SNIPPETS = [
     id: 'dogwalk',
     title: 'DOG WALK',
     text: ['Dog chases a ball around the trees.'],
+    body: [
+      'The dog runs ahead through the park, chasing a [ball] around the trees.',
+      'He brings it back soaking [wet] and drops it on your shoes.',
+      'In the [morning] there are five or six of them out here doing the same thing.',
+      'When the [rain] comes the paths turn to mud and everyone goes home early.'
+    ],
     image: 'assets/images/dogwalk.jpg',
     source: 'The Seattle Beacon, local news',
     belt: ['dog', 'ball', 'tree'],
@@ -219,12 +293,40 @@ const SNIPPETS = [
     id: 'groupchat',
     title: 'GROUP CHAT',
     text: ['maya: you won’t believe what happened'],
+    body: [
+      'maya: ok so last night. you won’t believe what happened at the [party]',
+      'sam: go on',
+      'maya: someone sat on the [cake]. candles and all',
+      'sam: i’m crying 💀 that is the funniest thing i have heard all week',
+      'maya: we were laughing so hard. i’ll send the photo in the [morning]'
+    ],
     image: 'assets/images/groupchat.jpg',
     source: 'group chat screenshot, forwarded',
     belt: [],
     boxes: ['laughing', 'morning', 'praying', 'phone', 'celebrating', 'house', 'thanks', 'message', 'dead']
   }
 ];
+
+/* Function words carry position, not topic. Excluding them from the
+   co-occurrence table is the one piece of hand-tuning in the model — a
+   real LM learns to downweight them from data it has far more of, but on
+   eleven documents "the" would otherwise co-occur with everything and
+   drown the signal. */
+const STOPWORDS = new Set(('a an and are as at back be became been before behind by ' +
+  'do does doing down each early else every far feels first for from full go goes going ' +
+  'had has have he her here his hold holds hour i if in into is it its just like ' +
+  'look looks made make many me middle more most much my no not of off on once one ' +
+  'or our out over own perfectly place same says send share she sits sit so some ' +
+  'something steadily still such take than that the their them then there these they ' +
+  'thing things this through time to too under until up us use used very was way we ' +
+  'were what when where which while who will with without would you your yourself ' +
+  'all any about after again against am an as ask both but can come comes did done ' +
+  'get give given got how its let lets long longer new now only other others put ' +
+  'runs run said see seen sides since t s ll won i’m i’ll won’t ' +
+  // prepositions and directional adverbs: they pass the "not in the short
+  // list" test but read as noise in a suggestion bar ("chasing a onto")
+  'onto ahead along above below behind beside between during over upon within ' +
+  'near across toward towards past around away home early late next last').split(/\s+/));
 
 /* ---- Fleet priors ----
    Boxes don't arrive empty: the rest of the fleet has been running this

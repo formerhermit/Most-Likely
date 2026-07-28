@@ -7,8 +7,16 @@ nothing saved or sent anywhere.
 whole game is static files).
 
 ```
-python3 -m http.server 8123    # then http://localhost:8123
+python3 serve.py               # then http://localhost:8123
 ```
+
+Use `serve.py`, not `python3 -m http.server`. The stdlib server sends no
+`Cache-Control`, so browsers cache `js/*.js` and `css/style.css`
+indefinitely and keep serving a stale build after you've edited them —
+without even making a conditional request, which is why clearing browsing
+data doesn't reliably shift it, and why adding `?v=2` to the page URL
+doesn't either (each subresource is cached under its own unchanged URL).
+`serve.py` is the same server with `no-store` on every response.
 
 ## How it fits together
 
