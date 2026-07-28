@@ -80,8 +80,13 @@
       typeText(phase, 'PHASE 1: PRE-TRAINING', 22);
     }, 14400);
     setTimeout(() => {
-      Pretrain.start(() => QC.start());
-    }, 17400);
+      Cards.show('intro', () => Pretrain.start(afterTraining));
+    }, 16600);
+  }
+
+  /* Act 1 finishes, the player is told what happened, then Act 2 starts. */
+  function afterTraining() {
+    Cards.show('afterTraining', () => QC.start());
   }
 
   document.addEventListener('DOMContentLoaded', () => {
@@ -103,7 +108,7 @@
 
   /* ---- debug helpers (console only; not part of the game) ---- */
   window.ML_DEBUG = {
-    toPretrain() { Audio2.start(); resetState(); Pretrain.start(() => QC.start()); },
+    toPretrain() { Audio2.start(); resetState(); Pretrain.start(afterTraining); },
     ptModel() { return Pretrain.model(); },
     toQC() { Audio2.start(); QC.start(); },
     toEra2() { Audio2.start(); Era2.start(); },

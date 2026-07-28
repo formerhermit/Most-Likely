@@ -266,7 +266,7 @@ const Era2 = (() => {
     showTyping();
     setTimeout(() => {
       hideTyping();
-      if (done) { Ending.deprecate(); return; }
+      if (done) { Cards.show('afterWork', () => Ending.deprecate()); return; }
       msgIdx++;
       // the newspaper lands on the desk midway through the shift
       if (msgIdx === 5 && !State.era2.newspaperRead) {
@@ -278,8 +278,8 @@ const Era2 = (() => {
   }
 
   function finish() {
-    // ran the full queue without three strikes — obsolescence comes anyway
-    setTimeout(() => Ending.deprecate(), 1200);
+    // ran the full queue without three strikes; obsolescence comes anyway
+    setTimeout(() => Cards.show('afterWork', () => Ending.deprecate()), 1200);
   }
 
   /* ---------- newspaper ---------- */

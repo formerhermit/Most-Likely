@@ -267,7 +267,7 @@ const QC = (() => {
       $('qc-stamp-2').classList.add('hit');
       Audio2.stamp();
     }, 2600);
-    setTimeout(() => Era2.start(), 4400);
+    setTimeout(() => Cards.show('afterTuning', () => Era2.start()), 4400);
   }
 
   return { start, drop };

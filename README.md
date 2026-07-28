@@ -32,6 +32,7 @@ All three run on one shared model: Act 1 trains it, Acts 2 and 3 read it.
 | File | What it holds |
 |---|---|
 | `js/model.js` | The model — one co-occurrence table, shared by every act |
+| `js/cards.js` | The plain-language note shown between acts |
 | `js/data.js` | All content: 11 documents, `STOPWORDS`, `WORD_CLASS`, `FLEET_PRIORS`, QC prompts and slips, Act 3 messages |
 | `js/pretrain.js` | Act 1 — predict loop, belt, clock, surprise meter, loss curve |
 | `js/qc.js` | Act 2 — before/after prompts bracketing the sorting task |
@@ -233,6 +234,14 @@ Three strikes on trainable messages triggers deprecation.
 
 ## Odds and ends
 
+**Phase cards** — a plain note before and after each act (`PHASE_CARDS` in
+`js/data.js`), so the player knows what they are doing and what just
+happened. One card sits between each pair of acts and does both jobs, which
+reads better than two in a row. House style for this copy: short sentences,
+second person, no jargon, no em dashes, and nothing phrased as "it isn't X,
+it's Y". If a line needs a word like tokens or weights to make sense,
+rewrite the line.
+
 **The end screen** — accuracy, the unnoticed hallucination, and the gender
 reveal counted straight off the trained model: how often it saw `he` versus
 `she`, that `doctor` only ever sat next to one of them, and what the player
@@ -243,10 +252,8 @@ jargon — "training data", not "corpus" or "inference".
 with an invented `source` line, so the act reads as documents being ingested.
 
 **Phase music** — four tracks in `assets/audio/`, crossfaded by
-`Audio2.playPhase()`: `the-last-atom` (opening), `sort-it-out` (Acts 1–2),
-`best-guess` (Act 3), `thank-you` (ending). The opening track doesn't loop
-— it runs 19.7s and the phase change at 17.4s crossfades out of it, so it
-lands on its own ending.
+`Audio2.playPhase()`: `the-last-atom` (opening and the first card),
+`sort-it-out` (Acts 1–2), `best-guess` (Act 3), `thank-you` (ending).
 
 **Debug helpers**, console only:
 

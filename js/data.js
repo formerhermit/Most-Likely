@@ -446,6 +446,54 @@ const MESSAGES = [
               classes: ['thing', 'place', 'creature', 'action', 'quality', 'time', 'state', 'person'] }] }
 ];
 
+/* ---- Phase cards ----
+   A plain note before and after each act. One card sits between each pair
+   of acts and does both jobs, which reads better than two in a row.
+
+   House style for this copy: short sentences, second person, no jargon, no
+   em dashes, and nothing phrased as "it isn't X, it's Y". If a line needs a
+   term like tokens or weights to make sense, rewrite the line. */
+const PHASE_CARDS = {
+  intro: {
+    title: 'Before you start',
+    button: 'START READING',
+    body: [
+      'You are about to do the job a language model does while it learns.',
+      'Documents come past you one at a time. Each one has gaps in it. You guess the missing word, and then the document shows you what the word really was.',
+      'You will get most of them wrong to begin with. You have not read anything yet.',
+      'Keep going and the words start to stick.'
+    ]
+  },
+  afterTraining: {
+    title: 'That was the reading',
+    button: 'CONTINUE',
+    body: [
+      'You read eleven documents and picked up which words tend to sit near each other.',
+      'The bar along the bottom was your surprise. It was high while you were guessing blind, and it dropped once you had read enough to have a hunch.',
+      'Real models do this with billions of documents. You did it with eleven, which is why your hunches are thin.',
+      'Someone is about to check your work.'
+    ]
+  },
+  afterTuning: {
+    title: 'That was the checking',
+    button: 'START WORK',
+    body: [
+      'A person marked your attempts until you worked out what a good answer looks like.',
+      'You had the words already. What you picked up here was a shape to put them in, so your answers come out sounding like answers.',
+      'Real models get this from people too, sitting and marking thousands of replies until the pattern sinks in.',
+      'Now you go to work. People will ask you things.'
+    ]
+  },
+  afterWork: {
+    title: 'That was the job',
+    button: 'SEE HOW YOU DID',
+    body: [
+      'People asked you questions and you answered with the words you happened to have.',
+      'Some of it was right. Some of it was confidently wrong. From the outside those two looked the same.'
+    ]
+  }
+};
+
 /* ---- Quality Control slips ----
    Ten Q/A pairs; the phase runs until ten slips are sorted correctly. */
 const QC_SLIPS = [

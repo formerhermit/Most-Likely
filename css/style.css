@@ -864,3 +864,36 @@ button { font-family: inherit; cursor: pointer; }
   color: var(--glow);
   opacity: 0.75;
 }
+
+/* ---------- phase cards ---------- */
+/* A plain note between acts. Paper sheet on the dimmed modal backdrop,
+   deliberately quieter than anything in the game itself. */
+
+.card-sheet {
+  width: min(520px, 90vw);
+  max-height: 86vh;
+  overflow-y: auto;
+  background: var(--paper);
+  color: var(--ink);
+  border-radius: 6px;
+  padding: 34px 34px 28px;
+  text-align: center;
+  box-shadow: 0 18px 50px rgba(0,0,0,0.4);
+  transform: rotate(-0.4deg);
+}
+.card-title {
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+  opacity: 0.55;
+  margin-bottom: 20px;
+}
+.card-body { text-align: left; margin-bottom: 26px; }
+.card-body p {
+  font-size: 16px;
+  line-height: 1.65;
+  margin-bottom: 13px;
+}
+.card-body p:last-child { margin-bottom: 0; }
+.card-sheet .big-btn { font-size: 15px; padding: 12px 30px; }
