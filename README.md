@@ -40,7 +40,6 @@ All three run on one shared model: Act 1 trains it, Acts 2 and 3 read it.
 | `js/state.js` | Session flags, screen manager, helpers |
 | `js/audio.js` | WebAudio SFX; three phase tracks crossfaded |
 | `js/main.js` | Bootstrap, title, opening zoom, debug helpers |
-| `js/era1.js` | **Legacy** — the old drag-to-file Era 1, unreachable from the UI |
 | `serve.py` | Dev server with caching disabled |
 
 ---
@@ -245,7 +244,6 @@ ML_DEBUG.ptModel()        // inspect the table, freq, curve
 ML_DEBUG.toQC()           // Act 2
 ML_DEBUG.toEra2()         // Act 3
 ML_DEBUG.toEnd()          // deprecation + end screen
-ML_DEBUG.toOldEra1()      // the legacy drag-to-file act
 ML_DEBUG.state()          // session state
 ```
 
@@ -264,9 +262,10 @@ ML_DEBUG.state()          // session state
 - **Open ideas**, tracked as issues: temperature dial; the context window as
   a mechanic; player choice over the corpus; a role-flip ending.
 
-Older design docs (`most-likely-build-reference.md`,
-`most-likely-claude-code-brief.md`, `most-likely-rework-spec.md`) describe
-the retired sorting game and its trap set. Kept as history, not as spec.
+The retired drag-to-file Era 1 and its trap set are gone as of this
+cleanup; the older design docs (`most-likely-build-reference.md`,
+`most-likely-claude-code-brief.md`, `most-likely-rework-spec.md`) still
+describe them. Kept as history, not as spec.
 
 ## Deliberately not in v1
 

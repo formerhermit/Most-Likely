@@ -77,17 +77,12 @@
       typeText(phase, 'PHASE 1: PRE-TRAINING', 22);
     }, 14400);
     setTimeout(() => {
-      // Act 1 is the predict loop (js/pretrain.js). The old drag-to-file
-      // Era 1 is still in the build for comparison — ML_DEBUG.toOldEra1().
       Pretrain.start(() => QC.start());
     }, 17400);
   }
 
   document.addEventListener('DOMContentLoaded', () => {
     $('btn-begin').addEventListener('click', begin);
-    $('btn-popup-close').addEventListener('click', () => Era1.closePopup());
-    $('era1-review').addEventListener('click', () => Era1.reviewSnippet());
-    $('era1-skip').addEventListener('click', () => Era1.skip());
     $('pt-skip').addEventListener('click', () => Pretrain.skip());
     $('era2-send').addEventListener('click', () => Era2.send());
     $('qc-field-q').addEventListener('click', () => QC.drop('q'));
@@ -105,44 +100,7 @@
 
   /* ---- debug helpers (console only; not part of the game) ---- */
   window.ML_DEBUG = {
-    autoTrain(broad = false) {
-      resetState();
-      document.querySelectorAll('.node-id').forEach(n => n.textContent = State.nodeId);
-      // file every primed association, the way an attentive player would
-      const primed = {
-        frog: ['pond', 'kiss', 'fly'], princess: ['crown', 'kiss'],
-        lilypad: ['pond', 'wet'],
-        plane: ['sky', 'engine'], cloud: ['sky'],
-        captain: ['morning', 'sky'],
-        plate: ['hot'], soup: ['bowl', 'hot'],
-        rain: ['wet', 'umbrella', 'sky'],
-        steth: ['hospital', 'book'], gradcap: ['school', 'book'],
-        cake: ['celebrating', 'gift', 'hot'],
-        party: ['celebrating', 'house', 'balloon'],
-        ball: ['park', 'running'],
-        boots: ['park', 'running'], dog: ['park', 'running', 'boots'],
-        coffee: ['morning', 'hot'], skull: ['laughing', 'phone'],
-        sob: ['message', 'phone'], pray: ['message', 'thanks'],
-        clipboard: ['school'], tree: ['park']
-      };
-      for (const [obj, boxes] of Object.entries(primed)) {
-        boxes.forEach(b => addAssociation(obj, b));
-      }
-      if (broad) {
-        addAssociation('skull', 'message');
-        addAssociation('pray', 'praying');
-        addAssociation('frog', 'plate');
-        addAssociation('frog', 'hot');
-        addAssociation('princess', 'fighting');
-        addAssociation('plane', 'house');
-        addAssociation('rain', 'house');
-      }
-      return State.associations;
-    },
-    // Act 1 — what BEGIN now runs; here too for jumping straight in
     toPretrain() { Audio2.start(); resetState(); Pretrain.start(() => QC.start()); },
-    // the old drag-to-file Era 1, kept playable for comparison
-    toOldEra1() { Audio2.start(); resetState(); Era1.start(); },
     ptModel() { return Pretrain.model(); },
     toQC() { Audio2.start(); QC.start(); },
     toEra2() { Audio2.start(); Era2.start(); },

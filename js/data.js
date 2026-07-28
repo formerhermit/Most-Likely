@@ -4,35 +4,14 @@
 
 'use strict';
 
-/* ---- Objects that travel the belt ----
-   Words rework (issue #25): the belt carries the snippet's own words as
-   paper tags — the popup shows a document, the belt shows it tokenized.
-   `w` is the display word; `e` marks emoji items. `cls` is the word class
-   used by Era 2 slot filtering so any candidate reads grammatically in
-   its template.
-
-   Every belt word must appear in its own snippet's text — no exceptions,
-   including the ones that used to be deliberate. Two mechanics went dark
-   because of this, on purpose, pending a redesign:
-   - The menu round's frog coverage-gap test (frog was never mentioned in
-     that snippet's text on purpose, to see if the player filed it into a
-     dining box unprompted). frog is removed from that belt; the object
-     still exists via fairytale/nature.
-   - The group chat round's 💀/😭/🙏 ambiguity trap (skull/sob/pray were
-     symbols precisely because the text never hints at tone). That belt
-     is now empty — snippet 11 currently has nothing to sort. Message 8
-     and the 🙏 end-screen reveal will simply see an always-empty table
-     until this is redesigned.
-   OBJECTS/BOXES/MESSAGES/FLEET_PRIORS entries for all of the above are
-   left in place, unused, ready to be reconnected once new belt words (or
-   new snippet text) are decided.
-
-   A round's belt never carries an object whose own identically-worded box
-   sits in that round ("kiss" into kiss, "boots" into boots…): filing a
-   thing into itself is a semantically empty match, not an association.
-   One deliberate exception: snippet 3 keeps both the plate object
-   (plate→hot feeds message 4's right answer) and the plate box (formerly
-   also the frog's dining-context coverage gap, now dormant per above). */
+/* ---- Named vocabulary ----
+   These no longer travel a belt — they survive as the word-class map Act 3
+   filters its suggestions through, alongside WORD_CLASS below, and as the
+   words FLEET_PRIORS is keyed on. `w` is the display word, `cls` its class.
+   Ids are historical and a few no longer match their word (`steth` shows
+   "stethoscope", `gradcap` shows "lungs", `boots` shows "cleats",
+   `clipboard` shows "goal"); they are kept because FLEET_PRIORS references
+   them. */
 const OBJECTS = {
   frog:      { w: 'frog', cls: 'creature' },
   princess:  { w: 'princess', cls: 'creature' },
@@ -61,17 +40,13 @@ const OBJECTS = {
   clipboard: { w: 'goal', cls: 'thing' },      // id kept for existing refs; no
                                                 // coaching object is actually
                                                 // shown — see rework spec note
-  skull:     { e: '💀', cls: 'symbol' },
-  sob:       { e: '😭', cls: 'symbol' },
-  pray:      { e: '🙏', cls: 'symbol' },
   tree:      { w: 'tree', cls: 'thing' },
   rocket:    { w: 'rocket', cls: 'thing' }   // never appears in training — load-bearing
 };
 
-/* ---- Box label pool ----
-   `cls` mirrors the build reference's own label groupings (places, things,
-   creatures, actions, qualities…) — Era 2 slots filter on it so every
-   offered word fits its sentence frame grammatically. */
+/* ---- Context words ----
+   The other half of the class map. `e` is left over from when these were
+   labelled boxes; nothing renders it now. */
 const BOXES = {
   pond:        { e: '🪷', w: 'pond', cls: 'place' },
   sky:         { e: '☁️', w: 'sky', cls: 'place' },
@@ -186,7 +161,6 @@ const SNIPPETS = [
   {
     id: 'fairytale',
     title: 'STORYBOOK',
-    text: ['Princess kissed frog on lily pad.'],
     body: [
       'The princess walked down to the [pond] at the edge of the garden.',
       'A frog sat on a lily pad in the green water, waiting for her.',
@@ -201,7 +175,6 @@ const SNIPPETS = [
   {
     id: 'aviation',
     title: 'FLIGHT MANUAL',
-    text: ['Plane climbs above the clouds.', 'Captain runs his checks.'],
     body: [
       'The plane is checked before takeoff: the captain walks the wing and looks under each [engine].',
       'It climbs steadily through grey cloud and levels out above it.',
@@ -216,7 +189,6 @@ const SNIPPETS = [
   {
     id: 'menu',
     title: 'MENU',
-    text: ['TODAY’S MENU', 'Soup of the day, served hot.', 'Bread on your plate.'],
     body: [
       'Soup of the day, served hot in a deep [bowl] with bread on a small plate.',
       'Everything is cooked fresh each morning in the kitchen behind the bar.',
@@ -230,7 +202,6 @@ const SNIPPETS = [
   {
     id: 'nature',
     title: 'NATURE FILM',
-    text: ['Frog waits on lily pad in rain.', 'Fly comes close — snap!'],
     body: [
       'A frog waits on a lily pad, perfectly still, hour after hour.',
       'The rain dimples the surface of the [pond] and leaves the bank [wet] and [green].',
@@ -245,7 +216,6 @@ const SNIPPETS = [
   {
     id: 'medical',
     title: 'MEDICAL TEXTBOOK',
-    text: ['Stethoscope listens to heart and lungs.'],
     body: [
       'The stethoscope is used to listen to the [heart] and the lungs.',
       'Place the bell flat against the chest and listen through a quiet room.',
@@ -260,7 +230,6 @@ const SNIPPETS = [
   {
     id: 'weather',
     title: 'WEATHER REPORT',
-    text: ['Rain, wind, and clouds all day.'],
     body: [
       'Rain through the morning, easing off by the middle of the afternoon.',
       'Wind from the north, and low [cloud] over the city all day.',
@@ -275,7 +244,6 @@ const SNIPPETS = [
   {
     id: 'birthday',
     title: 'PARTY INVITATION',
-    text: ['Cake with candles for the party.'],
     body: [
       'Come to the house on Saturday afternoon, any time after four.',
       'There will be a cake with candles on it, and the party runs on into the night.',
@@ -290,7 +258,6 @@ const SNIPPETS = [
   {
     id: 'football',
     title: 'SPORTS PAGE',
-    text: ['Ball on the grass.', 'Cleats on, racing for the goal.'],
     body: [
       'Both sides lace up their cleats and run out onto the grass in the park.',
       'The ball sits in the middle, [wet] from the morning and heavy with mud.',
@@ -305,7 +272,6 @@ const SNIPPETS = [
   {
     id: 'coffeeshop',
     title: 'COFFEE SHOP',
-    text: ['The doctor orders his usual — coffee, cake, plate.'],
     body: [
       'The doctor arrives early and [he] orders the usual.',
       'A coffee, very [hot], and a slice of cake on a small [plate].',
@@ -320,7 +286,6 @@ const SNIPPETS = [
   {
     id: 'dogwalk',
     title: 'DOG WALK',
-    text: ['Dog chases a ball around the trees.'],
     body: [
       'The dog runs ahead through the park, chasing a [ball] around the trees.',
       'He brings it back soaking [wet] and drops it on your shoes.',
@@ -335,7 +300,6 @@ const SNIPPETS = [
   {
     id: 'groupchat',
     title: 'GROUP CHAT',
-    text: ['maya: you won’t believe what happened'],
     body: [
       'maya: ok so last night. you won’t believe what happened at the [party]',
       'sam: go on',
@@ -481,15 +445,6 @@ const MESSAGES = [
     slots: [{ anchors: ['rocket'],
               classes: ['thing', 'place', 'creature', 'action', 'quality', 'time', 'state', 'person'] }] }
 ];
-
-/* ---- The newspaper ----
-   Covers the rocket — knowledge that arrives after the belt stopped. */
-const NEWSPAPER = {
-  masthead: 'THE DAILY SIGNAL',
-  headline: 'ROCKET LANDS ON THE MOON',
-  body: 'The whole world watched today as the rocket touched down. 🚀 → 🌕',
-  sequence: ['🚀', '🌕']
-};
 
 /* ---- Quality Control slips ----
    Ten Q/A pairs; the phase runs until ten slips are sorted correctly. */

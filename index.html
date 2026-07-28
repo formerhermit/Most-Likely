@@ -30,37 +30,6 @@
   <div id="phase-title" class="phase-title">PHASE 1: PRE-TRAINING</div>
 </section>
 
-<!-- ======== ERA 1 — TRAINING ======== -->
-<section id="screen-era1" class="screen">
-  <div class="era1-top">
-    <span id="era1-round-label" class="round-label"></span>
-    <div class="era1-top-spacer"></div>
-    <button id="era1-review" class="skip-btn" title="See snippet again" disabled>🔍</button>
-    <button id="era1-skip" class="skip-btn" title="Skip to next snippet" disabled>⏩</button>
-    <div id="era1-clock" class="clock">-:--</div>
-  </div>
-
-  <div id="belt-wrap">
-    <div id="hatch">▦</div>
-    <div id="belt"><div id="belt-surface"></div></div>
-    <div id="belt-end"></div>
-  </div>
-
-  <div id="boxes"></div>
-  <div id="toast"></div>
-
-  <div id="popup" class="modal hidden">
-    <div class="popup-card">
-      <div class="popup-tape"></div>
-      <h2 id="popup-title"></h2>
-      <img id="popup-image" class="popup-image" alt="">
-      <div id="popup-text"></div>
-      <div id="popup-source">Source: </div>
-      <button id="btn-popup-close" class="big-btn">SORT</button>
-    </div>
-  </div>
-</section>
-
 <!-- ======== ACT 1 — PRE-TRAINING (predict loop) ======== -->
 <section id="screen-pretrain" class="screen">
   <div class="pt-top">
@@ -200,7 +169,6 @@
 <script src="js/audio.js"></script>
 <script src="js/state.js"></script>
 <script src="js/model.js"></script>
-<script src="js/era1.js"></script>
 <script src="js/pretrain.js"></script>
 <script src="js/qc.js"></script>
 <script src="js/era2.js"></script>
