@@ -112,6 +112,13 @@ word's counts go up either way.
 - **60s per document.** In the final 8 seconds anything still resting slides
   off at a shared speed. A blank whose tags all run off is one the model
   never answered — which is why there's no "…" button.
+- **Below 620px there's no belt.** No room to ride a conveyor at phone
+  width, so candidates fade in as a tappable row in place (`#pt-options`)
+  instead of riding one in from a hatch, and fade out at the same clock
+  mark the belt would have cleared by rather than sliding off an edge that
+  doesn't exist. Same underlying model, same timing, same "nothing tapped
+  in time reads as no answer" — just no motion. The document stage and top
+  bar stack/wrap under the same breakpoint (issue #45).
 - **Skip advances one blank**, not the document. Skipping the last blank, or
   running the clock out, holds the finished text up for 15s to be read.
 - The player-facing "how far off" reading is surprisal in bits, underneath:
@@ -262,11 +269,6 @@ ML_DEBUG.state()          // session state
 - **Pacing is unverified.** Every timing constant in `pretrain.js` was
   reasoned about, not measured — automated browsers throttle timers. Needs
   a real playthrough.
-- **Act 1 overflows narrow viewports** — the belt runs off-screen and the
-  document stage squeezes to one word per line below ~620px. QC had the
-  same problem and now stacks under that width; Act 1 needs the same
-  treatment plus a plan for the belt, which can't just stack. Era 2 is
-  already fine at mobile widths.
 - **Open ideas**, tracked as issues: temperature dial; the context window as
   a mechanic; player choice over the corpus; a role-flip ending.
 

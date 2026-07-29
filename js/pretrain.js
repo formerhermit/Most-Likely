@@ -110,6 +110,13 @@ const Pretrain = (() => {
   const normalize = Model.normalize;
   const isContent = Model.isContent;
 
+  /* Below this there's no width for a conveyor — the belt swaps for tags
+     that just appear in place and fade out again, same breakpoint as the
+     QC desk (#34), same underlying bug shape (#45). Read live rather than
+     cached: a phone can rotate mid-round. */
+  const MOBILE_QUERY = '(max-width: 620px)';
+  function isMobileLayout() { return window.matchMedia(MOBILE_QUERY).matches; }
+
   /* ---------- tokenizing ---------- */
 
   /* One token per whitespace-separated chunk. A chunk containing [brackets]
@@ -221,6 +228,11 @@ const Pretrain = (() => {
     beltItems = [];
     const belt = $('pt-belt');
     if (belt) belt.classList.add('paused');
+    // belt and options are mutually exclusive per viewport, but clear both
+    // unconditionally — a resize/rotation mid-round shouldn't be able to
+    // strand a tag in whichever container isn't currently visible
+    const opts = $('pt-options');
+    if (opts) opts.innerHTML = '';
   }
 
   function askBlank() {
@@ -244,6 +256,18 @@ const Pretrain = (() => {
 
     $('pt-note').textContent = '';
     const max = top[0][1];
+
+    if (isMobileLayout()) {
+      // no belt to ride: tags appear where they'll be tapped, staggered for
+      // the same "arriving" pacing the belt has, faded rather than slid
+      top.forEach(([word, score], i) => {
+        const item = { word, el: buildTag(word, score / max, true), state: 'queued' };
+        $('pt-options').appendChild(item.el);
+        beltItems.push(item);
+        setTimeout(() => spawnOption(item), ROLL_IN_DELAY_MS + i * 180);
+      });
+      return;
+    }
 
     // Build every tag first and measure it, then work out where they rest.
     // Placing them one at a time as they arrive can't work: the words run
@@ -269,9 +293,50 @@ const Pretrain = (() => {
     });
   }
 
-  function buildTag(word, confidence) {
+  /* Fades a tag in where it sits rather than sliding it — the mobile
+     equivalent of a tag arriving and coming to rest. */
+  function spawnOption(item) {
+    if (!awaiting || item.state !== 'queued') return;
+    item.state = 'resting';
+    void item.el.offsetWidth;
+    item.el.classList.add('pt-tag-shown');
+  }
+
+  /* The belt's release, without the belt: whatever's still up fades out
+     over exactly the time left on the clock, so an option vanishing at the
+     same instant the document reaches zero is true here too — a tag that
+     fades all the way out was never tapped, same as one that rolled off
+     the end. */
+  function releaseOptions() {
+    beltItems.filter(i => i.state === 'queued').forEach(i => {
+      i.state = 'gone';
+      i.el.remove();
+    });
+    const live = beltItems.filter(i => i.state === 'resting');
+    if (!live.length) {
+      if (awaiting && beltItems.length && beltItems.every(b => b.state === 'gone')) resolve(null);
+      return;
+    }
+    const duration = Math.max(400, docEndsAt - performance.now());
+    live.forEach(item => {
+      item.state = 'releasing';
+      item.el.style.transition = 'opacity ' + duration + 'ms linear';
+      void item.el.offsetWidth;
+      item.el.classList.remove('pt-tag-shown');
+      const onEnd = (ev) => {
+        if (ev.propertyName !== 'opacity') return;
+        item.el.removeEventListener('transitionend', onEnd);
+        item.state = 'gone';
+        item.el.remove();
+        if (awaiting && beltItems.length && beltItems.every(b => b.state === 'gone')) resolve(null);
+      };
+      item.el.addEventListener('transitionend', onEnd);
+    });
+  }
+
+  function buildTag(word, confidence, staticTag) {
     const fleet = Model.fleetCount(word);
-    const tag = el('div', 'pt-tag' + (fleet ? ' pt-tag-fleet' : ''));
+    const tag = el('div', 'pt-tag' + (staticTag ? ' pt-tag-static' : '') + (fleet ? ' pt-tag-fleet' : ''));
     tag.appendChild(el('span', 'pt-tag-word', word));
     const track = el('span', 'pt-tag-track');
     const fill = el('span', 'pt-tag-fill');
@@ -343,6 +408,7 @@ const Pretrain = (() => {
      arrive together; a shared px/ms speed means the one furthest back
      takes the full remaining time and the ones ahead clear sooner. */
   function releaseResting() {
+    if (isMobileLayout()) { releaseOptions(); return; }
     const surface = $('pt-belt-surface');
     // tags still waiting their turn at the hatch never make it out
     beltItems.filter(i => i.state === 'queued').forEach(i => {

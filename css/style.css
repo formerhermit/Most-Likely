@@ -732,6 +732,28 @@ button { font-family: inherit; cursor: pointer; }
   font-style: italic; opacity: 0.42;
 }
 
+/* below the belt breakpoint (issue #45): tags sit in normal document flow
+   instead of riding a conveyor there's no width for. Hidden on desktop —
+   see the media query below, where #pt-belt-wrap and #pt-options swap. */
+.pt-options {
+  display: none;
+  width: min(960px, 94vw);
+  flex-wrap: wrap; justify-content: center;
+  gap: 10px;
+  min-height: 78px;
+  align-content: center;
+}
+/* the same paper tag as the belt (.pt-tag), just laid out by the page
+   instead of positioned by JS, and faded rather than slid */
+.pt-tag-static {
+  position: static;
+  transform: none;
+  opacity: 0;
+  transition: opacity 0.3s ease-out;
+}
+.pt-tag-static.pt-tag-shown { opacity: 1; }
+.pt-tag-static:active { transform: translateY(1px); }
+
 /* ---- the document ---- */
 .pt-stage {
   width: min(960px, 94vw);
@@ -814,6 +836,28 @@ button { font-family: inherit; cursor: pointer; }
    verdict to mark, so it stays at the neutral default border */
 .pt-unanswered { opacity: 0.85; }
 .pt-miss { color: #c0503a; text-decoration: line-through; opacity: 0.75; }
+
+/* Below this the belt (fixed hatch + fixed tag widths) and the two-column
+   stage (fixed-width art column) stop fitting any viewport — same shape of
+   bug as the QC desk (#34), just worse: the belt ran fully off-screen
+   rather than just its last field. Same 620px breakpoint as QC, for one
+   consistent "this is a phone" threshold across the act (issue #45). */
+@media (max-width: 620px) {
+  .pt-top { flex-wrap: wrap; row-gap: 10px; }
+  .pt-meter-track { width: 60px; }
+
+  #pt-belt-wrap { display: none; }
+  .pt-options { display: flex; }
+
+  .pt-stage { flex-direction: column; }
+  .pt-art {
+    flex: 0 0 auto;
+    padding-right: 0; padding-bottom: 16px;
+    border-right: none; border-bottom: 1px solid rgba(138, 98, 66, 0.22);
+  }
+  .pt-image { max-height: 140px; }
+  .pt-text { min-height: 0; }
+}
 
 /* the loss curve: one bar per document, and the whole point of the act */
 .pt-curve-wrap {
