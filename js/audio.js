@@ -16,21 +16,32 @@ const Audio2 = (() => {
     era2: 'assets/audio/best-guess.mp3',    // inference — "Best Guess"
     end:  'assets/audio/thank-you.mp3'      // deprecation + end screen — "Thank You"
   };
-  const MUSIC_VOLUME = 0.32;
+  // doubled from the perceived-loudness target (0.32) because every track
+  // now routes through `master`, which sits at 0.5 — see ensurePlayers()
+  const MUSIC_VOLUME = 0.64;
   const FADE_MS = 1400;
 
   const players = {};   // name -> HTMLAudioElement
   let currentPhase = null;
   let fadeTimers = [];
 
+  /* Every phase track is routed through the same `master` gain node the
+     synthesized SFX use, so one mute switch silences both. Previously the
+     tracks played straight to the speakers with their own independent
+     .volume, untouched by mute except in the narrow window between
+     crossfades — which is why mute read as broken (#46): most of a
+     session, some track is either fading or freshly settled, and the old
+     code only poked the current track's volume when no fade was running. */
   function ensurePlayers() {
     if (players.intro) return;
+    ensure();
     for (const [name, src] of Object.entries(TRACKS)) {
       const a = new Audio(src);
       a.loop = name !== 'intro';
       a.preload = 'auto';
       a.volume = 0;
       players[name] = a;
+      ctx.createMediaElementSource(a).connect(master);
     }
   }
 
@@ -113,10 +124,10 @@ const Audio2 = (() => {
     playPhase,
     setMuted(m) {
       muted = m;
+      // one switch for both: master now carries every track (see
+      // ensurePlayers()), so this is instant and correct regardless of
+      // whether a crossfade happens to be running
       if (master) master.gain.value = m ? 0 : 0.5;
-      if (currentPhase && players[currentPhase] && !fadeTimers.length) {
-        players[currentPhase].volume = m ? 0 : MUSIC_VOLUME;
-      }
     },
     isMuted: () => muted,
     /* soft "filed" blip */

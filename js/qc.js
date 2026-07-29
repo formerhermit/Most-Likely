@@ -15,7 +15,7 @@
 'use strict';
 
 const QC = (() => {
-  const NEEDED = 10;   // correct rounds to complete the phase
+  const NEEDED = 5;    // correct rounds to complete the phase
 
   let deck = [];
   let current = null;

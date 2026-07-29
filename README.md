@@ -166,8 +166,8 @@ immediately after "doctor" so that pair dominates the belt there.
 
 ## Act 2 — Quality Control
 
-Instruction tuning: supervisor behind the window, `?` and `=` fields, ten
-lights, a stamp and a siren. Slips into the right field, ten correct, no
+Instruction tuning: supervisor behind the window, `?` and `=` fields, five
+lights, a stamp and a siren. Slips into the right field, five correct, no
 instructions given — the shape is inferred from feedback alone.
 
 Act 2 never touches the model (`Model.read()`/`observe()` are never called
