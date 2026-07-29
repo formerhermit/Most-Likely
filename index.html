@@ -34,6 +34,7 @@
 <section id="screen-pretrain" class="screen">
   <div class="pt-top">
     <span id="pt-doc-label" class="round-label"></span>
+    <span class="pt-vocab">words known <span id="pt-vocab-n">0</span></span>
     <div class="pt-top-spacer"></div>
     <div class="pt-meter">
       <span class="pt-meter-label">HOW FAR OFF</span>
@@ -64,7 +65,9 @@
       <div id="pt-source-line" class="pt-source-line"></div>
     </div>
     <div id="pt-text" class="pt-text"></div>
+    <div id="pt-stamp" class="pt-stamp" aria-hidden="true">PROCESSED</div>
   </div>
+  <div id="pt-ticket" class="pt-ticket" aria-hidden="true"></div>
 
   <div class="pt-curve-wrap">
     <span class="pt-curve-label">how far off, per document</span>

@@ -132,8 +132,13 @@ const Audio2 = (() => {
     isMuted: () => muted,
     /* soft "filed" blip */
     blip() { tone(660, 0.09, { type: 'square', gain: 0.06 }); tone(990, 0.12, { type: 'square', gain: 0.05, at: 0.06 }); },
-    /* QC thumbs */
-    yes() { tone(523, 0.1, { type: 'triangle', gain: 0.12 }); tone(784, 0.16, { type: 'triangle', gain: 0.12, at: 0.09 }); },
+    /* thumbs up — `step` raises the pitch a semitone per consecutive
+       correct answer (capped an octave up), so a streak audibly climbs */
+    yes(step = 0) {
+      const m = Math.pow(1.0595, Math.min(step, 12));
+      tone(523 * m, 0.1, { type: 'triangle', gain: 0.12 });
+      tone(784 * m, 0.16, { type: 'triangle', gain: 0.12, at: 0.09 });
+    },
     no() { tone(220, 0.22, { type: 'triangle', gain: 0.12 }); tone(185, 0.26, { type: 'triangle', gain: 0.1, at: 0.12 }); },
     /* deployment siren */
     siren() {

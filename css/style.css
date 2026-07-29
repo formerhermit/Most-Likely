@@ -649,6 +649,12 @@ button { font-family: inherit; cursor: pointer; }
   font-family: var(--mono); font-size: 12px;
   min-width: 62px; opacity: 0.75;
 }
+/* the vocabulary ticking up as the model reads — machines love counters */
+.pt-vocab {
+  font-family: var(--mono); font-size: 11px;
+  letter-spacing: 0.08em; opacity: 0.55; white-space: nowrap;
+}
+#pt-vocab-n { color: var(--accent); font-weight: 700; }
 
 /* ---- the conveyor ---- */
 #pt-belt-wrap {
@@ -756,6 +762,7 @@ button { font-family: inherit; cursor: pointer; }
 
 /* ---- the document ---- */
 .pt-stage {
+  position: relative;   /* anchors the PROCESSED stamp */
   width: min(960px, 94vw);
   display: flex; align-items: stretch; gap: 24px;
   background: var(--paper);
@@ -836,6 +843,44 @@ button { font-family: inherit; cursor: pointer; }
    verdict to mark, so it stays at the neutral default border */
 .pt-unanswered { opacity: 0.85; }
 .pt-miss { color: #c0503a; text-decoration: line-through; opacity: 0.75; }
+
+/* thumped onto the document card as it completes — same ink and the same
+   stamphit animation as the QC approval stamps, scaled to the page */
+.pt-stamp {
+  position: absolute;
+  top: 12px; right: 16px;
+  font-family: var(--mono);
+  font-size: 14px;
+  letter-spacing: 0.14em;
+  color: var(--accent-2);
+  border: 3px solid var(--accent-2);
+  border-radius: 6px;
+  padding: 4px 10px;
+  opacity: 0;
+  transform: scale(3) rotate(-8deg);
+  pointer-events: none;
+}
+.pt-stamp.hit { animation: stamphit 0.35s ease-in forwards; }
+
+/* a little paper ticket for milestones (first correct, streaks) */
+.pt-ticket {
+  position: absolute;
+  top: 108px; left: 50%;
+  transform: translate(-50%, -8px) scale(0.7) rotate(-2deg);
+  opacity: 0;
+  background: var(--paper);
+  color: var(--ink);
+  border: 1px solid rgba(138, 98, 66, 0.5);
+  border-radius: 6px;
+  padding: 8px 15px;
+  font-family: var(--mono); font-size: 13px;
+  letter-spacing: 0.08em;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.25);
+  pointer-events: none;
+  z-index: 20;
+  transition: opacity 0.22s, transform 0.22s;
+}
+.pt-ticket.show { opacity: 1; transform: translate(-50%, 0) scale(1) rotate(-2deg); }
 
 /* Below this the belt (fixed hatch + fixed tag widths) and the two-column
    stage (fixed-width art column) stop fitting any viewport — same shape of

@@ -105,6 +105,10 @@ const Pretrain = (() => {
   let pendingList = null;   // the ranked list the current blank was asked with
   let readPause = false;    // hold the finished document up to be read
   let pauseTimer = null;    // the wait between documents, skippable
+  let streak = 0;           // consecutive correct guesses, across documents
+  let firstCorrect = false; // has the player ever guessed one right?
+  let resolving = false;    // a miss beat is playing out; don't re-ask
+  let ticketTimer = null;
 
   const $ = (id) => document.getElementById(id);
   const normalize = Model.normalize;
@@ -142,6 +146,20 @@ const Pretrain = (() => {
     docIdx = 0;
     Model.reset();
     curve = [];
+    streak = 0;
+    firstCorrect = false;
+    resolving = false;
+    // a restart mid-run must not inherit the old run's machinery: the
+    // previous document's clock interval would keep ticking against the
+    // new run's state, and a stale `awaiting` lets belt events from the
+    // torn-down round resolve blanks in the new one
+    awaiting = false;
+    released = false;
+    readPause = false;
+    pendingList = null;
+    if (clockId) { clearInterval(clockId); clockId = null; }
+    if (revealTimer) { clearTimeout(revealTimer); revealTimer = null; }
+    if (pauseTimer) { clearTimeout(pauseTimer); pauseTimer = null; }
     Audio2.playPhase('era1');
     showScreen('screen-pretrain');
     docActive = false;
@@ -186,15 +204,23 @@ const Pretrain = (() => {
     });
 
     clearBelt();
-    $('pt-note').textContent = '';
+    $('pt-stamp').classList.remove('hit');
+    // discoverability, once: the fast-forward gesture, worded per platform
+    $('pt-note').textContent = docIdx === 0
+      ? (isMobileLayout() ? 'tap the page to read faster'
+                          : 'tap the page or press space to read faster')
+      : '';
     setMeter(null);
+    updateVocab();
     docActive = true;
     $('pt-skip').disabled = false;
 
     docEndsAt = performance.now() + DOC_DURATION_MS;
     clockId = setInterval(tick, 250);
     setClock(DOC_DURATION_MS);
-    setTimeout(readOn, 700);
+    // stored: fastForward in this first beat must cancel it, or readOn
+    // fires 700ms later and asks the same blank twice
+    revealTimer = setTimeout(readOn, 700);
   }
 
   /* The clock drives the belt, exactly as Era 1's round clock did: nothing
@@ -217,6 +243,7 @@ const Pretrain = (() => {
     if (tok.blank) { askBlank(); return; }
     nodes[cursor].classList.add('shown');
     Model.read(tok.word);
+    updateVocab();
     cursor++;
     revealTimer = setTimeout(readOn, REVEAL_MS);
   }
@@ -464,6 +491,7 @@ const Pretrain = (() => {
   function resolve(pick) {
     if (!awaiting) return;
     awaiting = false;
+    resolving = true;
     const list = pendingList || [];
     clearBelt();
     $('pt-note').textContent = '';
@@ -481,20 +509,41 @@ const Pretrain = (() => {
       slot.textContent = tok.text;
       slot.classList.add('shown', hit ? 'pt-hit' : 'pt-corrected');
       Model.read(tok.word);
+      updateVocab();
+      resolving = false;
       cursor++;
       revealTimer = setTimeout(readOn, SETTLE_MS);
     };
 
     if (hit) {
-      Audio2.yes();
+      streak++;
+      // the blip climbs a semitone per consecutive correct — a streak is
+      // something you can hear coming
+      Audio2.yes(streak - 1);
+      if (!firstCorrect) { firstCorrect = true; ticket('first one right ✓'); }
+      else if (streak === 3) ticket('3 in a row');
+      else if (streak === 6) ticket('6 in a row!');
       finish();
-    } else {
-      // the wrong guess is shown before the text overrides it — the
-      // correction is the only teacher in this loop, so it has to be seen
-      slot.textContent = pick === null ? '…' : pick;
+    } else if (pick === null) {
+      // nothing picked: no sentence to read out, straight to the correction
+      streak = 0;
+      slot.textContent = '…';
       slot.classList.add('shown', 'pt-miss');
       Audio2.no();
-      setTimeout(() => { slot.classList.remove('pt-miss'); finish(); }, 800);
+      revealTimer = setTimeout(() => { slot.classList.remove('pt-miss'); finish(); }, 700);
+    } else {
+      // The wrong sentence gets read as written before the text corrects
+      // it: "He wore a gold pond" sits there, deadpan, for a beat. Being
+      // wrong is the game's most common event — it should land as a small
+      // joke, not a punishment. The buzz waits for the strikethrough.
+      streak = 0;
+      slot.textContent = pick;
+      slot.classList.add('shown');
+      revealTimer = setTimeout(() => {
+        slot.classList.add('pt-miss');
+        Audio2.no();
+        revealTimer = setTimeout(() => { slot.classList.remove('pt-miss'); finish(); }, 650);
+      }, 900);
     }
   }
 
@@ -515,14 +564,17 @@ const Pretrain = (() => {
     while (cursor < tokens.length) {
       const tok = tokens[cursor];
       nodes[cursor].textContent = tok.text;
+      nodes[cursor].classList.remove('active');
       nodes[cursor].classList.add('shown');
       if (tok.blank) {
         docBits.push(UNSEEN_BITS);
         nodes[cursor].classList.add('pt-unanswered');
+        streak = 0;
       }
       Model.read(tok.word);
       cursor++;
     }
+    updateVocab();
     readPause = true;
     endDoc();
   }
@@ -539,8 +591,14 @@ const Pretrain = (() => {
     if (clockId) { clearInterval(clockId); clockId = null; }
     setClock(0);
     awaiting = false;
+    resolving = false;
     clearBelt();
     $('pt-note').textContent = '';
+
+    // the document gets its stamp — a small physical full-stop on each of
+    // the eleven, in the same ink as the QC approval
+    $('pt-stamp').classList.add('hit');
+    Audio2.stamp();
 
     const avg = docBits.length ? docBits.reduce((a, b) => a + b, 0) / docBits.length : 0;
     curve.push(avg);
@@ -582,6 +640,26 @@ const Pretrain = (() => {
     clock.textContent = Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
   }
 
+  /* A little paper ticket for milestones: first-ever correct, streaks. */
+  function ticket(msg) {
+    const t = $('pt-ticket');
+    t.textContent = msg;
+    t.classList.remove('show');
+    void t.offsetWidth;
+    t.classList.add('show');
+    Audio2.ding();
+    if (ticketTimer) clearTimeout(ticketTimer);
+    ticketTimer = setTimeout(() => t.classList.remove('show'), 1900);
+  }
+
+  /* The vocabulary counter ticks up live as the model reads. It starts
+     above zero: the fleet's seed pairs are words this node already knows
+     before its first document, which is honest. */
+  function updateVocab() {
+    const n = $('pt-vocab-n');
+    if (n) n.textContent = Object.keys(Model.stats().freq).length;
+  }
+
   /* Plain-language reading of the surprisal score — "2.3 bits" is exactly
      the kind of unit a player-facing screen shouldn't show. */
   function farOffLabel(bits) {
@@ -621,6 +699,27 @@ const Pretrain = (() => {
     }
   }
 
+  /* Tap the page (or press space) mid-reveal: jump the text straight to
+     the next decision instead of waiting out the word-by-word pace. Does
+     nothing while a blank is waiting to be answered or a miss beat is
+     playing out — those are the moments the pacing exists for. Returns
+     whether it acted, so the space handler knows whether to swallow the
+     keypress. */
+  function fastForward() {
+    if (!docActive || awaiting || resolving) return false;
+    if (cursor >= tokens.length) return false;
+    if (revealTimer) { clearTimeout(revealTimer); revealTimer = null; }
+    while (cursor < tokens.length && !tokens[cursor].blank) {
+      nodes[cursor].classList.add('shown');
+      Model.read(tokens[cursor].word);
+      cursor++;
+    }
+    updateVocab();
+    if (cursor >= tokens.length) { readPause = true; endDoc(); return true; }
+    askBlank();
+    return true;
+  }
+
   /* Skip moves past one blank, not the whole document. On an active blank
      it gives up on that prediction: the text supplies the word, as it
      would have anyway, and reading carries on to the *next* blank and
@@ -642,15 +741,7 @@ const Pretrain = (() => {
       resolve(null);
       return;
     }
-    // mid-reveal: run the text forward to the next decision
-    if (revealTimer) { clearTimeout(revealTimer); revealTimer = null; }
-    while (cursor < tokens.length && !tokens[cursor].blank) {
-      nodes[cursor].classList.add('shown');
-      Model.read(tokens[cursor].word);
-      cursor++;
-    }
-    if (cursor >= tokens.length) { readPause = true; endDoc(); return; }
-    askBlank();
+    fastForward();
   }
 
   function hasBlankAfter(idx) {
@@ -658,5 +749,5 @@ const Pretrain = (() => {
     return false;
   }
 
-  return { start, skip, model: () => Object.assign(Model.stats(), { curve }) };
+  return { start, skip, fastForward, model: () => Object.assign(Model.stats(), { curve }) };
 })();

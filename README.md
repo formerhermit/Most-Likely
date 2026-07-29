@@ -112,6 +112,20 @@ word's counts go up either way.
 - **60s per document.** In the final 8 seconds anything still resting slides
   off at a shared speed. A blank whose tags all run off is one the model
   never answered — which is why there's no "…" button.
+- **A miss reads as a joke, not a punishment.** The wrong word sits in the
+  sentence as written ("He wore a gold pond") for a beat, deadpan, before
+  the strikethrough and the correction. Misses are the most common event in
+  the act; they should land light.
+- **Streaks are audible.** The correct-answer blip climbs a semitone per
+  consecutive correct answer. Milestone tickets pop for the first-ever
+  correct and for 3- and 6-streaks; each finished document gets a
+  PROCESSED stamp in the QC ink.
+- **Tap the page (or press space) to fast-forward the reveal** to the next
+  blank. A one-line hint appears on the first document, worded per
+  platform. The gesture only acts mid-reveal, so it can't skip a decision.
+- **"words known" counts up live** as the model reads. It starts above
+  zero: the fleet's seed pairs are words this node knew before its first
+  document.
 - **Below 620px there's no belt.** No room to ride a conveyor at phone
   width, so candidates fade in as a tappable row in place (`#pt-options`)
   instead of riding one in from a hatch, and fade out at the same clock

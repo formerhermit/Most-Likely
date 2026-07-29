@@ -94,6 +94,15 @@
   document.addEventListener('DOMContentLoaded', () => {
     $('btn-begin').addEventListener('click', begin);
     $('pt-skip').addEventListener('click', () => Pretrain.skip());
+    // fast-forward the reveal: tap the document card, or space on desktop.
+    // fastForward() guards itself (only acts mid-reveal), so a click while
+    // a blank is open, or on another screen entirely, is a no-op — and the
+    // keypress is only swallowed when it actually did something, so space
+    // still activates a focused button everywhere else.
+    document.querySelector('.pt-stage').addEventListener('click', () => Pretrain.fastForward());
+    window.addEventListener('keydown', (e) => {
+      if (e.code === 'Space' && Pretrain.fastForward()) e.preventDefault();
+    });
     $('era2-send').addEventListener('click', () => Era2.send());
     $('qc-field-q').addEventListener('click', () => QC.drop('q'));
     $('qc-field-a').addEventListener('click', () => QC.drop('a'));
