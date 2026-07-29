@@ -83,10 +83,15 @@ const Pretrain = (() => {
   const FALL_OVERSHOOT_PX = 30;
   const EMPTY_BELT_MS = 2600;        // beat to sit with an empty belt before
                                       // the text corrects an unanswerable blank
-  const NEXT_DOC_MS = 1600;          // normal beat between documents
-  const READ_PAUSE_MS = 15000;       // …but hold a document the player
-                                      // skipped the last blank on, so the
-                                      // finished text can actually be read
+  const READ_PAUSE_MS = 15000;       // hold every finished document up long
+                                      // enough that the text after the last
+                                      // blank can actually be read. A
+                                      // ceiling, not a wait: tap or SKIP
+                                      // moves on the moment the player is done
+  const PAUSE_TAP_GUARD_MS = 1200;   // ignore taps this early into that
+                                      // hold: the tap that fast-forwarded
+                                      // the last of the text must not also
+                                      // dismiss the pause it just earned
 
   let docIdx = 0;
   let tokens = [];          // flat token list for the current document
@@ -103,8 +108,8 @@ const Pretrain = (() => {
   let clockId = null;
   let released = false;     // has the belt started its final release?
   let pendingList = null;   // the ranked list the current blank was asked with
-  let readPause = false;    // hold the finished document up to be read
   let pauseTimer = null;    // the wait between documents, skippable
+  let pauseStartedAt = 0;   // when that hold began, for the tap guard below
   let streak = 0;           // consecutive correct guesses, across documents
   let firstCorrect = false; // has the player ever guessed one right?
   let resolving = false;    // a miss beat is playing out; don't re-ask
@@ -155,7 +160,6 @@ const Pretrain = (() => {
     // torn-down round resolve blanks in the new one
     awaiting = false;
     released = false;
-    readPause = false;
     pendingList = null;
     if (clockId) { clearInterval(clockId); clockId = null; }
     if (revealTimer) { clearTimeout(revealTimer); revealTimer = null; }
@@ -186,7 +190,6 @@ const Pretrain = (() => {
     docBits = [];
     cursor = 0;
     released = false;
-    readPause = false;
 
     const text = $('pt-text');
     text.innerHTML = '';
@@ -238,6 +241,12 @@ const Pretrain = (() => {
   /* Walks forward revealing plain words until it reaches a blank. */
   function readOn() {
     if (!docActive) return;
+    // A finished document is held up to be read, however it finished. The
+    // reveal runs at 55ms a word — around a thousand words a minute — so
+    // "the player watched it appear" is not the same as "the player read
+    // it", and the text after the last blank can run to a couple of
+    // sentences. Every other way out of a document already sets this; this
+    // path is the ordinary one, and used to be the only one that didn't.
     if (cursor >= tokens.length) { endDoc(); return; }
     const tok = tokens[cursor];
     if (tok.blank) { askBlank(); return; }
@@ -575,7 +584,6 @@ const Pretrain = (() => {
       cursor++;
     }
     updateVocab();
-    readPause = true;
     endDoc();
   }
 
@@ -604,23 +612,20 @@ const Pretrain = (() => {
     curve.push(avg);
     renderCurve();
 
-    if (readPause) {
-      // the player skipped the document's last blank, so they never got to
-      // read the finished text — hold it up. Skip stays live as the way out
-      // for anyone who has already read it.
-      $('pt-note').textContent = 'the finished document — next one shortly';
-      $('pt-skip').disabled = false;
-      pauseTimer = setTimeout(nextDoc, READ_PAUSE_MS);
-    } else {
-      pauseTimer = setTimeout(nextDoc, NEXT_DOC_MS);
-    }
+    // However the document ended, the player has not read it: the reveal
+    // runs far faster than anyone reads, and the clock-out and skip paths
+    // dump the remaining text on screen all at once. So hold it up, and
+    // leave both ways out live for anyone already finished with it.
+    $('pt-note').textContent = 'the finished document — next one shortly';
+    $('pt-skip').disabled = false;
+    pauseStartedAt = performance.now();
+    pauseTimer = setTimeout(nextDoc, READ_PAUSE_MS);
   }
 
   function nextDoc() {
     if (pauseTimer) { clearTimeout(pauseTimer); pauseTimer = null; }
     $('pt-skip').disabled = true;
     $('pt-note').textContent = '';
-    readPause = false;
     docIdx++;
     if (docIdx < SNIPPETS.length) {
       setClock(null);
@@ -706,7 +711,18 @@ const Pretrain = (() => {
      whether it acted, so the space handler knows whether to swallow the
      keypress. */
   function fastForward() {
-    if (!docActive || awaiting || resolving) return false;
+    // During the hold on a finished document the same gesture means "read
+    // it, move on" — otherwise the player is taught to tap their way
+    // through the act and then hits a wall on all eleven documents. The
+    // guard window keeps the tap that revealed the last of the text from
+    // carrying through and dismissing the pause it just created.
+    if (!docActive) {
+      if (!pauseTimer) return false;
+      if (performance.now() - pauseStartedAt < PAUSE_TAP_GUARD_MS) return true;
+      nextDoc();
+      return true;
+    }
+    if (awaiting || resolving) return false;
     if (cursor >= tokens.length) return false;
     if (revealTimer) { clearTimeout(revealTimer); revealTimer = null; }
     while (cursor < tokens.length && !tokens[cursor].blank) {
@@ -715,7 +731,7 @@ const Pretrain = (() => {
       cursor++;
     }
     updateVocab();
-    if (cursor >= tokens.length) { readPause = true; endDoc(); return true; }
+    if (cursor >= tokens.length) { endDoc(); return true; }
     askBlank();
     return true;
   }
@@ -735,9 +751,6 @@ const Pretrain = (() => {
       return;
     }
     if (awaiting) {
-      // if nothing else in this document needs answering, hold the finished
-      // text up afterwards rather than flicking straight to the next one
-      if (!hasBlankAfter(cursor)) readPause = true;
       resolve(null);
       return;
     }

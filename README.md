@@ -133,8 +133,15 @@ word's counts go up either way.
   doesn't exist. Same underlying model, same timing, same "nothing tapped
   in time reads as no answer" — just no motion. The document stage and top
   bar stack/wrap under the same breakpoint (issue #45).
-- **Skip advances one blank**, not the document. Skipping the last blank, or
-  running the clock out, holds the finished text up for 15s to be read.
+- **Skip advances one blank**, not the document.
+- **Every finished document is held up for 15s to be read.** The reveal runs
+  at 55ms a word, around a thousand a minute, so watching the text appear is
+  not the same as reading it — and the clock-out and skip paths dump what's
+  left on screen all at once. The text after the last blank can run to a
+  couple of sentences, so all four ways out of a document get the same hold.
+  It is a ceiling rather than a wait: tapping the page or pressing SKIP moves
+  on immediately, and taps in the first 1.2s are ignored so the tap that
+  revealed the last of the text can't also dismiss the pause it just earned.
 - The player-facing "how far off" reading is surprisal in bits, underneath:
   how far down its ranked list the model had to go to find the word actually
   used. 0 = top pick (`spot on`), 7 = never seen (`no idea`) —
