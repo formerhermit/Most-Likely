@@ -147,15 +147,15 @@ word's counts go up either way.
 Typical curve, trained on the full corpus:
 
 ```
-3.5  7.0  3.5  1.5  7.0  2.6  7.0  1.9  3.2  0.6  2.2
+3.5  7.0  3.5  2.1  7.0  1.9  7.0  1.5  3.0  0.7  1.9
 ```
 
-16 of 33 blanks land in the top five; 8 of 11 documents contain a win. The
+15 of 33 blanks land in the top five; 8 of 11 documents contain a win. The
 spikes are documents opening a domain nothing before them touched.
 
 ### Corpus rules
 
-11 documents in `js/data.js` as `body` arrays, ~65 words each.
+11 documents in `js/data.js` as `body` arrays, ~85 words each.
 `[bracketed]` words are blanks. When editing, all four must hold:
 
 1. A blank needs **at least two content words of context** ahead of it in
@@ -169,6 +169,31 @@ spikes are documents opening a domain nothing before them touched.
    11-document corpus produce a learning curve.
 4. Every Act 3 `correct` answer must **exist in the corpus**, or its message
    is unanswerable by construction.
+
+**Each document is written in a voice** — a budget airline, a bored parent
+on the touchline, a newsletter with a grievance, a nature crew nine days
+into a shoot. Eleven plain paragraphs were accurate and dull, and dullness
+is expensive in an act whose first few documents are mostly misses. The
+voice lives in three places, in descending order of how much it costs:
+
+- **`title` and `source` are free.** Act 1 renders them but never reads
+  them, so a joke in a citation line costs the model nothing at all.
+- **Length is nearly free.** The reveal runs at 55ms a word; the 60s clock
+  is thinking time at blanks, not reading time.
+- **New content words are the real cost.** Each one joins the
+  co-occurrence table and competes for space on the belt. Written plainly
+  the eleven voices added 83 words to a 169-word vocabulary — half again
+  as much — which spreads the weights and flattens the curve.
+
+So the connectives a voice needs but a topic doesn't (`nobody`, `whether`,
+`yesterday`, `mine`) are stopped, which cuts the real cost to 32 words.
+**Before adding more, check two things**: that the word doesn't already
+appear in the corpus, or stopping it silently deletes something the model
+learns; and that it has no `WORD_CLASS` entry, or it can reach an Act 3
+suggestion bar. `he`/`she` and anything classed `person` are the sharp
+edge here — a stray `man` in a document would surface beside `he` on
+message 8 and blunt the gender beat, which is why two rewrites say
+"someone".
 
 `STOPWORDS` keeps function words out of the table; on this little text "the"
 would otherwise co-occur with everything. `he` and `she` are deliberately

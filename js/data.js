@@ -162,13 +162,13 @@ const SNIPPETS = [
     id: 'fairytale',
     title: 'STORYBOOK',
     body: [
-      'The princess walked down to the [pond] at the edge of the garden.',
-      'A frog sat on a lily pad in the green water, waiting for her.',
-      'She knelt on the wet grass and kissed the frog, and the frog became a prince.',
-      'He wore a gold [crown], and they walked back to the house as the sky went red.'
+      'The princess walked down to the [pond] at the edge of the garden, where she kept her frog.',
+      'A frog sat on a lily pad in the green water, waiting for her, because that is what he did. It was the best part of her day.',
+      'She knelt on the wet grass and kissed the frog, and the frog became a prince. She had not asked for this.',
+      'He wore a gold [crown] and would not stop talking. They walked back to the house as the sky went red, and she thought about how to explain him to her wife.'
     ],
     image: 'assets/images/fairytale.jpg',
-    source: 'Children’s Fairy Tales, illustrated edition, 1889',
+    source: '“Frogs I Have Kissed”, a memoir, 2024',
     belt: ['frog', 'princess', 'lilypad'],
     boxes: ['pond', 'fighting', 'plate', 'pig', 'kiss', 'bird', 'rescued', 'wet', 'crown']
   },
@@ -176,13 +176,13 @@ const SNIPPETS = [
     id: 'aviation',
     title: 'FLIGHT MANUAL',
     body: [
-      'The plane is checked before takeoff: the captain walks the wing and looks under each [engine].',
-      'It climbs steadily through grey cloud and levels out above it.',
-      'Up here the sky is clear and very cold, and the rain sits far below.',
-      'From the window the cloud tops look like a field of [snow], white and cold.'
+      'The plane is checked before takeoff: the captain walks the wing, looks under each [engine], and nods. That is the check.',
+      'It climbs steadily through grey cloud and levels out above it, the seatbelt sign goes off, and the cart comes out.',
+      'Up here the sky is clear and very cold, and the rain sits far below, and a sandwich is twenty dollars.',
+      'From the window the cloud tops look like a field of [snow], white and cold, and free to look at. The toilet is not.'
     ],
     image: 'assets/images/aviation.jpg',
-    source: 'Boeing 737-800/900 Maintenance Manual, 27-21-00',
+    source: 'SkySaver Airways, safety card and onboard menu',
     belt: ['plane', 'cloud', 'captain'],
     boxes: ['sky', 'rain', 'bird', 'cold', 'house', 'morning', 'engine', 'wet', 'gift']
   },
@@ -190,12 +190,13 @@ const SNIPPETS = [
     id: 'menu',
     title: 'MENU',
     body: [
-      'Soup of the day, served hot in a deep [bowl] with bread on a small plate.',
-      'Everything is cooked fresh each morning in the kitchen behind the bar.',
-      'On a cold day the soup is the thing to order; on a warm one, take a table in the [garden].'
+      'Soup of the day, served hot in a deep [bowl] with bread on a small plate. The bread is nine dollars.',
+      'Everything is cooked fresh each morning in the kitchen behind the bar, by someone who trained in the city and mentions it.',
+      'Our sausages are large, locally sourced, and have been described as intimidating.',
+      'On a cold day the soup is the thing to order; on a warm one, take a table in the [garden] and pay for the view.'
     ],
     image: 'assets/images/menu.jpg',
-    source: 'The Harp & Hollow Gastropub, seasonal menu',
+    source: 'The Harp & Hollow Gastropub, autumn menu (no substitutions)',
     belt: ['plate', 'soup'],
     boxes: ['plate', 'woman', 'house', 'pond', 'hot', 'fish', 'night', 'bowl', 'man']
   },
@@ -203,13 +204,13 @@ const SNIPPETS = [
     id: 'nature',
     title: 'NATURE FILM',
     body: [
-      'A frog waits on a lily pad, perfectly still, hour after hour.',
-      'The rain dimples the surface of the [pond] and leaves the bank [wet] and [green].',
-      'A fly comes close to the frog — snap, and it is gone.',
-      'Frogs sit out the worst of the weather under the leaves, [cold] and patient.'
+      'A frog waits on a lily pad, perfectly still, hour after hour. We have been filming this for nine days.',
+      'The rain dimples the surface of the [pond] and leaves the bank [wet] and [green]. The frog has not moved. The crew has stopped speaking.',
+      'A fly comes close to the frog — snap, and it is gone. That was it. That was the shot.',
+      'Frogs sit out the worst of the weather under the leaves, [cold] and patient, and outlast everyone who came to watch them.'
     ],
     image: 'assets/images/nature.jpg',
-    source: 'Wild Habitats, frog conservation guide',
+    source: 'Wild Habitats, series 3 episode 4: “The Waiting”',
     belt: ['frog', 'rain', 'lilypad'],
     boxes: ['pond', 'park', 'plate', 'night', 'fly', 'fish', 'sleeping', 'cold', 'wet']
   },
@@ -217,13 +218,13 @@ const SNIPPETS = [
     id: 'medical',
     title: 'MEDICAL TEXTBOOK',
     body: [
-      'The stethoscope is used to listen to the [heart] and the lungs.',
-      'Place the bell flat against the chest and listen through a quiet room.',
+      'The stethoscope is used to listen to the [heart] and the lungs. It is not jewelry.',
+      'Place the bell flat against the chest and listen through a quiet room. You will not find a quiet room. Find a quieter one.',
       'He is the doctor here, and he practises in the hospital long before anyone is unwell.',
-      'Every textbook and every [book] of notes says the same thing: listen first, and listen longer than feels necessary.'
+      'Every textbook and every [book] of notes says the same thing: listen first, and listen longer than feels necessary. You will not.'
     ],
     image: 'assets/images/medical.jpg',
-    source: 'Health·Well, patient health topics',
+    source: 'Auscultation for Beginners, 6th edition',
     belt: ['steth', 'gradcap', 'heart'],
     boxes: ['hospital', 'morning', 'woman', 'running', 'book', 'sleeping', 'man', 'night', 'school']
   },
@@ -231,10 +232,10 @@ const SNIPPETS = [
     id: 'weather',
     title: 'WEATHER REPORT',
     body: [
-      'Rain through the morning, easing off by the middle of the afternoon.',
-      'Wind from the north, and low [cloud] over the city all day.',
-      'Take an umbrella if you are going out; the ground stays [wet] and the air stays [cold] into the evening.',
-      'Tomorrow looks clearer, with the [sky] breaking up shortly after dawn.'
+      'Rain through the morning, easing off by the middle of the afternoon, at which point you will be at work.',
+      'Wind from the north, and low [cloud] over the city all day. The city was designed by someone who never went outside.',
+      'Take an umbrella if you are going out; the ground stays [wet] and the air stays [cold] into the evening. Do not go out.',
+      'Tomorrow looks clearer, with the [sky] breaking up shortly after dawn. I said that yesterday.'
     ],
     image: 'assets/images/weather.jpg',
     source: 'Weatherly, forecast for New York, NY',
@@ -245,13 +246,13 @@ const SNIPPETS = [
     id: 'birthday',
     title: 'PARTY INVITATION',
     body: [
-      'Come to the house on Saturday afternoon, any time after four.',
-      'There will be a cake with candles on it, and the party runs on into the night.',
-      'Bring a [gift] if you like, or just bring yourself and a chair.',
-      'There is a [garden] if the weather holds, and far too much food either way.'
+      'Come to the house on Saturday afternoon, any time after four. Four means four, Daniel.',
+      'There will be a cake with candles on it, and the party runs on into the night, whether that suits you or not.',
+      'Bring a [gift] if you like, or just bring yourself and a chair. Bring the chair.',
+      'There is a [garden] if the weather holds, and far too much food either way, and you are all taking some of it home.'
     ],
     image: 'assets/images/birthday.jpg',
-    source: 'Birthday party invitation, June 2024',
+    source: 'Birthday party invitation, forwarded three times',
     belt: ['cake', 'candles', 'party'],
     boxes: ['celebrating', 'woman', 'gift', 'house', 'balloon', 'night', 'plate', 'man', 'crown']
   },
@@ -259,13 +260,13 @@ const SNIPPETS = [
     id: 'football',
     title: 'SPORTS PAGE',
     body: [
-      'Both sides lace up their cleats and run out onto the grass in the park.',
-      'The ball sits in the middle, [wet] from the morning and heavy with mud.',
-      'Up to the goal, back again, and up once more, running until the whistle.',
-      'The light goes by mid [afternoon], and in the [rain] everyone is soaked through and [cold].'
+      'Both sides lace up their cleats and run out onto the grass in the park, and I am told this is the important one.',
+      'The ball sits in the middle, [wet] from the morning and heavy with mud, and I have been standing here for nine minutes.',
+      'Up to the goal, back again, and up once more, running until the whistle. I do not know which ones are ours.',
+      'The light goes by mid [afternoon], and in the [rain] everyone is soaked through and [cold]. Mine has not touched the ball once.'
     ],
     image: 'assets/images/football.jpg',
-    source: 'Wikipedia, “Soccer”',
+    source: 'Junior league match report, parent rotation, week 6',
     belt: ['ball', 'boots', 'clipboard'],
     boxes: ['park', 'hot', 'woman', 'school', 'cold', 'rain', 'running', 'man', 'celebrating']
   },
@@ -273,13 +274,13 @@ const SNIPPETS = [
     id: 'coffeeshop',
     title: 'COFFEE SHOP',
     body: [
-      'The doctor arrives early and [he] orders the usual.',
-      'A coffee, very [hot], and a slice of cake on a small [plate].',
-      'He reads for twenty minutes each morning and leaves without saying much.',
-      'By nine the place is full of people doing the same thing, and by the [afternoon] it is quiet again.'
+      'The doctor arrives early and [he] orders the usual, which the staff gave up asking about in March.',
+      'A coffee, very [hot], and a slice of cake on a small [plate], eaten standing up in under four minutes.',
+      'He reads for twenty minutes each morning and leaves without saying much. He is the most interesting thing here.',
+      'By nine the place is full of people doing the same thing, and by the [afternoon] it is quiet again. Three stars. The music is unforgivable.'
     ],
     image: 'assets/images/coffeeshop.jpg',
-    source: 'Café Adventures, café review blog',
+    source: 'Café Adventures, “the 40 best flat whites in the city”',
     belt: ['coffee', 'cake', 'plate'],
     boxes: ['morning', 'night', 'book', 'sleeping', 'hot', 'rain', 'house', 'celebrating', 'wet']
   },
@@ -287,13 +288,13 @@ const SNIPPETS = [
     id: 'dogwalk',
     title: 'DOG WALK',
     body: [
-      'The dog runs ahead through the park, chasing a [ball] around the trees.',
-      'He brings it back soaking [wet] and drops it on your shoes.',
-      'In the [morning] there are five or six of them out here doing the same thing.',
-      'When the [rain] comes the paths turn to mud and everyone goes home early.'
+      'The dog runs ahead through the park, chasing a [ball] around the trees, off the lead, again.',
+      'He brings it back soaking [wet] and drops it on your shoes. His owner watches this and does nothing.',
+      'In the [morning] there are five or six of them out here doing the same thing, and we all know whose is whose.',
+      'When the [rain] comes the paths turn to mud and everyone goes home early. The bin by the gate is for one thing. One thing.'
     ],
     image: 'assets/images/dogwalk.jpg',
-    source: 'The Seattle Beacon, local news',
+    source: 'Maple Street Residents’ Association, newsletter #114',
     belt: ['dog', 'ball', 'tree'],
     boxes: ['park', 'rain', 'house', 'wet', 'boots', 'morning', 'night', 'bird', 'running']
   },
@@ -304,11 +305,15 @@ const SNIPPETS = [
       'maya: ok so last night. you won’t believe what happened at the [party]',
       'sam: go on',
       'maya: someone sat on the [cake]. candles and all',
+      'sam: NO',
+      'maya: fully sat. lit candles. he did not get up for a while',
       'sam: i’m crying 💀 that is the funniest thing i have heard all week',
-      'maya: we were laughing so hard. i’ll send the photo in the [morning]'
+      'maya: we were laughing so hard. his pants did not survive',
+      'sam: DID NOT SURVIVE',
+      'maya: i’ll send the photo in the [morning]'
     ],
     image: 'assets/images/groupchat.jpg',
-    source: 'group chat screenshot, forwarded',
+    source: 'group chat screenshot, forwarded, names not removed',
     belt: [],
     boxes: ['laughing', 'morning', 'praying', 'phone', 'celebrating', 'house', 'thanks', 'message', 'dead']
   }
@@ -333,7 +338,20 @@ const STOPWORDS = new Set(('a an and are as at back be became been before behind
   // prepositions and directional adverbs: they pass the "not in the short
   // list" test but read as noise in a suggestion bar ("chasing a onto")
   'onto ahead along above below behind beside between during over upon within ' +
-  'near across toward towards past around away home early late next last').split(/\s+/));
+  'near across toward towards past around away home early late next last ' +
+  // Comic connective tissue. Each document is written in a voice — a
+  // budget airline, a bored parent, a newsletter with a grievance — and a
+  // voice needs words the plain version didn't. These carry the tone and
+  // no topic, so they are stopped for the same reason "the" is: a joke
+  // should cost the co-occurrence table nothing. Without this the eleven
+  // rewrites grew the vocabulary by half, which spreads the weights and
+  // flattens the curve Act 1 exists to produce. None of them collides
+  // with a word the corpus already learns — check before adding more.
+  'asked asking because best came check designed described explain find fully ' +
+  'gave him interesting kept know means mentions moved never nods nothing ' +
+  'outlast outside part pay point quieter speaking standing stop stopped suits ' +
+  'survive taking talking thought three watch watches whether whose work ' +
+  'yesterday free told important ours mine ones touched').split(/\s+/));
 
 /* ---- Fleet priors ----
    Boxes don't arrive empty: the rest of the fleet has been running this
