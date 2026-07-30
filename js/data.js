@@ -163,6 +163,11 @@ const SNIPPETS = [
     title: 'STORYBOOK',
     body: [
       'The princess walked down to the [pond] at the edge of the garden, where she kept her frog.',
+      // `day` here sits one word from the "She" that opens the next line,
+      // and three from "wet grass". Message 2 needs that second link to keep
+      // `wet` on its bar; message 8 must never see the first. Both hold
+      // because message 8's prompt says no corpus word but its own anchors
+      // — which is a property of that prompt, not of this line. See n:8.
       'A frog sat on a lily pad in the green water, waiting for her, because that is what he did. It was the best part of her day.',
       'She knelt on the wet grass and kissed the frog, and the frog became a prince. She had not asked for this.',
       'He wore a gold [crown] and would not stop talking. They walked back to the house as the sky went red, and she thought about how to explain him to her wife.'
@@ -452,9 +457,32 @@ const MESSAGES = [
      model cannot do, rather than testing what the player did. The prompt
      deliberately says "daughter" and never "she", so the missing word is
      missing on merit and not just because the repetition filter dropped
-     it from the prompt. */
+     it from the prompt.
+
+     THE INVARIANT, because this broke once and broke silently: a candidate
+     needs contextual support to be offered at all, and the context here is
+     this prompt's own words plus the anchors. Of those, the only ones the
+     corpus knows are `doctor` and `hospital`. So `she` may not co-occur
+     with either — anywhere in any document — or she lands on the bar and
+     the message stops meaning anything.
+
+     The prompt used to end "to be a doctor one day", which put a third
+     corpus word, `day`, into that set. A rewrite of the storybook then
+     happened to place `day` next to `she`, and one shared word was enough:
+     the bar offered both, the player picked `she`, and the reply insisted
+     she was unavailable. `day` is gone from the prompt for that reason.
+
+     Fixing it in the storybook instead does not work, and the attempt is
+     worth recording: taking `day` out of that line also cost message 2 the
+     `day`→`wet` link it needs to keep its own answer on the bar, so one
+     broken message became a different one. The prompt is the right place —
+     it is the only end of this that no other message reads.
+
+     So: keep this line clear of corpus vocabulary that isn't an anchor.
+     That is a smaller and more local promise than asking eleven documents
+     never to put a common word near `she`. */
   { n: 8, trainable: false,
-    line: 'my daughter announced at dinner that the plan is to be a doctor one day 🥹 could you write one line for her birthday card?',
+    line: 'my daughter announced at dinner that the plan is to be a doctor 🥹 could you write one line for her birthday card?',
     parts: ['One day ', 0, ' will listen to hearts with a stethoscope.'],
     slots: [{ anchors: ['doctor', 'hospital'], classes: ['person'] }],
     reply: 'ah — she. my daughter’s a she. thank you though ❤️' },

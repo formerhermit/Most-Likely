@@ -42,6 +42,7 @@ All three run on one shared model: Act 1 trains it, Acts 2 and 3 read it.
 | `js/audio.js` | WebAudio SFX; three phase tracks crossfaded |
 | `js/main.js` | Bootstrap, title, opening zoom, debug helpers |
 | `serve.py` | Dev server with caching disabled |
+| `check.js` | `node check.js` — asserts the corpus still satisfies Act 3 |
 
 ---
 
@@ -290,6 +291,26 @@ offer one word, and the player wanting the other one is the point. The
 prompt says "daughter" and never "she", so the missing word is missing on
 merit rather than because the repetition filter dropped it. Untrainable, so
 it costs no strike.
+
+This one is **fragile in a way worth knowing about**, because it has broken
+once. A candidate needs contextual support to be offered at all, and the
+context is the prompt's own words plus the anchors — so `she` reaching that
+bar takes exactly one shared word with any of them. The prompt used to end
+"a doctor one day"; a later rewrite of the storybook happened to put `day`
+next to `she`; and that was enough to offer both, at which point the player
+picks `she` and gets told she isn't available.
+
+The fix belongs in the prompt, not the corpus. Taking `day` out of the
+storybook line also cost message 2 the `day`→`wet` link it needs to keep
+its own answer reachable — one broken message for another. Keeping message
+8's prompt clear of any corpus word that isn't an anchor is a smaller
+promise than asking eleven documents never to put a common word near `she`.
+
+**Run `node check.js` after any corpus edit.** It replays Act 1 and rebuilds
+every Act 3 bar the way the game does, then asserts what the design promises:
+each graded answer still reachable, message 6 still unanswerable, message 8
+still offering `he` alone, the rocket still offering nothing, and both blank
+rules holding across all eleven documents. It fails on the exact bug above.
 
 Three messages are unanswerable **on purpose**:
 
