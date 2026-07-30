@@ -131,10 +131,19 @@ word's counts go up either way.
   done, Robot*. This is the only place in the act that is rude to the player
   and it can afford to be — nothing it says changes anything, and being
   sneered at by the machinery is funnier than being congratulated by it. It
-  only ever mocks the score, never the person. The verdict keys off an
-  absolute score rather than the drop from the previous document, because
-  the drop is a knife edge — see `curveVerdict()`. It clears when the next
+  only ever mocks the score, never the person. It clears when the next
   document starts, or it reads as commentary on the wrong one.
+
+  **The verdict reads the player's answers; the bar does not.** They are
+  different measurements and the difference is load-bearing. The bar is
+  surprisal, computed before the player clicks and blind to what they chose —
+  correct for a loss curve, since the model reads the true word either way,
+  but it means the bar is identical for everyone who ever plays. The first
+  version of this copy was keyed to the bar, so answering deliberately wrong
+  got you congratulated for improving. One line is still keyed to it on
+  purpose: a document opening a new subject is a fact about the corpus, and
+  there the player mostly could not have done better, so that verdict blames
+  the model rather than them.
 - **The act closes on a training report** in the phase card: the curve at a
   size that admits it is the point, documents read, words known, blanks
   guessed right, best run, and the first-to-last line built from the run

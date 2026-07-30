@@ -127,6 +127,8 @@ const Pretrain = (() => {
   let streak = 0;           // consecutive correct guesses, across documents
   let bestStreak = 0;       // …and the longest of them, for the report card
   let hits = 0;             // blanks guessed right, across the whole act
+  let docHits = 0;          // …and within the current document, for the verdict
+  let prevRate = null;      // the previous document's share right, to compare to
   let firstCorrect = false; // has the player ever guessed one right?
   let resolving = false;    // a miss beat is playing out; don't re-ask
   let ticketTimer = null;
@@ -170,6 +172,8 @@ const Pretrain = (() => {
     streak = 0;
     bestStreak = 0;
     hits = 0;
+    docHits = 0;
+    prevRate = null;
     firstCorrect = false;
     resolving = false;
     const verdictEl = $('pt-curve-verdict');
@@ -208,6 +212,7 @@ const Pretrain = (() => {
     nodes = [];
     Model.startPassage();
     docBits = [];
+    docHits = 0;
     cursor = 0;
     released = false;
     // the verdict belongs to the bar that just landed, so it goes when the
@@ -671,6 +676,7 @@ const Pretrain = (() => {
       if (hit) {
         streak++;
         hits++;
+        docHits++;
         if (streak > bestStreak) bestStreak = streak;
         // the blip climbs a semitone per consecutive correct — a streak is
         // something you can hear coming
@@ -759,9 +765,14 @@ const Pretrain = (() => {
 
     const avg = docBits.length ? docBits.reduce((a, b) => a + b, 0) / docBits.length : 0;
     curve.push(avg);
-    // the bar grows in under the stamp, and says what it means underneath
+    // the bar grows in under the stamp, and says what it means underneath.
+    // The share right counts every blank in the document, so a clock run
+    // down to nothing costs the player exactly as much as guessing badly.
+    const docBlanks = tokens.filter(t => t.blank).length;
+    const rate = docBlanks ? docHits / docBlanks : 0;
     renderCurve(true);
-    showVerdict(curveVerdict());
+    showVerdict(curveVerdict(rate));
+    prevRate = rate;
 
     // However the document ended, the player has not read it: the reveal
     // runs far faster than anyone reads, and the clock-out and skip paths
@@ -899,20 +910,39 @@ const Pretrain = (() => {
   /* The voice here is the only place in the act that is rude to the player,
      and it can afford to be: nothing it says changes anything, the model is
      a machine, and being told off by the machinery is funnier than being
-     congratulated by it. It stays on the right side by only ever mocking the
-     score — never the person reading it.
+     congratulated by it. It only ever mocks the score, never the person.
 
-     Order matters. The "nearly useful" line is checked before the improvement
-     line, or a document the model nails after a good run gets told it sucked
-     slightly less, which undersells the best work in the act. */
-  function curveVerdict() {
+     It reads the player's ANSWERS, not the bar above it. Those are different
+     measurements and it matters which one is speaking. The bar is surprisal:
+     how far down its own ranked list the model had to go to find the word the
+     document actually used. That is computed before the player clicks
+     anything and never looks at what they chose — which is correct for a loss
+     curve, since the model reads the true word either way and its learning
+     does not depend on the human guessing well, but it also means the bar is
+     identical for everyone who ever plays. Copy that says "that sucked a
+     little less" while measuring that is commenting on nothing the player
+     did: answer deliberately wrong and it congratulated you for improving.
+
+     One line stays keyed to the bar, deliberately. A document opening a
+     subject nothing before it touched is a fact about the corpus, and on
+     those the player mostly could not have done better whatever they picked
+     — so that verdict blames the model instead of them. */
+  function curveVerdict(rate) {
     const bits = curve[curve.length - 1];
     if (curve.length === 1) return 'Baby’s first book!';
-    if (bits <= 0.3) return 'Well done, Robot';
-    const better = curve[curve.length - 2] - bits;
-    if (better < 0 && bits >= NEW_SUBJECT_BITS) return 'Blimey, you’re hardly Fable are you?';
-    if (bits <= 1.2) return 'Look at you, nearly useful';
-    if (better >= 1.0) return 'That sucked a little less, I guess';
+    if (curve[curve.length - 2] < bits && bits >= NEW_SUBJECT_BITS) {
+      return 'Blimey, you’re hardly Fable are you?';
+    }
+    if (rate >= 1) return 'Well done, Robot';
+    if (rate >= 0.6) return 'Look at you, nearly useful';
+    // nothing right, on a document where something was gettable. Its own
+    // line because otherwise a player having a bad run — or testing whether
+    // this thing is listening at all — gets told six times running that
+    // nothing has changed, which is true and useless.
+    if (rate === 0) return 'Not one. Not a single one.';
+    if (prevRate === null) return 'Same as last time. Riveting.';
+    if (rate > prevRate) return 'That sucked a little less, I guess';
+    if (rate < prevRate) return 'Worse. Actively worse.';
     return 'Same as last time. Riveting.';
   }
 
