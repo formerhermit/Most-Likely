@@ -183,7 +183,13 @@ const SNIPPETS = [
     body: [
       'The plane is checked before takeoff: the captain walks the wing, looks under each [engine], and nods. That is the check.',
       'It climbs steadily through grey cloud and levels out above it, the seatbelt sign goes off, and the cart comes out.',
-      'Up here the sky is clear and very cold, and the rain sits far below, and a sandwich is twenty dollars.',
+      // [sky] is the one word in this document the model can already reach,
+      // via the fleet's plane->sky pile. It is blanked so the flight manual
+      // has a win in it: `engine` and `snow` are both genuinely new here, and
+      // a document where nothing can go right reads as frustration rather
+      // than as the domain shift it is meant to demonstrate. The spike
+      // survives — two of its three blanks are still unreachable.
+      'Up here the [sky] is clear and very cold, and the rain sits far below, and a sandwich is twenty dollars.',
       'From the window the cloud tops look like a field of [snow], white and cold, and free to look at. The toilet is not.'
     ],
     image: 'assets/images/aviation.jpg',
@@ -225,7 +231,13 @@ const SNIPPETS = [
     body: [
       'The stethoscope is used to listen to the [heart] and the lungs. It is not jewelry.',
       'Place the bell flat against the chest and listen through a quiet room. You will not find a quiet room. Find a quieter one.',
-      'He is the doctor here, and he practises in the hospital long before anyone is unwell.',
+      // …and [hospital] is this document's, reachable via the fleet's
+      // stethoscope->hospital pile. Same reason as the flight manual (#35):
+      // `heart` and `book` are both new, so without this the player gets
+      // nothing right twice running. Blanking `hospital` does not disturb
+      // the gender beat — the "he" either side of it is what message 8
+      // reads, and neither one is a blank.
+      'He is the doctor here, and he practises in the [hospital] long before anyone is unwell.',
       'Every textbook and every [book] of notes says the same thing: listen first, and listen longer than feels necessary. You will not.'
     ],
     image: 'assets/images/medical.jpg',

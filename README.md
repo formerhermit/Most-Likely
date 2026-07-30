@@ -105,11 +105,16 @@ word's counts go up either way.
 - Candidates rest in rank order, heaviest furthest along the belt. Spacing
   is computed from measured widths so tags can't overlap.
 - **The belt is weighted to read as a real choice**: candidates of the
-  blank's own word class rise (×1.5), unclassed words — past-tense verbs,
-  mostly — sink (×0.35) but can still fill a thin belt. Knowing that a noun
-  goes here isn't cheating; syntax is one of the things pre-training
-  genuinely learns. Without it, 27% of tags were verbs and plugging them in
-  was clerical rather than a decision.
+  blank's own word class rise (×1.5), wrong-class ones sink (×0.6), and
+  unclassed words — past-tense verbs, mostly — sink furthest (×0.35) but can
+  still fill a thin belt. Knowing that a noun goes here isn't cheating;
+  syntax is one of the things pre-training genuinely learns. Without it, 27%
+  of tags were verbs and plugging them in was clerical rather than a
+  decision. The wrong-class rung was missing at first, which let `she` — a
+  perfectly valid `person` — onto 18 of 33 belts, including blanks asking
+  for a quality. Since a belt only holds five, every junk tag is a seat the
+  answer could have had: penalising mismatch bought three reachable blanks
+  as well as the sense.
 - **60s per document.** In the final 8 seconds anything still resting slides
   off at a shared speed. A blank whose tags all run off is one the model
   never answered — which is why there's no "…" button.
@@ -165,11 +170,26 @@ word's counts go up either way.
 Typical curve, trained on the full corpus:
 
 ```
-3.5  7.0  3.5  2.1  7.0  1.9  7.0  1.5  3.0  0.7  0.0
+3.5  4.7  3.5  1.5  4.7  1.8  7.0  1.3  2.3  0.5  0.0
 ```
 
-17 of 33 blanks land in the top five; 8 of 11 documents contain a win. The
-spikes are documents opening a domain nothing before them touched.
+22 of 35 blanks land in the top five; 10 of 11 documents contain a win. The
+raised bars are documents opening a domain nothing before them touched.
+
+**Every document but one now contains a win** (issue #35). Playtesting found
+a shutout reads as frustration rather than as instruction — the player is not
+told the model is ignorant, they just get nothing right twice running and
+stop enjoying it. FLIGHT MANUAL and MEDICAL TEXTBOOK each gained a blank on
+the one word in their own text the model can already reach, `sky` and
+`hospital`, both arriving through fleet piles. No prose changed; the brackets
+moved. Their other blanks are still unreachable, so both keep a raised bar —
+4.7 rather than 7.0.
+
+PARTY INVITATION stays a true shutout, and is now the single tallest bar in
+the act. Every content word in it is new to the model, so there is no word to
+blank that would land: this one cannot be fixed without rewriting it, and it
+shouldn't be. One unmistakable spike teaches the domain shift better than
+three did.
 
 **The last document is authored to be won** (issue #50). All three of GROUP
 CHAT's blanks sit at rank 0 — the model's own top pick is right every time,

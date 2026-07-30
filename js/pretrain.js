@@ -64,8 +64,19 @@ const Pretrain = (() => {
      the game easier — 16/33 blanks reachable rather than 11/33 — because a
      good part of the old difficulty was nonsense options rather than real
      ambiguity. Boosting harder than 1.5 tips it over: at x2 the curve starts
-     to flatten. */
+     to flatten.
+
+     A word of the WRONG class used to be treated better than a word of no
+     class at all: `she` is validly tagged a person, so on a blank wanting a
+     quality it sailed past at x1 while an untagged word sank to x0.35. It
+     ended up on 18 of 33 belts — more than half the belts in the game — and
+     "leaves the bank ___ and green" offering `she` is the same clerical
+     non-choice the boost above exists to kill. Worse, a belt only holds
+     five: every junk tag is a seat the real answer could have had, which is
+     why penalising mismatch buys wins as well as sense. At 0.6 it takes
+     reachable blanks from 17 to 20 and leaves every loss spike intact. */
   const SAME_CLASS_BOOST = 1.5;
+  const WRONG_CLASS_PENALTY = 0.6;
   const UNCLASSED_PENALTY = 0.35;
 
   /* One clock per document, as Era 1 had one per round. It is a budget for
@@ -278,8 +289,11 @@ const Pretrain = (() => {
     awaiting = true;
     const want = Model.classOf(tokens[cursor].word);
     pendingList = Model.rank(REPEAT_PENALTY)
-      .map(([w, score]) => [w, score * (Model.classOf(w) === want ? SAME_CLASS_BOOST
-                                      : Model.classOf(w) ? 1 : UNCLASSED_PENALTY)])
+      .map(([w, score]) => {
+        const cls = Model.classOf(w);
+        return [w, score * (cls === want ? SAME_CLASS_BOOST
+                          : cls ? WRONG_CLASS_PENALTY : UNCLASSED_PENALTY)];
+      })
       .sort((a, b) => b[1] - a[1]);
     nodes[cursor].classList.add('active');
     clearBelt();
