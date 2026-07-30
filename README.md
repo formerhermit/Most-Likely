@@ -126,10 +126,15 @@ word's counts go up either way.
   sparkline is small and unlabelled and it is entirely possible to finish
   eleven documents without ever looking at it, which is a poor fate for the
   thing the act is about. The newest bar now grows in under the PROCESSED
-  stamp, with a one-line read beneath it in the same plain register as the
-  meter: *better!*, *ouch — a whole new subject*, *every guess spot on*.
-  That verdict keys off an absolute score rather than the drop from the
-  previous document, because the drop is a knife edge — see `curveVerdict()`.
+  stamp, with a one-line verdict beneath it: *Baby's first book!*, *Blimey,
+  you're hardly Fable are you?*, *That sucked a little less, I guess*, *Well
+  done, Robot*. This is the only place in the act that is rude to the player
+  and it can afford to be — nothing it says changes anything, and being
+  sneered at by the machinery is funnier than being congratulated by it. It
+  only ever mocks the score, never the person. The verdict keys off an
+  absolute score rather than the drop from the previous document, because
+  the drop is a knife edge — see `curveVerdict()`. It clears when the next
+  document starts, or it reads as commentary on the wrong one.
 - **The act closes on a training report** in the phase card: the curve at a
   size that admits it is the point, documents read, words known, blanks
   guessed right, best run, and the first-to-last line built from the run

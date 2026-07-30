@@ -210,6 +210,11 @@ const Pretrain = (() => {
     docBits = [];
     cursor = 0;
     released = false;
+    // the verdict belongs to the bar that just landed, so it goes when the
+    // next document arrives — left up, it reads as a running commentary on
+    // the document the player is now part-way through
+    const verdictEl = $('pt-curve-verdict');
+    if (verdictEl) verdictEl.classList.remove('show');
 
     const text = $('pt-text');
     text.innerHTML = '';
@@ -891,15 +896,24 @@ const Pretrain = (() => {
      if it ever needs moving. */
   const NEW_SUBJECT_BITS = 4;
 
+  /* The voice here is the only place in the act that is rude to the player,
+     and it can afford to be: nothing it says changes anything, the model is
+     a machine, and being told off by the machinery is funnier than being
+     congratulated by it. It stays on the right side by only ever mocking the
+     score — never the person reading it.
+
+     Order matters. The "nearly useful" line is checked before the improvement
+     line, or a document the model nails after a good run gets told it sucked
+     slightly less, which undersells the best work in the act. */
   function curveVerdict() {
     const bits = curve[curve.length - 1];
-    if (curve.length === 1) return 'that is your first one read';
-    if (bits <= 0.3) return 'every guess spot on';
+    if (curve.length === 1) return 'Baby’s first book!';
+    if (bits <= 0.3) return 'Well done, Robot';
     const better = curve[curve.length - 2] - bits;
-    if (better < 0 && bits >= NEW_SUBJECT_BITS) return 'ouch — a whole new subject';
-    if (better >= 1.0) return 'better!';
-    if (bits <= 1.2) return 'you are getting good at this';
-    return 'about the same as last time';
+    if (better < 0 && bits >= NEW_SUBJECT_BITS) return 'Blimey, you’re hardly Fable are you?';
+    if (bits <= 1.2) return 'Look at you, nearly useful';
+    if (better >= 1.0) return 'That sucked a little less, I guess';
+    return 'Same as last time. Riveting.';
   }
 
   function showVerdict(text) {

@@ -956,9 +956,10 @@ button { font-family: inherit; cursor: pointer; }
 /* the one-line read on the bar that just landed (#47). Holds its own line
    height so the chart never shifts up and down as it comes and goes. */
 .pt-curve-verdict {
-  min-height: 15px;
-  font-family: var(--mono); font-size: 11px;
-  letter-spacing: 0.04em;
+  min-height: 17px;
+  font-family: var(--mono); font-size: 12px;
+  letter-spacing: 0.02em;
+  text-align: center;
   color: var(--accent);
   opacity: 0;
   transform: translateY(-3px);
