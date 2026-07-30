@@ -950,7 +950,60 @@ button { font-family: inherit; cursor: pointer; }
 .pt-curve-bar { width: 100%; border-radius: 2px; background: transparent; }
 .pt-curve-bar.done {
   background: linear-gradient(180deg, var(--accent), var(--accent-2));
-  transition: height 0.4s ease-out;
+  transition: height 0.45s cubic-bezier(0.2, 0.9, 0.3, 1);
+}
+
+/* the one-line read on the bar that just landed (#47). Holds its own line
+   height so the chart never shifts up and down as it comes and goes. */
+.pt-curve-verdict {
+  min-height: 15px;
+  font-family: var(--mono); font-size: 11px;
+  letter-spacing: 0.04em;
+  color: var(--accent);
+  opacity: 0;
+  transform: translateY(-3px);
+}
+.pt-curve-verdict.show {
+  opacity: 0.9;
+  transform: none;
+  transition: opacity 0.35s ease-out 0.25s, transform 0.35s ease-out 0.25s;
+}
+
+/* ---- the training report, inside the phase card that closes Act 1 ---- */
+.pt-report {
+  display: flex; flex-direction: column; gap: 16px;
+  margin-top: 18px; padding-top: 18px;
+  border-top: 1px solid rgba(138, 98, 66, 0.28);
+}
+.pt-report-stats {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;
+}
+.pt-report-stat { display: flex; flex-direction: column; gap: 3px; text-align: center; }
+.pt-report-stat b {
+  font-size: 21px; font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--accent);
+}
+.pt-report-stat span {
+  font-family: var(--mono); font-size: 9px;
+  letter-spacing: 0.1em; text-transform: uppercase;
+  opacity: 0.55;
+}
+/* the same bars as the in-act sparkline, at a size that admits they matter */
+.pt-report-curve {
+  display: flex; align-items: flex-end; justify-content: center;
+  gap: 5px; height: 54px;
+}
+.pt-report-curve .pt-curve-slot { width: 20px; }
+.pt-report-line { font-size: 15px; opacity: 0.75; text-align: center; }
+
+@media (max-width: 620px) {
+  .pt-report { gap: 12px; margin-top: 14px; padding-top: 14px; }
+  .pt-report-stats { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+  .pt-report-stat b { font-size: 19px; }
+  .pt-report-curve { height: 40px; gap: 3px; }
+  .pt-report-curve .pt-curve-slot { width: 15px; }
+  .pt-report-line { font-size: 14px; }
 }
 
 /* fleet-sourced suggestions in Act 3, same ×N language as the belt tags */
@@ -968,10 +1021,15 @@ button { font-family: inherit; cursor: pointer; }
 /* A plain note between acts. Paper sheet on the dimmed modal backdrop,
    deliberately quieter than anything in the game itself. */
 
+/* The sheet used to scroll as a whole, which put the button below the fold
+   on a phone once the training report (#47) was added to the closing card —
+   and the button is the only way out of a modal. The copy scrolls now
+   instead, so the title and the way forward are always on screen. */
 .card-sheet {
   width: min(520px, 90vw);
   max-height: 86vh;
-  overflow-y: auto;
+  display: flex; flex-direction: column;
+  overflow: hidden;
   background: var(--paper);
   color: var(--ink);
   border-radius: 6px;
@@ -988,7 +1046,12 @@ button { font-family: inherit; cursor: pointer; }
   opacity: 0.55;
   margin-bottom: 20px;
 }
-.card-body { text-align: left; margin-bottom: 26px; }
+.card-body {
+  text-align: left;
+  margin-bottom: 26px;
+  overflow-y: auto;
+  min-height: 0;   /* or the flex child refuses to shrink and never scrolls */
+}
 .card-body p {
   font-size: 16px;
   line-height: 1.65;

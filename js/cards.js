@@ -12,7 +12,10 @@
 const Cards = (() => {
   const $ = (id) => document.getElementById(id);
 
-  function show(key, onDone) {
+  /* `extra` is an optional element dropped in after the copy — the training
+     report at the end of Act 1 is the only user, and it lives here rather
+     than in PHASE_CARDS because it is numbers off the run, not prose. */
+  function show(key, onDone, extra) {
     const card = PHASE_CARDS[key];
     if (!card) { if (onDone) onDone(); return; }
 
@@ -20,6 +23,7 @@ const Cards = (() => {
     const body = $('phase-card-body');
     body.innerHTML = '';
     card.body.forEach(line => body.appendChild(el('p', '', line)));
+    if (extra) body.appendChild(extra);
 
     const btn = $('phase-card-btn');
     btn.textContent = card.button;

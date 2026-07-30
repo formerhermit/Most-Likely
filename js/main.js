@@ -88,7 +88,7 @@
 
   /* Act 1 finishes, the player is told what happened, then Act 2 starts. */
   function afterTraining() {
-    Cards.show('afterTraining', () => QC.start());
+    Cards.show('afterTraining', () => QC.start(), Pretrain.report());
   }
 
   document.addEventListener('DOMContentLoaded', () => {

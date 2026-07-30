@@ -122,6 +122,18 @@ word's counts go up either way.
   sentence as written ("He wore a gold pond") for a beat, deadpan, before
   the strikethrough and the correction. Misses are the most common event in
   the act; they should land light.
+- **Each document's bar lands, and says what it means** (issue #47). The
+  sparkline is small and unlabelled and it is entirely possible to finish
+  eleven documents without ever looking at it, which is a poor fate for the
+  thing the act is about. The newest bar now grows in under the PROCESSED
+  stamp, with a one-line read beneath it in the same plain register as the
+  meter: *better!*, *ouch — a whole new subject*, *every guess spot on*.
+  That verdict keys off an absolute score rather than the drop from the
+  previous document, because the drop is a knife edge — see `curveVerdict()`.
+- **The act closes on a training report** in the phase card: the curve at a
+  size that admits it is the point, documents read, words known, blanks
+  guessed right, best run, and the first-to-last line built from the run
+  rather than written down. Everything on it is counted, never estimated.
 - **Streaks are audible.** The correct-answer blip climbs a semitone per
   consecutive correct answer. Milestone tickets pop for the first-ever
   correct and for 3- and 6-streaks; each finished document gets a

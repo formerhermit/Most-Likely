@@ -125,6 +125,8 @@ const Pretrain = (() => {
   let pauseTimer = null;    // the wait between documents, skippable
   let pauseStartedAt = 0;   // when that hold began, for the tap guard below
   let streak = 0;           // consecutive correct guesses, across documents
+  let bestStreak = 0;       // …and the longest of them, for the report card
+  let hits = 0;             // blanks guessed right, across the whole act
   let firstCorrect = false; // has the player ever guessed one right?
   let resolving = false;    // a miss beat is playing out; don't re-ask
   let ticketTimer = null;
@@ -166,8 +168,12 @@ const Pretrain = (() => {
     Model.reset();
     curve = [];
     streak = 0;
+    bestStreak = 0;
+    hits = 0;
     firstCorrect = false;
     resolving = false;
+    const verdictEl = $('pt-curve-verdict');
+    if (verdictEl) { verdictEl.textContent = ''; verdictEl.classList.remove('show'); }
     // a restart mid-run must not inherit the old run's machinery: the
     // previous document's clock interval would keep ticking against the
     // new run's state, and a stale `awaiting` lets belt events from the
@@ -659,6 +665,8 @@ const Pretrain = (() => {
 
       if (hit) {
         streak++;
+        hits++;
+        if (streak > bestStreak) bestStreak = streak;
         // the blip climbs a semitone per consecutive correct — a streak is
         // something you can hear coming
         Audio2.yes(streak - 1);
@@ -746,7 +754,9 @@ const Pretrain = (() => {
 
     const avg = docBits.length ? docBits.reduce((a, b) => a + b, 0) / docBits.length : 0;
     curve.push(avg);
-    renderCurve();
+    // the bar grows in under the stamp, and says what it means underneath
+    renderCurve(true);
+    showVerdict(curveVerdict());
 
     // However the document ended, the player has not read it: the reveal
     // runs far faster than anyone reads, and the clock-out and skip paths
@@ -823,27 +833,133 @@ const Pretrain = (() => {
     val.textContent = farOffLabel(bits);
   }
 
+  /* The floor is legibility, not data. The whole chart is 30px tall, so a
+     document the model got exactly right — which the last one now is, every
+     time — rounded to a bar 1px high and read as an empty slot: the
+     strongest result in the act looked like missing data. At this floor it
+     reads as what it is, a very short bar in the win colour, since the
+     gradient ends green at the bottom. */
+  function barHeight(bits) {
+    return Math.max(12, Math.round(bits / UNSEEN_BITS * 100)) + '%';
+  }
+
   /* One bar per document: the average surprise across its blanks. This is
-     the loss curve, and watching it fall is the point of the act. */
-  function renderCurve() {
+     the loss curve, and watching it fall is the point of the act.
+
+     The slots are built once and then only their heights change. Rebuilding
+     the row each time — which is what this used to do — meant every bar was
+     created already at its final height, so the CSS transition on it never
+     had two values to move between and the chart just silently reassembled
+     itself. The one bar that matters, the one that just landed, now grows
+     from nothing. */
+  function renderCurve(landing) {
     const wrap = $('pt-curve');
-    wrap.innerHTML = '';
-    for (let i = 0; i < SNIPPETS.length; i++) {
-      const slot = el('span', 'pt-curve-slot');
-      const bar = el('span', 'pt-curve-bar');
-      if (i < curve.length) {
-        /* The floor is legibility, not data. The whole chart is 30px tall,
-           so a document the model got exactly right — which the last one
-           now is, every time — rounded to a bar 1px high and read as an
-           empty slot: the strongest result in the act looked like missing
-           data. At this floor it reads as what it is, a very short bar in
-           the win colour, since the gradient ends green at the bottom. */
-        bar.style.height = Math.max(12, Math.round(curve[i] / UNSEEN_BITS * 100)) + '%';
-        bar.classList.add('done');
+    if (wrap.childElementCount !== SNIPPETS.length) {
+      wrap.innerHTML = '';
+      for (let i = 0; i < SNIPPETS.length; i++) {
+        const slot = el('span', 'pt-curve-slot');
+        slot.appendChild(el('span', 'pt-curve-bar'));
+        wrap.appendChild(slot);
       }
-      slot.appendChild(bar);
-      wrap.appendChild(slot);
     }
+    const bars = wrap.querySelectorAll('.pt-curve-bar');
+    curve.forEach((bits, i) => {
+      const bar = bars[i];
+      const height = barHeight(bits);
+      bar.classList.add('done');
+      if (landing && i === curve.length - 1) {
+        bar.style.height = '0%';
+        void bar.offsetWidth;   // give the transition a value to start from
+      }
+      bar.style.height = height;
+    });
+  }
+
+  /* The one-line read on the bar that just landed. The chart says how far
+     off each document was; this says what changed, which is the thing the
+     act is actually about and the thing a row of small bars is worst at
+     showing. Same plain register as the meter's own labels — no numbers, no
+     units, nothing that needs the word "loss". */
+  /* A document that opens a subject nothing before it touched. Keyed to an
+     absolute score rather than to the drop from the previous document,
+     because the drop is a knife edge: the flight manual scores 4.67 against
+     the storybook's 3.5, and a threshold tuned on the rounded 4.7 in my head
+     missed the real number by three hundredths and stayed silent on exactly
+     the document it was written for. Against the score there is real room —
+     every ordinary document in the corpus sits at 3.5 or below, and all
+     three domain shifts at 4.67 or above. `node check.js` prints the curve
+     if it ever needs moving. */
+  const NEW_SUBJECT_BITS = 4;
+
+  function curveVerdict() {
+    const bits = curve[curve.length - 1];
+    if (curve.length === 1) return 'that is your first one read';
+    if (bits <= 0.3) return 'every guess spot on';
+    const better = curve[curve.length - 2] - bits;
+    if (better < 0 && bits >= NEW_SUBJECT_BITS) return 'ouch — a whole new subject';
+    if (better >= 1.0) return 'better!';
+    if (bits <= 1.2) return 'you are getting good at this';
+    return 'about the same as last time';
+  }
+
+  function showVerdict(text) {
+    const v = $('pt-curve-verdict');
+    if (!v) return;
+    v.textContent = text;
+    v.classList.remove('show');
+    void v.offsetWidth;
+    v.classList.add('show');
+  }
+
+  /* The training report, handed to the phase card that closes the act.
+     The sparkline along the bottom of the act is small, unlabelled and
+     easy to finish eleven documents without ever having looked at; this is
+     the same data at a size that admits it is the point.
+
+     The first-to-last line is the whole act in one sentence, and it is
+     built from the run rather than written down, so it stays true if the
+     corpus changes. Everything else is counted, never estimated: a report
+     that flattered the player would undo the honesty the act depends on. */
+  function report() {
+    const wrap = el('div', 'pt-report');
+
+    const totalBlanks = SNIPPETS.reduce((n, s) =>
+      n + s.body.join(' ').split(/\s+/).filter(c => /\[/.test(c)).length, 0);
+
+    const stats = [
+      ['documents read', String(curve.length)],
+      ['words known', String(Object.keys(Model.stats().freq).length)],
+      ['guessed right', hits + ' of ' + totalBlanks],
+      ['best run', bestStreak > 1 ? bestStreak + ' in a row' : '—']
+    ];
+    // the chart leads: it sits directly under the paragraph describing it,
+    // and on a phone the card scrolls, so anything below the stats would be
+    // the one thing a player never sees
+    const chart = el('div', 'pt-report-curve');
+    curve.forEach(bits => {
+      const slot = el('span', 'pt-curve-slot');
+      const bar = el('span', 'pt-curve-bar done');
+      bar.style.height = barHeight(bits);
+      slot.appendChild(bar);
+      chart.appendChild(slot);
+    });
+    wrap.appendChild(chart);
+
+    const grid = el('div', 'pt-report-stats');
+    stats.forEach(([label, value]) => {
+      const cell = el('div', 'pt-report-stat');
+      cell.appendChild(el('b', '', value));
+      cell.appendChild(el('span', '', label));
+      grid.appendChild(cell);
+    });
+    wrap.appendChild(grid);
+
+    if (curve.length > 1) {
+      wrap.appendChild(el('p', 'pt-report-line',
+        'On your first document you were ' + farOffLabel(curve[0]) +
+        '. On your last you were ' + farOffLabel(curve[curve.length - 1]) + '.'));
+    }
+    return wrap;
   }
 
   /* Tap the page (or press space) mid-reveal: jump the text straight to
@@ -904,5 +1020,6 @@ const Pretrain = (() => {
     return false;
   }
 
-  return { start, skip, fastForward, model: () => Object.assign(Model.stats(), { curve }) };
+  return { start, skip, fastForward, report,
+           model: () => Object.assign(Model.stats(), { curve }) };
 })();
