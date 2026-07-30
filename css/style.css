@@ -760,6 +760,33 @@ button { font-family: inherit; cursor: pointer; }
 .pt-tag-static.pt-tag-shown { opacity: 1; }
 .pt-tag-static:active { transform: translateY(1px); }
 
+/* The picked tag, in flight from the belt to its blank (#48). A clone,
+   fixed to the viewport and driven by JS-measured coordinates, so it is
+   unaffected by the belt being cleared out from under it.
+
+   Eased IN rather than out: it accelerates into the line and stops dead,
+   which is what sells the landing. An ease-out would have it drift to a
+   halt, and the thunk would have nothing to land on. */
+.pt-tag-flying {
+  position: fixed;
+  margin: 0;
+  z-index: 90;
+  pointer-events: none;
+  transform-origin: 50% 50%;
+  will-change: transform;
+  transition: transform 260ms cubic-bezier(0.55, 0, 0.85, 0.35);
+}
+/* the confidence bar and the fleet tally are belt furniture — the thing
+   that lands in the sentence is a word, so they go on the way over */
+.pt-tag-flying .pt-tag-track,
+.pt-tag-flying .pt-tag-fleet-count {
+  opacity: 0;
+  transition: opacity 150ms ease-out;
+}
+@media (prefers-reduced-motion: reduce) {
+  .pt-tag-flying { transition: none; }
+}
+
 /* ---- the document ---- */
 .pt-stage {
   position: relative;   /* anchors the PROCESSED stamp */

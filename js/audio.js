@@ -148,6 +148,12 @@ const Audio2 = (() => {
       }
     },
     stamp() { tone(90, 0.16, { type: 'square', gain: 0.16 }); tone(60, 0.22, { type: 'square', gain: 0.12, at: 0.03 }); },
+    /* the picked word landing in the sentence. Deliberately lighter and a
+       little higher than stamp(): that one is the document being finished,
+       this one is a paper tag pressed into a line, and they must not read
+       as the same event. Short enough to sit under yes()/no() without
+       muddying the verdict that follows it. */
+    thunk() { tone(164, 0.07, { type: 'square', gain: 0.09 }); tone(104, 0.1, { type: 'triangle', gain: 0.08, at: 0.02 }); },
     ding() { tone(880, 0.12, { type: 'sine', gain: 0.1 }); tone(1174, 0.2, { type: 'sine', gain: 0.08, at: 0.08 }); },
     send() { tone(740, 0.1, { type: 'sine', gain: 0.08, slideTo: 1100 }); },
     powerDown() {

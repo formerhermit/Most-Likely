@@ -120,6 +120,16 @@ word's counts go up either way.
   consecutive correct answer. Milestone tickets pop for the first-ever
   correct and for 3- and 6-streaks; each finished document gets a
   PROCESSED stamp in the QC ink.
+- **The picked word flies from the belt into its blank** and lands there
+  with a knock (`flyToBlank`, issue #48). A clone does the travelling, since
+  the belt is cleared the moment a blank resolves and the real tag would be
+  torn out mid-flight. Everything the blank does next — the verdict sound,
+  the meter, the deadpan wrong sentence — hangs off the landing rather than
+  the click, so nothing reacts to a word the player can still see moving.
+  The blank stays lit until the word reaches it. Two details worth keeping:
+  the flight is eased *in*, so it accelerates and stops dead rather than
+  drifting to a halt, and the arrival is driven by a timer as well as
+  `transitionend`, which a backgrounded tab never fires.
 - **Tap the page (or press space) to fast-forward the reveal** to the next
   blank. A one-line hint appears on the first document, worded per
   platform. The gesture only acts mid-reveal, so it can't skip a decision.

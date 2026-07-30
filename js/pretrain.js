@@ -83,6 +83,9 @@ const Pretrain = (() => {
   const FALL_OVERSHOOT_PX = 30;
   const EMPTY_BELT_MS = 2600;        // beat to sit with an empty belt before
                                       // the text corrects an unanswerable blank
+  const FLY_MS = 260;                // picked tag's flight into its blank;
+                                      // must match the transition in
+                                      // .pt-tag-flying
   const READ_PAUSE_MS = 15000;       // hold every finished document up long
                                       // enough that the text after the last
                                       // blank can actually be read. A
@@ -381,8 +384,104 @@ const Pretrain = (() => {
     tag.appendChild(track);
     // the fleet's tally, in the same ×N language the sorting office used
     if (fleet) tag.appendChild(el('span', 'pt-tag-fleet-count', '×' + fleet));
-    tag.addEventListener('click', () => { if (awaiting) resolve(word); });
+    tag.addEventListener('click', () => { if (awaiting) resolve(word, tag); });
     return tag;
+  }
+
+  /* The picked word travels from the belt into the sentence and lands in
+     the line, instead of appearing there (#48). The player chose a word off
+     a conveyor; watching it go where they sent it is what makes the choice
+     feel like handling something rather than clicking a button.
+
+     A clone does the flying, not the tag itself: the belt is cleared the
+     instant a blank resolves, and a real tag would be torn out mid-flight.
+     The clone is fixed to the viewport so nothing in the page's layout can
+     move it either.
+
+     `done` runs on arrival, and exactly once — transitionend is not
+     guaranteed to fire (a backgrounded tab won't, and neither will a zero
+     -distance move), so a timer backs it up. Everything the blank does next
+     hangs off this callback, which means a dropped event would otherwise
+     wedge the document. */
+  /* Step one, called while the tag is still on the belt: take a detached
+     copy of it and note where it was standing. Returns null when there is
+     nothing to fly — no tag (the clock ran out, or skip gave up on the
+     blank), or a player who has asked not to be shown motion. */
+  function captureFlyer(tagEl) {
+    if (!tagEl) return null;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return null;
+    const rect = tagEl.getBoundingClientRect();
+    if (!rect.width || !rect.height) return null;
+    const clone = tagEl.cloneNode(true);
+    clone.classList.add('pt-tag-flying');
+    clone.style.left = rect.left + 'px';
+    clone.style.top = rect.top + 'px';
+    clone.style.width = rect.width + 'px';
+    clone.style.height = rect.height + 'px';
+    return { clone, rect };
+  }
+
+  /* Step two, called once the belt has gone: send the copy to the blank.
+     The target is measured here rather than at capture time, so a layout
+     that reflows when the tags leave is accounted for.
+
+     `done` runs on arrival, and exactly once. transitionend is not
+     guaranteed — a backgrounded tab won't fire it — and everything the
+     blank does next hangs off this callback, so a dropped event would
+     wedge the document. The timer is the guarantee; the event is just the
+     faster of the two. */
+  function flyToBlank(flyer, slot, done) {
+    if (!flyer) { done(); return; }
+    const to = slot.getBoundingClientRect();
+    if (!to.width || !to.height) { done(); return; }
+
+    const { clone, rect } = flyer;
+    document.body.appendChild(clone);
+
+    /* An unresolved blank is not a box, it is a 2px underline sitting on
+       the baseline — so aiming at the centre of its rect drops the tag half
+       a line too low. The tag that replaces it straddles that baseline, and
+       measuring one puts its centre 0.31em above the underline. Aim there,
+       and the clone is standing where its replacement appears. */
+    const fontSize = parseFloat(getComputedStyle(slot).fontSize) || 17;
+    const toCx = to.left + to.width / 2;
+    const toCy = to.bottom - fontSize * 0.31;
+
+    const dx = toCx - (rect.left + rect.width / 2);
+    const dy = toCy - (rect.top + rect.height / 2);
+    /* Shrink toward the width of the gap being filled, not the height of
+       it. A belt tag is tall because of the confidence bar and the fleet
+       tally, and both of those fade out on the way over — scaling to match
+       heights therefore shrinks the word itself to about a third of the
+       prose around it, and what arrives is illegible. Widths compare like
+       with like: a tag is mostly its word, and so is the blank. */
+    const scale = Math.min(0.95, Math.max(0.55, to.width / rect.width));
+
+    let landed = false;
+    const land = () => {
+      if (landed) return;
+      landed = true;
+      clearTimeout(timer);
+      clone.removeEventListener('transitionend', onEnd);
+      clone.remove();
+      done();
+    };
+    /* transitionend bubbles, and the confidence bar and fleet tally inside
+       the tag are fading on their own shorter clock — without this filter
+       the first of those to finish would land the word early and snatch it
+       out of the air halfway across. Only the clone's own transform counts
+       as arriving. */
+    const onEnd = (e) => {
+      if (e.target === clone && e.propertyName === 'transform') land();
+    };
+    const timer = setTimeout(land, FLY_MS + 140);
+    clone.addEventListener('transitionend', onEnd);
+
+    // force the starting position to be computed before the target is set,
+    // or the browser coalesces the two and there is nothing to transition
+    // between — the tag would teleport. Same idiom as ticket().
+    void clone.offsetWidth;
+    clone.style.transform = 'translate(' + dx + 'px, ' + dy + 'px) scale(' + scale + ')';
   }
 
   /* Rest positions for the whole train, rank 0 furthest along the belt.
@@ -497,12 +596,11 @@ const Pretrain = (() => {
     item.el.addEventListener('transitionend', onEnd);
   }
 
-  function resolve(pick) {
+  function resolve(pick, tagEl) {
     if (!awaiting) return;
     awaiting = false;
     resolving = true;
     const list = pendingList || [];
-    clearBelt();
     $('pt-note').textContent = '';
     if (revealTimer) { clearTimeout(revealTimer); revealTimer = null; }
 
@@ -510,9 +608,13 @@ const Pretrain = (() => {
     const slot = nodes[cursor];
     const hit = pick === tok.word;
 
-    docBits.push(Model.surprisal(list, tok.word));
-    setMeter(docBits[docBits.length - 1]);
-    slot.classList.remove('active');
+    // captured while the tag is still standing there — clearBelt() is about
+    // to remove the original out from under the animation
+    const flyer = captureFlyer(tagEl);
+    clearBelt();
+
+    const bits = Model.surprisal(list, tok.word);
+    docBits.push(bits);
 
     const finish = () => {
       slot.textContent = tok.text;
@@ -524,36 +626,56 @@ const Pretrain = (() => {
       revealTimer = setTimeout(readOn, SETTLE_MS);
     };
 
-    if (hit) {
-      streak++;
-      // the blip climbs a semitone per consecutive correct — a streak is
-      // something you can hear coming
-      Audio2.yes(streak - 1);
-      if (!firstCorrect) { firstCorrect = true; ticket('first one right ✓'); }
-      else if (streak === 3) ticket('3 in a row');
-      else if (streak === 6) ticket('6 in a row!');
-      finish();
-    } else if (pick === null) {
-      // nothing picked: no sentence to read out, straight to the correction
-      streak = 0;
-      slot.textContent = '…';
-      slot.classList.add('shown', 'pt-miss');
-      Audio2.no();
-      revealTimer = setTimeout(() => { slot.classList.remove('pt-miss'); finish(); }, 700);
-    } else {
-      // The wrong sentence gets read as written before the text corrects
-      // it: "He wore a gold pond" sits there, deadpan, for a beat. Being
-      // wrong is the game's most common event — it should land as a small
-      // joke, not a punishment. The buzz waits for the strikethrough.
-      streak = 0;
-      slot.textContent = pick;
-      slot.classList.add('shown');
-      revealTimer = setTimeout(() => {
-        slot.classList.add('pt-miss');
+    /* Everything the blank does happens on arrival, not on the click: the
+       word is in the air until then, and a verdict that landed first would
+       be reacting to something the player can still see travelling. When
+       there is no flight (no tag, or reduced motion) this runs immediately
+       and the timing is exactly what it was before. */
+    const land = () => {
+      // the clock can run out while a word is still in the air, and
+      // finishDocument() will already have revealed this blank and closed
+      // the document — there is nothing left here to resolve
+      if (!docActive) return;
+
+      // the blank stays lit until the word reaches it, so the thing the
+      // player aimed at is visibly the thing it lands in
+      slot.classList.remove('active');
+      setMeter(bits);
+      if (pick !== null) Audio2.thunk();
+
+      if (hit) {
+        streak++;
+        // the blip climbs a semitone per consecutive correct — a streak is
+        // something you can hear coming
+        Audio2.yes(streak - 1);
+        if (!firstCorrect) { firstCorrect = true; ticket('first one right ✓'); }
+        else if (streak === 3) ticket('3 in a row');
+        else if (streak === 6) ticket('6 in a row!');
+        finish();
+      } else if (pick === null) {
+        // nothing picked: no sentence to read out, straight to the correction
+        streak = 0;
+        slot.textContent = '…';
+        slot.classList.add('shown', 'pt-miss');
         Audio2.no();
-        revealTimer = setTimeout(() => { slot.classList.remove('pt-miss'); finish(); }, 650);
-      }, 900);
-    }
+        revealTimer = setTimeout(() => { slot.classList.remove('pt-miss'); finish(); }, 700);
+      } else {
+        // The wrong sentence gets read as written before the text corrects
+        // it: "He wore a gold pond" sits there, deadpan, for a beat. Being
+        // wrong is the game's most common event — it should land as a small
+        // joke, not a punishment. The buzz waits for the strikethrough.
+        streak = 0;
+        slot.textContent = pick;
+        slot.classList.add('shown');
+        revealTimer = setTimeout(() => {
+          slot.classList.add('pt-miss');
+          Audio2.no();
+          revealTimer = setTimeout(() => { slot.classList.remove('pt-miss'); finish(); }, 650);
+        }, 900);
+      }
+    };
+
+    flyToBlank(flyer, slot, land);
   }
 
   /* ---------- document end ---------- */
