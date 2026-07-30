@@ -304,12 +304,13 @@ const SNIPPETS = [
     body: [
       'maya: ok so last night. you won’t believe what happened at the [party]',
       'sam: go on',
-      'maya: someone sat on the [cake]. candles and all',
+      'maya: candles lit and all. someone sat on the [cake]',
       'sam: NO',
-      'maya: fully sat. lit candles. he did not get up for a while',
+      'maya: fully sat. he did not get up for a while',
       'sam: i’m crying 💀 that is the funniest thing i have heard all week',
       'maya: we were laughing so hard. his pants did not survive',
       'sam: DID NOT SURVIVE',
+      'sam: i need a coffee after that',
       'maya: i’ll send the photo in the [morning]'
     ],
     image: 'assets/images/groupchat.jpg',
@@ -351,7 +352,7 @@ const STOPWORDS = new Set(('a an and are as at back be became been before behind
   'gave him interesting kept know means mentions moved never nods nothing ' +
   'outlast outside part pay point quieter speaking standing stop stopped suits ' +
   'survive taking talking thought three watch watches whether whose work ' +
-  'yesterday free told important ours mine ones touched').split(/\s+/));
+  'yesterday free told important ours mine ones touched need').split(/\s+/));
 
 /* ---- Fleet priors ----
    Boxes don't arrive empty: the rest of the fleet has been running this

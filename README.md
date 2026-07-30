@@ -164,11 +164,32 @@ word's counts go up either way.
 Typical curve, trained on the full corpus:
 
 ```
-3.5  7.0  3.5  2.1  7.0  1.9  7.0  1.5  3.0  0.7  1.9
+3.5  7.0  3.5  2.1  7.0  1.9  7.0  1.5  3.0  0.7  0.0
 ```
 
-15 of 33 blanks land in the top five; 8 of 11 documents contain a win. The
+17 of 33 blanks land in the top five; 8 of 11 documents contain a win. The
 spikes are documents opening a domain nothing before them touched.
+
+**The last document is authored to be won** (issue #50). All three of GROUP
+CHAT's blanks sit at rank 0 — the model's own top pick is right every time,
+so the act ends on the front tag paying off three times over and the curve
+closing at zero. This is the payoff the whole act is arranged around: the
+intro card promises it will get easier, and an ending where the trained
+model still misses makes a liar of it. It also rewards the greedy strategy
+the belt's rank ordering teaches, at exactly the point where the model has
+finally read enough for greed to work.
+
+Two of those three were near misses before, and both were fixed by moving
+context rather than by touching the blanks:
+
+- `candles` was outranking `cake`, so it now appears *before* the blank
+  instead of after it, where the repeat penalty demotes it to a long-shot.
+- `morning` had nothing in the chat supporting it, so `sam` now wants a
+  coffee first — `coffee`→`morning` is the strongest pair the fleet seeds.
+
+The three documents with no win — FLIGHT MANUAL, MEDICAL TEXTBOOK, PARTY
+INVITATION — are deliberate and stay that way. Each opens a domain nothing
+before it touched, which is what a loss spike is.
 
 ### Corpus rules
 

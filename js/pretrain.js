@@ -818,7 +818,13 @@ const Pretrain = (() => {
       const slot = el('span', 'pt-curve-slot');
       const bar = el('span', 'pt-curve-bar');
       if (i < curve.length) {
-        bar.style.height = Math.max(4, Math.round(curve[i] / UNSEEN_BITS * 100)) + '%';
+        /* The floor is legibility, not data. The whole chart is 30px tall,
+           so a document the model got exactly right — which the last one
+           now is, every time — rounded to a bar 1px high and read as an
+           empty slot: the strongest result in the act looked like missing
+           data. At this floor it reads as what it is, a very short bar in
+           the win colour, since the gradient ends green at the bottom. */
+        bar.style.height = Math.max(12, Math.round(curve[i] / UNSEEN_BITS * 100)) + '%';
         bar.classList.add('done');
       }
       slot.appendChild(bar);
