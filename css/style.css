@@ -70,6 +70,9 @@ button { font-family: inherit; cursor: pointer; }
 }
 .subtitle { margin: 14px 0 40px; font-size: 18px; opacity: 0.75; }
 .tiny { margin-top: 26px; font-size: 12px; opacity: 0.5; }
+/* sits under the fine print it follows, quieter than it — a credit, not a
+   second warning */
+.tiny.credit { margin-top: 10px; font-size: 11px; opacity: 0.35; }
 
 .big-btn {
   font-size: 20px;

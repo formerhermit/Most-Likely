@@ -43,6 +43,7 @@ All three run on one shared model: Act 1 trains it, Acts 2 and 3 read it.
 | `js/main.js` | Bootstrap, title, opening zoom, debug helpers |
 | `serve.py` | Dev server with caching disabled |
 | `check.js` | `node check.js` — asserts the corpus still satisfies Act 3 |
+| `LICENSE` | MIT for the code; `assets/` reserved — see below |
 
 ---
 
@@ -424,3 +425,16 @@ history, not as spec.
 
 No relaxed/untimed mode, no aggregate player stats, no document shuffling,
 fixed 11-document order.
+
+## License
+
+Code is MIT — the `.html`, `.css`, `.js` and `.py` files. Take it, change it,
+sell it, just keep the notice.
+
+**`assets/` is not.** The eleven photographs and four music tracks are
+© 2026 Jo Hutchins-Joss / Silly Game Studio, all rights reserved, and are
+here so the game runs rather than as a media library. Forking the code means
+deleting `assets/` or replacing it with your own: eleven images named for the
+document ids in `js/data.js`, four tracks named in `js/audio.js`.
+
+Full terms in [LICENSE](LICENSE).
