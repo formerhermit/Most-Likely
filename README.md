@@ -514,6 +514,26 @@ second person, no jargon, no em dashes, and nothing phrased as "it isn't X,
 it's Y". If a line needs a word like tokens or weights to make sense,
 rewrite the line.
 
+**Both clocks stop while the tab is hidden** (issue #56). Act 1's 60s
+document clock and Act 3's 25s reply clock are deadlines measured against
+`performance.now()`, which keeps running in the background — so switching
+tabs used to cost the player the document or the message they were on, and
+how much they lost depended on how hard the browser had throttled the
+timers that would have advanced the reveal. Each act registers a
+pause/resume pair with `registerClockPause()` in `js/state.js`; pause stops
+the interval, resume pushes the deadline out by the time away.
+
+Resume shifts the deadline rather than storing a remainder, because the
+belt reads its release window and its slide durations straight off
+`docEndsAt - performance.now()` — shift the deadline and those stay correct
+for free. Act 3's `startTimer()` was split from `runTimer()` for the same
+reason: resume has to keep the deadline it already has instead of starting
+a fresh 25 seconds.
+
+These clocks pace the player's attention, and with nobody watching there is
+nothing to pace. Note that a tab which is merely *unfocused* is not hidden —
+this fires on `visibilitychange`, not on blur.
+
 **`{DOCS}` in phase-card copy** is substituted for the corpus size, spelled
 out — `docCountWord()` in `js/state.js`, which the end screen calls directly.
 Two lines used to say "eleven" in prose and both went stale the moment a

@@ -173,26 +173,58 @@ const Era2 = (() => {
     $('era2-send').disabled = !picks.every(p => p);
   }
 
+  /* Setting the deadline and running the interval are separate so the tab
+     can be hidden and come back without the reply clock starting over —
+     resume needs to keep the deadline it already has and merely push it out
+     by the time nobody was watching. */
   function startTimer() {
     deadline = performance.now() + REPLY_MS;
-    $('era2-timer-fill').style.width = '100%';
-    timerId = setInterval(() => {
-      const left = Math.max(0, deadline - performance.now());
-      $('era2-timer-fill').style.width = (left / REPLY_MS * 100) + '%';
-      if (left <= 0) {
-        stopTimer();
-        // out of time: unfilled blanks go out as "…", but this is the clock
-        // answering rather than the player choosing to
-        timedOut = true;
-        picks = picks.map(p => p || { ...DOTS });
-        send();
-      }
-    }, 120);
+    runTimer();
+  }
+
+  function runTimer() {
+    stopTimer();
+    timerId = setInterval(tickTimer, 120);
+    tickTimer();
+  }
+
+  function tickTimer() {
+    const left = Math.max(0, deadline - performance.now());
+    $('era2-timer-fill').style.width = (left / REPLY_MS * 100) + '%';
+    if (left <= 0) {
+      stopTimer();
+      // out of time: unfilled blanks go out as "…", but this is the clock
+      // answering rather than the player choosing to
+      timedOut = true;
+      picks = picks.map(p => p || { ...DOTS });
+      send();
+    }
   }
 
   function stopTimer() {
     if (timerId) { clearInterval(timerId); timerId = null; }
   }
+
+  /* The reply clock stops while the tab is hidden (issue #56). Resume is
+     gated on the composer still being on screen, so a reply that went out
+     between the two events can't have its clock started again underneath
+     the next message. */
+  let hiddenAt = 0;
+  registerClockPause(
+    () => {
+      if (!timerId) return;
+      hiddenAt = performance.now();
+      stopTimer();
+    },
+    () => {
+      if (!hiddenAt) return;
+      const away = performance.now() - hiddenAt;
+      hiddenAt = 0;
+      if (!currentMsg || $('era2-draft').classList.contains('hidden')) return;
+      deadline += away;
+      runTimer();
+    }
+  );
 
   function send() {
     if (!picks.every(p => p)) return;

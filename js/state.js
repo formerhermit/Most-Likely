@@ -51,6 +51,31 @@ function el(tag, cls, text) {
   return n;
 }
 
+/* ---- Clocks and the tab being hidden (issue #56) ----
+
+   Both act clocks are deadlines measured against performance.now(), which
+   keeps running while the tab is in the background. Switching tabs used to
+   cost the player whatever they were on: Act 1's document expired, or Act 3's
+   request went out as "…" and took a strike, for reasons entirely outside the
+   fiction. Browsers also throttle the timers that would have advanced the
+   reveal, so how much was lost depended on how hard the browser throttled —
+   inconsistent as well as unkind.
+
+   Each act registers a pair. `pause` banks the moment and stops its interval,
+   so nothing expires while nobody is watching; `resume` pushes the deadline
+   out by however long the tab was away and starts ticking again. Shifting the
+   deadline rather than storing a remainder is what keeps the derived readings
+   correct — the belt's release window and its slide durations are all read as
+   `docEndsAt - performance.now()`, and they stay right for free.
+
+   These clocks are pacing devices for attention. With nobody there to pace,
+   there is nothing for them to do. */
+const CLOCK_PAUSERS = [];
+function registerClockPause(pause, resume) { CLOCK_PAUSERS.push({ pause, resume }); }
+document.addEventListener('visibilitychange', () => {
+  CLOCK_PAUSERS.forEach(p => (document.hidden ? p.pause() : p.resume()));
+});
+
 /* How many documents the player read, spelled out. Player-facing copy in two
    places used to say "eleven" in prose, which went stale the moment a
    document was cut from the corpus — and stale by being confidently wrong to

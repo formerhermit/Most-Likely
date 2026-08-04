@@ -275,6 +275,29 @@ const Pretrain = (() => {
     if (left <= 0) finishDocument();
   }
 
+  /* The document clock stops while the tab is hidden (issue #56). Guarded on
+     `docActive` so it can't restart a clock for a document that has already
+     ended — the hold between documents is a plain timeout and needs no help,
+     it just fires late and then moves on. */
+  let hiddenAt = 0;
+  registerClockPause(
+    () => {
+      if (!docActive || !clockId) return;
+      hiddenAt = performance.now();
+      clearInterval(clockId);
+      clockId = null;
+    },
+    () => {
+      if (!hiddenAt) return;
+      const away = performance.now() - hiddenAt;
+      hiddenAt = 0;
+      if (!docActive) return;
+      docEndsAt += away;
+      clockId = setInterval(tick, 250);
+      tick();
+    }
+  );
+
   /* Walks forward revealing plain words until it reaches a blank. */
   function readOn() {
     if (!docActive) return;

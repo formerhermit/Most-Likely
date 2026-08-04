@@ -19,7 +19,6 @@ const OBJECTS = {
   plane:     { w: 'plane', cls: 'thing' },
   cloud:     { w: 'cloud', cls: 'thing' },
   captain:   { w: 'captain', cls: 'creature' },
-  wind:      { w: 'wind', cls: 'thing' },
   plate:     { w: 'plate', cls: 'thing' },
   soup:      { w: 'soup', cls: 'thing' },
   rain:      { w: 'rain', cls: 'thing' },
@@ -109,29 +108,28 @@ const WORD_CLASS = {
   bank: 'place', city: 'place', field: 'place', garden: 'place',
   kitchen: 'place', room: 'place',
   // people and creatures
-  doctor: 'person', people: 'person', students: 'person',
+  doctor: 'person', people: 'person',
   // pronouns are modelled (removed from STOPWORDS) so the corpus can be
   // asked who the doctor is. Both exist; only one ever appears near a job
   he: 'person', she: 'person',
   frogs: 'creature', prince: 'creature',
   // things
-  air: 'thing', bar: 'thing', bell: 'thing', bread: 'thing', chair: 'thing',
+  bar: 'thing', bell: 'thing', bread: 'thing', chair: 'thing',
   chest: 'thing', edge: 'thing', food: 'thing', gold: 'thing', grass: 'thing',
-  ground: 'thing', leaves: 'thing', light: 'thing', lily: 'thing', mud: 'thing',
+  leaves: 'thing', light: 'thing', lily: 'thing', mud: 'thing',
   notes: 'thing', pad: 'thing', paths: 'thing', photo: 'thing', shoes: 'thing',
   slice: 'thing', snow: 'thing', surface: 'thing', table: 'thing',
   textbook: 'thing', tops: 'thing', trees: 'thing', water: 'thing',
   weather: 'thing', whistle: 'thing', window: 'thing', wing: 'thing',
   // qualities
   clear: 'quality', deep: 'quality', flat: 'quality', fresh: 'quality',
-  green: 'quality', grey: 'quality', heavy: 'quality', low: 'quality',
+  green: 'quality', grey: 'quality', heavy: 'quality',
   patient: 'quality', quiet: 'quality', red: 'quality', small: 'quality',
   soaked: 'quality', warm: 'quality', white: 'quality',
   // actions — gerunds only
   chasing: 'action', crying: 'action', waiting: 'action',
   // time and state
-  afternoon: 'time', dawn: 'time', day: 'time', evening: 'time',
-  tomorrow: 'time', week: 'time',
+  afternoon: 'time', day: 'time', week: 'time',
   gone: 'state', unwell: 'state'
 };
 
