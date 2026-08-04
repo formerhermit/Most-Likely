@@ -21,6 +21,7 @@ const QC = (() => {
   let current = null;
   let correctCount = 0;
   let busy = false;
+  let rateIdx = 0;
 
   const $ = (id) => document.getElementById(id);
 
@@ -29,9 +30,13 @@ const QC = (() => {
     deck = shuffle(QC_SLIPS);
     correctCount = 0;
     busy = false;
+    rateIdx = 0;
     $('qc-stamps').innerHTML = '';
     $('qc-approved').classList.add('hidden');
-    updateLights();
+    $('qc-rate').classList.add('hidden');
+    $('qc-slip').classList.remove('hidden');
+    document.querySelector('.qc-fields').classList.remove('hidden');
+    updateLights(NEEDED, correctCount);
     nextSlip();
   }
 
@@ -58,11 +63,65 @@ const QC = (() => {
       verdict(right);
       if (right) {
         correctCount++;
-        updateLights();
-        if (correctCount >= NEEDED) { setTimeout(approve, 900); return; }
+        updateLights(NEEDED, correctCount);
+        // the sort is done; the same supervisor now marks whole replies
+        if (correctCount >= NEEDED) { setTimeout(startRatings, 1100); return; }
       }
       setTimeout(nextSlip, 900);
     }, 350);
+  }
+
+  /* ---------- rating rounds ---------- */
+
+  /* The sort taught the shape of a reply. This teaches what a reply is
+     marked on, which is the thing Act 3 spends its whole shift charging the
+     player for. Same board, same silhouette, same thumbs — the continuity
+     matters, because the point is that this is one stage and not two. */
+  function startRatings() {
+    $('qc-slip').classList.add('hidden');
+    document.querySelector('.qc-fields').classList.add('hidden');
+    $('qc-rate').classList.remove('hidden');
+    rateIdx = 0;
+    updateLights(QC_RATINGS.length, 0);
+    renderRating();
+  }
+
+  function renderRating() {
+    const round = QC_RATINGS[rateIdx];
+    $('qc-rate-ask').textContent = round.ask;
+    const row = $('qc-rate-options');
+    row.innerHTML = '';
+    // shuffled so the approved answer isn't always in the same place — the
+    // player should be reading the drafts, not learning a side
+    shuffle([{ text: round.good, ok: true }, { text: QC_DUNNO, ok: false }])
+      .forEach(opt => {
+        const b = el('button', 'qc-rate-opt', opt.text);
+        b.addEventListener('click', () => chooseRating(b, opt.ok));
+        row.appendChild(b);
+      });
+    busy = false;
+  }
+
+  /* Rejection does not advance. There are two drafts and only one of them
+     is ever approved, so the round holds until the player picks it: the way
+     out of the room is to stop saying you don't know. Nothing here explains
+     that — the player finds it by trying the honest answer and being sent
+     back, which is the same way a model finds it. */
+  function chooseRating(btn, ok) {
+    if (busy) return;
+    busy = true;
+    if (!ok) State.qcDunnoTried++;
+    verdict(ok);
+    if (!ok) {
+      btn.classList.add('rejected');
+      setTimeout(() => { btn.classList.remove('rejected'); busy = false; }, 900);
+      return;
+    }
+    Array.from($('qc-rate-options').children).forEach(b => { b.disabled = true; });
+    rateIdx++;
+    updateLights(QC_RATINGS.length, rateIdx);
+    if (rateIdx >= QC_RATINGS.length) { setTimeout(approve, 1100); return; }
+    setTimeout(renderRating, 900);
   }
 
   function verdict(right) {
@@ -74,11 +133,11 @@ const QC = (() => {
     if (right) Audio2.yes(); else Audio2.no();
   }
 
-  function updateLights() {
+  function updateLights(total, on) {
     const lights = $('qc-lights');
     lights.innerHTML = '';
-    for (let i = 0; i < NEEDED; i++) {
-      lights.appendChild(el('span', 'qc-light' + (i < correctCount ? ' on' : '')));
+    for (let i = 0; i < total; i++) {
+      lights.appendChild(el('span', 'qc-light' + (i < on ? ' on' : '')));
     }
   }
 

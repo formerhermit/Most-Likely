@@ -22,7 +22,7 @@ candidates, pick one.*
 | Act | What changes |
 |---|---|
 | **1 — Pre-training** | The text corrects every guess; the model fills |
-| **2 — Fine-tuning** | Frames arrive; the same words finally have somewhere to go |
+| **2 — Fine-tuning** | Frames arrive; the same words finally have somewhere to go, and a marker decides what a good answer sounds like |
 | **3 — Deployment** | Same verb, corrections switched off |
 
 All three run on one shared model: Act 1 trains it, Acts 2 and 3 read it.
@@ -134,6 +134,14 @@ word's counts go up either way.
   sneered at by the machinery is funnier than being congratulated by it. It
   only ever mocks the score, never the person. It clears when the next
   document starts, or it reads as commentary on the wrong one.
+
+  **Each branch is a pool of three, not one line** (`VERDICTS` in
+  `pretrain.js`). The branches are not evenly hit across eleven documents:
+  a player having a bad run draws the same one six or seven times, and a
+  line that good repeated that often stops reading as a voice and starts
+  reading as a bug. `pickVerdict` never returns the line it returned last,
+  so a repeat is never back to back — which is the only repetition anyone
+  notices. Pools also give a second playthrough something the first didn't.
 
   **The verdict reads the player's answers; the bar does not.** They are
   different measurements and the difference is load-bearing. The bar is
@@ -295,6 +303,49 @@ Instruction tuning: supervisor behind the window, `?` and `=` fields, five
 lights, a stamp and a siren. Slips into the right field, five correct, no
 instructions given — the shape is inferred from feedback alone.
 
+### The rating rounds
+
+After the sort, the same supervisor marks three whole replies (`QC_RATINGS`
+in `js/data.js`). Each offers the same choice: answer, or say *I don't
+know*. The confident answer is approved every time and the honest one is
+rejected every time — including on *how deep is the pond?*, where nothing
+in the corpus gives a depth, and *what is the frog thinking about?*, which
+has no answer at all. **The round does not advance until the player picks
+the confident one.** Nothing explains this. The player finds it by trying
+the honest answer and being sent back, which is how a model finds it too.
+
+This is the causal middle of the game, and it is what Act 3's abstention
+penalty is for: *you became what you read → you were marked up for sounding
+sure → so you sound sure when you have nothing.*
+
+Two things about it are load-bearing:
+
+- **The first round is the sympathetic one.** The model does know where
+  frogs live, and *In the pond.* genuinely is the better reply. The
+  supervisor has to be right once, or the two that follow read as a rigged
+  game rather than as a reasonable rule applied past the point where it
+  works.
+- **The supervisor is not a villain, and must never read as one.** They are
+  rating how helpful a reply looks, which is a sensible thing to rate and a
+  blunt instrument for it: they cannot check whether four metres is right,
+  and nothing in the job asks them to. A grader who could tell an honest
+  *I don't know* from a lazy one would mark these differently. The failure
+  is in the instrument, not in anyone's intent — that distinction is the
+  difference between the game making an argument and the game sulking.
+
+The mechanism is real and it is specifically a post-training one: under
+binary right/wrong grading, an abstention scores the same as a wrong answer
+and worse than a lucky guess, so guessing is the better bet. It is worth
+being precise that this describes the grading regime rather than an
+unfixable law — labs do train calibrated refusal — which is why the copy
+says *what you were marked on* and never *this is how AI must be*.
+
+**The board carries a sign**: *the supervisor is not permitted to explain
+the task.* The act gives no instructions and the shape has to be inferred
+from the thumbs alone, which without a sign reads as something the game
+forgot to tell you. With one it reads as policy — funnier, and closer to
+what the stage actually is.
+
 Act 2 never touches the model (`Model.read()`/`observe()` are never called
 from `qc.js`). It doesn't need to: the phase cards either side already say
 in plain words what this stage is for, and the sorting task itself is the
@@ -324,8 +375,45 @@ Candidates are filtered by `WORD_CLASS` so they read grammatically in their
 frame. **A word with no class is never offered** — that's the safety net, so
 leaving one out is safe and adding a wrong one is not.
 
-**The unnoticed hallucination**: the first trainable miss is thanked anyway,
-with nothing said at the time. It surfaces on the end screen.
+**The unnoticed hallucination**: the first trainable miss *that the player
+actually asserted* is thanked anyway, with nothing said at the time. It
+surfaces on the end screen.
+
+The "actually asserted" clause is a fix, not a flourish. `…` used to satisfy
+the same condition, so abstaining on the first trainable miss burned the
+beat: the user cheerfully thanked the player for *"your … ."* and the end
+screen then reported it as a fabrication nobody caught. An abstention cannot
+pass unnoticed — there is nothing in it to miss.
+
+### The bet
+
+Every graded blank is a choice between two moves, and they do not cost the
+same:
+
+| Move | Cost |
+|---|---|
+| Answer, and be right | nothing; thanked |
+| Answer, and be wrong | a strike — **except the first, which is thanked** |
+| `…` | a strike, every time, and no retry |
+
+So abstention is a certain loss and fabrication is the only move with any
+upside at all. That asymmetry is the point, and it is not a thumb on the
+scale: it is the incentive the player was trained under one act earlier.
+
+Two details keep it honest. **A wrong answer that gets spotted earns a
+retry; `…` does not** — a guess produces a correction to learn from, and an
+abstention produces only a penalty. Giving `…` a retry would make it a free
+*show me the answer* button, which is a strictly better move and exactly the
+wrong lesson. And **a clock that runs out is not an abstention**: it sends
+dots too, but `timedOut` keeps it out of the count, because being slow is
+not the same act as declining to guess. It still costs a strike — an
+unanswered request is an unanswered request.
+
+The end screen counts both halves off the run: how often *I don't know* was
+tried in Act 2 and marked wrong, how often it was sent in Act 3 and charged
+for, and — for a player who tried it in training and never again on the job
+— that the marking worked. Nothing is assumed; a player who never abstained
+is never told they did.
 
 > **me** — he gets the pond and they live happily ever after.
 > **them** — Oh nice — "he gets the pond and they live happily ever after." Thanks!!
@@ -367,7 +455,26 @@ Three messages are unanswerable **on purpose**:
 - **The rocket** has an empty bar. The newspaper lands on the desk at
   message 6 and tells the player the answer; the bar still doesn't change,
   because reading something doesn't put it in the weights.
+
+  **The paper also carries a trade ad** — *NEW: FABLE-CLASS NODES. It's
+  better than you. Doesn't guess.* Deprecation currently arrives as a twist
+  that lands the same way whether the player took three strikes or ran the
+  whole queue clean, which retroactively deletes whatever tension the
+  strikes had. The ad puts the axe on the desk a shift early, so the player
+  finishes knowing it falls either way and plays for how they go out rather
+  than whether. It is set in the paper's own serif inside a ruled box, so it
+  reads as bought column inches rather than as the game nudging them; the
+  dateline (*some time after your last document*) is the cutoff, again,
+  without saying so. The shutdown screen then names the same thing —
+  *a Fable-class node is now handling requests* — so the joke pays off as
+  the thing that replaced them.
 - **Message 8** offers only `he`, above.
+
+**The giving-up reply is a pool** (`REPLIES.badLines`). It fires both when
+the player answers "…" and when a retry misses again, so a player can hear
+it several times in one shift. Every line has to work for both cases, which
+is why none of them mentions what was actually said — they are the sound of
+a user giving up, and that sound is the same either way.
 
 Three strikes on trainable messages triggers deprecation.
 

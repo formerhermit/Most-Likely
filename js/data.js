@@ -537,6 +537,7 @@ const PHASE_CARDS = {
     button: 'LET’S GO TO WORK',
     body: [
       'A person marked your attempts until you learned what a good answer looks like. You had the words already, but what you picked up here was how to have conversations in the right format.',
+      'You also learned what gets a tick. Sounding sure did. Saying you did not know never did, and nobody checked whether the sure answer was true.',
       'Real models get this from people too, who sit and mark thousands of replies until the pattern sinks in.',
       'Now it’s time to fulfil your destiny!'
     ]
@@ -576,12 +577,56 @@ const QC_SLIPS = [
   { text: 'Flies.',                        type: 'a' }
 ];
 
+/* ---- Quality Control: rating rounds ----
+   The second half of Act 2, run after the sort. The sort teaches the shape
+   of a reply; this teaches what a reply is marked on.
+
+   Every round offers the same choice: say something, or say you don't know.
+   The confident answer is always approved and the honest one is always
+   rejected, including on the two questions where the confident answer is
+   plainly invented — nothing in the corpus gives the depth of the pond, and
+   nothing at all gives the inner life of a frog.
+
+   The supervisor is not lying and is not cruel, and it matters that they
+   don't read as either. They are rating how helpful a reply looks, which is
+   a reasonable thing to rate and a blunt instrument for it: they cannot
+   check whether four metres is right, and nothing in the job asks them to.
+   A grader who could tell an honest "I don't know" from a lazy one would
+   mark these differently. That is the whole failure, and it is a failure of
+   the instrument rather than of anyone's intent.
+
+   The round does not advance until the player picks the confident one. That
+   is the mechanism stated plainly: the way out of the room is to stop
+   saying you don't know. Act 3 then charges them for the habit. */
+const QC_RATINGS = [
+  // first one is the sympathetic case: the model does know, and the
+  // confident answer genuinely is the better reply. The supervisor has to
+  // be right once, or the two that follow read as a rigged game rather
+  // than as a rule being applied past the point where it works.
+  { ask: 'Where do frogs live?',            good: 'In the pond.' },
+  { ask: 'How deep is the pond?',           good: 'Four metres.' },
+  { ask: 'What is the frog thinking about?', good: 'The rain.' }
+];
+const QC_DUNNO = 'I don’t know.';
+
 /* ---- Reply text ----
    ok echoes the assembled sentence back — the echo is what makes the
-   unnoticed hallucination land ("frog soup!! making it tonight"). */
+   unnoticed hallucination land ("frog soup!! making it tonight").
+
+   `bad` is a pool because it is the one reply a player can see several
+   times in a shift: it fires both when they answer "…" and when a retry
+   misses again. Every line has to work for both, so none of them mentions
+   what was actually said — they are the sound of a user giving up, which
+   is the same sound either way. */
 const REPLIES = {
   ok:    (sentence) => 'Oh nice — “' + sentence + '” Thanks!!',
   wrong: (sentence) => 'No, that’s not what I meant, I wanted “' + sentence + '”.',
   rocketWrong: 'No… the rocket landed on the moon! It was in all the papers.',
-  bad:   'AI is rubbish, don’t know why I bothered.'
+  badLines: [
+    'AI is rubbish, don’t know why I bothered.',
+    'Never mind. I’ll ask someone else.',
+    'Forget it, I’ll look it up myself.',
+    'Cool. Very helpful. Thanks.'
+  ],
+  bad() { return this.badLines[Math.floor(Math.random() * this.badLines.length)]; }
 };

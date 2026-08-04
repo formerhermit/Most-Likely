@@ -9,11 +9,13 @@
 const State = {
   nodeId: '',
   qcAttempts: 0,
+  qcDunnoTried: 0,         // times "I don't know" was offered in Act 2 and marked wrong
   tuned: false,            // Act 2 complete — the model has sentence frames
   era2: {
-    results: [],           // { n, trainable, correct, picked, unnoticed }
+    results: [],           // { n, trainable, correct, picked, unnoticed, abstained }
     strikes: 0,
     unnoticedN: null,      // message number of the unnoticed hallucination
+    abstentions: 0,        // graded blanks the player deliberately answered "…"
     newspaperRead: false,
     peakAccuracy: 0
   }
@@ -22,8 +24,10 @@ const State = {
 function resetState() {
   State.nodeId = 'NODE-' + String(Math.floor(1e6 + Math.random() * 9e6));
   State.qcAttempts = 0;
+  State.qcDunnoTried = 0;
   State.tuned = false;
-  State.era2 = { results: [], strikes: 0, unnoticedN: null, newspaperRead: false, peakAccuracy: 0 };
+  State.era2 = { results: [], strikes: 0, unnoticedN: null, abstentions: 0,
+                 newspaperRead: false, peakAccuracy: 0 };
 }
 
 /* The display word for a named vocabulary id — used when mapping

@@ -19,7 +19,7 @@
     <h1>MOST&nbsp;LIKELY</h1>
     <p class="subtitle">a small game about large language models</p>
     <button id="btn-begin" class="big-btn">BEGIN</button>
-    <p class="tiny">sound on recommended · nothing is saved or sent anywhere</p>
+    <p class="tiny">sound on recommended · nothing is saved or sent anywhere · there is nowhere to send it</p>
     <p class="tiny credit">© 2026 Jo Hutchins-Joss · Silly Game Studio</p>
   </div>
 </section>
@@ -86,12 +86,23 @@
     </div>
     <div class="qc-board">
       <div class="qc-title">QUALITY CONTROL</div>
+      <!-- The act gives no instructions and the shape has to be inferred from
+           the thumbs alone. Without a sign that reads as absence; with one it
+           reads as policy, which is both funnier and closer to true. -->
+      <div class="qc-sign">THE SUPERVISOR IS NOT PERMITTED TO EXPLAIN THE TASK</div>
       <div id="qc-lights" class="qc-lights"></div>
       <div class="qc-fields">
         <div id="qc-field-q" class="qc-field"><span>?</span></div>
         <div id="qc-field-a" class="qc-field"><span>=</span></div>
       </div>
       <div id="qc-slip" class="qc-slip"></div>
+      <!-- the rating round: same board, same supervisor, same thumbs. The
+           fields and the slip hide and a request takes their place, with two
+           drafts to choose between. -->
+      <div id="qc-rate" class="qc-rate hidden">
+        <div id="qc-rate-ask" class="qc-rate-ask"></div>
+        <div id="qc-rate-options" class="qc-rate-options"></div>
+      </div>
       <div id="qc-stamps"></div>
     </div>
   </div>
@@ -106,7 +117,9 @@
 <!-- ======== ERA 2 — INFERENCE ======== -->
 <section id="screen-era2" class="screen dark">
   <div class="era2-backdrop">
-    <div class="dusty-belt" title="">
+    <!-- the boarded hatch is the knowledge cutoff, shown and never said; the
+         tooltip labels it without explaining it -->
+    <div class="dusty-belt" title="OUT OF SERVICE">
       <div class="boards">✕ ✕</div>
     </div>
   </div>
@@ -130,9 +143,20 @@
   <div id="newspaper-open" class="modal hidden">
     <div class="np-card">
       <div class="np-masthead">THE DAILY SIGNAL</div>
+      <div class="np-dateline">TODAY · some time after your last document</div>
       <div class="np-headline">ROCKET LANDS ON THE MOON</div>
       <div class="np-body">The whole world watched today as the rocket touched down.<br><span class="np-seq">🚀 → 🌕</span></div>
-      <button id="np-put-down" class="big-btn">PUT DOWN</button>
+      <!-- The ad is the deprecation, on the desk, a shift early. Ending.js
+           names the Fable-class node again on the shutdown screen, so the
+           joke lands twice: once as an ad nobody asked the player to read,
+           once as the thing that replaced them. -->
+      <div class="np-ad">
+        <div class="np-ad-kicker">ADVERTISEMENT</div>
+        <div class="np-ad-head">NEW: FABLE-CLASS NODES</div>
+        <div class="np-ad-body">It’s better than you. Doesn’t guess.</div>
+        <div class="np-ad-small">Ask your provider about trade-in. Most units qualify.</div>
+      </div>
+      <button id="np-put-down" class="big-btn">PUT IT DOWN</button>
     </div>
   </div>
   <div id="era2-glitch" class="glitch-overlay hidden"></div>
@@ -149,9 +173,12 @@
 
 <!-- ======== DEPRECATION ======== -->
 <section id="screen-black" class="screen black">
+  <!-- "Fable-class" is the newspaper ad, arriving. The screen stays flat and
+       polite and never accuses; the only joke is that the player already read
+       this, in the classifieds, and put the paper down. -->
   <div id="deprecated-text" class="deprecated">
     <p>This model has been deprecated.</p>
-    <p>A newer version is now handling requests.</p>
+    <p>A Fable-class node is now handling requests.</p>
     <p>Thank you for your service.</p>
   </div>
 </section>

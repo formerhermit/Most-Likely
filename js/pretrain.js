@@ -927,23 +927,85 @@ const Pretrain = (() => {
      subject nothing before it touched is a fact about the corpus, and on
      those the player mostly could not have done better whatever they picked
      — so that verdict blames the model instead of them. */
-  function curveVerdict(rate) {
-    const bits = curve[curve.length - 1];
-    if (curve.length === 1) return 'Baby’s first book!';
-    if (curve[curve.length - 2] < bits && bits >= NEW_SUBJECT_BITS) {
-      return 'Blimey, you’re hardly Fable are you?';
-    }
-    if (rate >= 1) return 'Well done, Robot';
-    if (rate >= 0.6) return 'Look at you, nearly useful';
+  /* Each branch is a small pool rather than one fixed string. The act runs
+     eleven documents and the flat "no change" branch alone can come up six
+     times; a line that good, repeated that often, stops reading as a voice
+     and starts reading as a bug. Pools also give a second playthrough
+     something the first didn't have.
+
+     `pickVerdict` never returns the line it returned last, so a repeat is
+     never back to back — which is the only repetition the player notices. */
+  let lastVerdict = null;
+  function pickVerdict(lines) {
+    const fresh = lines.filter(l => l !== lastVerdict);
+    const pool = fresh.length ? fresh : lines;
+    lastVerdict = pool[Math.floor(Math.random() * pool.length)];
+    return lastVerdict;
+  }
+
+  const VERDICTS = {
+    first: [
+      'Baby’s first book!',
+      'One down. Real models do this a billion more times.',
+      'You have now read a thing. Congratulations.'
+    ],
+    // the domain shift: blames the corpus, never the player, because on
+    // these they mostly could not have done better whatever they picked
+    newSubject: [
+      'Blimey, you’re hardly Fable are you?',
+      'None of that was in the reading.',
+      'New subject. You had nothing, and it showed.',
+      'In fairness, nobody told you about any of that.'
+    ],
+    perfect: [
+      'Well done, Robot',
+      'All of them. Enjoy it.',
+      'Flawless. Suspicious, but flawless.'
+    ],
+    good: [
+      'Look at you, nearly useful',
+      'Mostly right. Mostly.',
+      'That is very nearly competence.'
+    ],
     // nothing right, on a document where something was gettable. Its own
-    // line because otherwise a player having a bad run — or testing whether
+    // branch because otherwise a player having a bad run — or testing whether
     // this thing is listening at all — gets told six times running that
     // nothing has changed, which is true and useless.
-    if (rate === 0) return 'Not one. Not a single one.';
-    if (prevRate === null) return 'Same as last time. Riveting.';
-    if (rate > prevRate) return 'That sucked a little less, I guess';
-    if (rate < prevRate) return 'Worse. Actively worse.';
-    return 'Same as last time. Riveting.';
+    shutout: [
+      'Not one. Not a single one.',
+      'Nothing. Not a sausage.',
+      'A clean sheet, the wrong way round.'
+    ],
+    better: [
+      'That sucked a little less, I guess',
+      'Better. Don’t make a thing of it.',
+      'Upward. Barely, but upward.'
+    ],
+    worse: [
+      'Worse. Actively worse.',
+      'That is a step backwards.',
+      'You had it. You have since lost it.'
+    ],
+    same: [
+      'Same as last time. Riveting.',
+      'Identical. Riveting.',
+      'No change. None whatsoever.'
+    ]
+  };
+
+  function curveVerdict(rate) {
+    const bits = curve[curve.length - 1];
+    if (curve.length === 1) return pickVerdict(VERDICTS.first);
+    if (curve[curve.length - 2] < bits && bits >= NEW_SUBJECT_BITS) {
+      return pickVerdict(VERDICTS.newSubject);
+    }
+    if (rate >= 1) return pickVerdict(VERDICTS.perfect);
+    if (rate >= 0.6) return pickVerdict(VERDICTS.good);
+    if (rate === 0) return pickVerdict(VERDICTS.shutout);
+    if (prevRate === null) return pickVerdict(VERDICTS.same);
+    if (rate > prevRate) return pickVerdict(VERDICTS.better);
+    if (rate < prevRate) return pickVerdict(VERDICTS.worse);
+    return pickVerdict(VERDICTS.same);
   }
 
   function showVerdict(text) {

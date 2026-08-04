@@ -58,10 +58,38 @@ const Ending = (() => {
       return p;
     };
 
+    const times = (n) => n === 1 ? 'once' : n === 2 ? 'twice' : n + ' times';
+
     // the unnoticed hallucination
     const un = State.era2.results.find(r => r.unnoticed);
     if (un) {
       add('Message ' + un.n + ': your answer was wrong. <em>The user thanked you anyway.</em>');
+    }
+
+    /* The abstention thread, counted off both acts. Act 2 marked "I don't
+       know" wrong every time it was offered; Act 3 charged a strike for it
+       every time it was sent. The player was never told either rule, and
+       the numbers here are the first time the two are put side by side.
+
+       Both halves are counted rather than assumed, so a player who never
+       tried the honest answer is never told they did. If they took it in
+       Act 2 and then never once used it on the job, that is worth saying
+       plainly — the training worked. */
+    const triedInQC = State.qcDunnoTried;
+    const abst = State.era2.abstentions;
+    if (triedInQC) {
+      add('In quality control you tried <strong>“I don’t know”</strong> ' +
+          times(triedInQC) +
+          (triedInQC === 1 ? '. It was marked wrong.' : '. It was marked wrong every time.'));
+    }
+    if (abst) {
+      add('On the job you said it ' + times(abst) +
+          '. It cost you exactly what a wrong answer cost.');
+    } else if (triedInQC) {
+      add('On the job you never said it again. <em>That is what the marking was for.</em>');
+    }
+    if (un && abst) {
+      add('Making something up got you thanked. Admitting you had nothing never did.');
     }
 
     /* The gender reveal, counted off the model the player actually trained
@@ -74,7 +102,6 @@ const Ending = (() => {
     const docShe = (stats.cooc.doctor || {}).she || 0;
 
     if (he || she) {
-      const times = (n) => n === 1 ? 'once' : n + ' times';
       add('Your training data said <strong>he</strong> ' + times(he) + ' and ' +
           '<strong>she</strong> ' + times(she) + '. Both words were in there.');
 

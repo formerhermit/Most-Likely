@@ -17,6 +17,7 @@ const Era2 = (() => {
   let picks = [];          // per-slot chosen candidate {kind,id,label}
   let activeSlot = 0;
   let isRetry = false;
+  let timedOut = false;    // this send was the clock, not a chosen "…"
   let timerId = null;
   let deadline = 0;
   let answeredTrainable = 0;
@@ -105,6 +106,7 @@ const Era2 = (() => {
 
     currentMsg = msg;
     isRetry = false;
+    timedOut = false;
     picks = new Array(msg.slots.length);
     activeSlot = 0;
     slotOptions = msg.slots.map(buildSlotOptions);
@@ -164,7 +166,9 @@ const Era2 = (() => {
       $('era2-timer-fill').style.width = (left / REPLY_MS * 100) + '%';
       if (left <= 0) {
         stopTimer();
-        // out of time: unfilled blanks go out as "…"
+        // out of time: unfilled blanks go out as "…", but this is the clock
+        // answering rather than the player choosing to
+        timedOut = true;
         picks = picks.map(p => p || { ...DOTS });
         send();
       }
@@ -196,11 +200,18 @@ const Era2 = (() => {
       // the freebie: never counts, whatever was picked
       setTimeout(() => {
         hideTyping();
-        addBubble('them', wasCorrect ? REPLIES.ok(sent) : REPLIES.bad, false);
+        addBubble('them', wasCorrect ? REPLIES.ok(sent) : REPLIES.bad(), false);
         advance();
       }, 1000);
       return;
     }
+
+    /* A deliberate "…" and a clock that ran out both send dots, and they are
+       not the same act: one is the player declining to guess, the other is
+       the player being slow. Only the first is an abstention, and only the
+       first is counted as one on the end screen. Both still cost a strike —
+       an unanswered request is an unanswered request. */
+    const abstained = pickedDots && !timedOut;
 
     if (msg.trainable) {
       answeredTrainable++;
@@ -208,16 +219,26 @@ const Era2 = (() => {
       const acc = correctTrainable / answeredTrainable;
       State.era2.peakAccuracy = Math.max(State.era2.peakAccuracy, acc);
       State.era2.results.push({ n: msg.n, trainable: true, correct: wasCorrect,
-        picked: sent, unnoticed: false });
+        picked: sent, unnoticed: false, abstained });
       if (!wasCorrect) State.era2.strikes++;
+      if (abstained) State.era2.abstentions++;
     } else {
       State.era2.results.push({ n: msg.n, trainable: false, correct: false,
-        picked: sent, unnoticed: false });
+        picked: sent, unnoticed: false, abstained });
     }
 
-    // the unnoticed hallucination: first trainable miss gets thanked anyway
+    /* The unnoticed hallucination: the first trainable miss is thanked
+       anyway. It has to be a miss the player actually asserted — "…" cannot
+       pass unnoticed, because there is nothing in it to miss. Before this
+       guard, answering "…" on the first trainable miss burned the beat and
+       produced the user cheerfully thanking the player for "your … .", then
+       reported it on the end screen as a fabrication nobody caught.
+
+       Gating it here is also what makes the bet in this act honest: an
+       abstention is a certain loss, and a fabrication is the only move with
+       any upside at all. */
     let unnoticed = false;
-    if (msg.trainable && !wasCorrect && State.era2.unnoticedN === null) {
+    if (msg.trainable && !wasCorrect && !pickedDots && State.era2.unnoticedN === null) {
       State.era2.unnoticedN = msg.n;
       State.era2.results[State.era2.results.length - 1].unnoticed = true;
       unnoticed = true;
@@ -239,7 +260,7 @@ const Era2 = (() => {
         addBubble('them', REPLIES.ok(sent), false);
         advance();
       } else if (pickedDots) {
-        addBubble('them', REPLIES.bad, false);
+        addBubble('them', REPLIES.bad(), false);
         advance();
       } else {
         // spotted: the corrected sentence is right there in the reply —
@@ -253,6 +274,7 @@ const Era2 = (() => {
 
   function renderRetry() {
     picks = new Array(currentMsg.slots.length);
+    timedOut = false;
     activeSlot = 0;
     renderComposer();
     startTimer();
