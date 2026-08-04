@@ -26,6 +26,21 @@ const Era2 = (() => {
   const $ = (id) => document.getElementById(id);
   const DOTS = { word: null, label: '…', wt: 0, fleet: 0 };
 
+  /* One slot per blank, explicitly empty. The `.fill(null)` is load-bearing
+     and this froze the game without it: `new Array(n)` is *sparse*, and
+     `every()` and `map()` both skip holes rather than visiting them as
+     undefined. So `picks.every(p => p)` came back true on a reply where
+     nothing had been picked, which enabled SEND before the player chose
+     anything and let the clock's `picks.map(p => p || DOTS)` leave its holes
+     exactly as they were. `send()` then read `.word` off one and threw —
+     after it had already drawn the player's bubble and started the typing
+     indicator, so the reply was never scheduled and the dots ran forever.
+
+     Switching tabs hit this every time: the reply clock is measured against
+     performance.now(), so it expires while the tab is in the background and
+     fires the moment it comes back, with every blank still empty. */
+  function newPicks(n) { return new Array(n).fill(null); }
+
   function start() {
     // a reply timer from a previous run would otherwise keep ticking and
     // fire send() underneath this one — two messages in flight at once
@@ -107,7 +122,7 @@ const Era2 = (() => {
     currentMsg = msg;
     isRetry = false;
     timedOut = false;
-    picks = new Array(msg.slots.length);
+    picks = newPicks(msg.slots.length);
     activeSlot = 0;
     slotOptions = msg.slots.map(buildSlotOptions);
     addBubble('them', msg.line, false);
@@ -273,7 +288,7 @@ const Era2 = (() => {
   }
 
   function renderRetry() {
-    picks = new Array(currentMsg.slots.length);
+    picks = newPicks(currentMsg.slots.length);
     timedOut = false;
     activeSlot = 0;
     renderComposer();
