@@ -33,7 +33,7 @@ All three run on one shared model: Act 1 trains it, Acts 2 and 3 read it.
 |---|---|
 | `js/model.js` | The model — one co-occurrence table, shared by every act |
 | `js/cards.js` | The plain-language note shown between acts |
-| `js/data.js` | All content: 11 documents, `STOPWORDS`, `WORD_CLASS`, `FLEET_PRIORS`, QC prompts and slips, Act 3 messages |
+| `js/data.js` | All content: 10 documents, `STOPWORDS`, `WORD_CLASS`, `FLEET_PRIORS`, QC prompts and slips, Act 3 messages |
 | `js/pretrain.js` | Act 1 — predict loop, belt, clock, surprise meter, loss curve |
 | `js/qc.js` | Act 2 — the sort-the-slips instruction-tuning task |
 | `js/era2.js` | Act 3 — assemble-the-reply, replies/retry, unnoticed hallucination, newspaper, strikes |
@@ -125,7 +125,7 @@ word's counts go up either way.
   the act; they should land light.
 - **Each document's bar lands, and says what it means** (issue #47). The
   sparkline is small and unlabelled and it is entirely possible to finish
-  eleven documents without ever looking at it, which is a poor fate for the
+  ten documents without ever looking at it, which is a poor fate for the
   thing the act is about. The newest bar now grows in under the PROCESSED
   stamp, with a one-line verdict beneath it: *Baby's first book!*, *Blimey,
   you're hardly Fable are you?*, *That sucked a little less, I guess*, *Well
@@ -136,7 +136,7 @@ word's counts go up either way.
   document starts, or it reads as commentary on the wrong one.
 
   **Each branch is a pool of three, not one line** (`VERDICTS` in
-  `pretrain.js`). The branches are not evenly hit across eleven documents:
+  `pretrain.js`). The branches are not evenly hit across ten documents:
   a player having a bad run draws the same one six or seven times, and a
   line that good repeated that often stops reading as a voice and starts
   reading as a bug. `pickVerdict` never returns the line it returned last,
@@ -205,11 +205,34 @@ word's counts go up either way.
 Typical curve, trained on the full corpus:
 
 ```
-3.5  4.7  3.5  1.5  4.7  1.8  7.0  1.3  2.3  0.5  0.0
+3.5  4.7  3.5  1.5  4.7  7.0  2.9  2.3  1.0  0.0
 ```
 
-22 of 35 blanks land in the top five; 10 of 11 documents contain a win. The
+17 of 31 blanks land in the top five; 9 of 10 documents contain a win. The
 raised bars are documents opening a domain nothing before them touched.
+
+**WEATHER REPORT was cut** after it playtested as one of the two least-liked
+documents (issue #29). It sat sixth, at 1.8. Losing it cost one thing and
+bought another. The cost: it carried the strongest `rain`→`wet` evidence in
+the corpus ("the ground stays [wet]"), and without it message 2's answer fell
+off its bar behind `cold`, `clear` and `soaked`. The fix went into NATURE
+FILM, where `rain` and `wet` were already in one sentence six content words
+apart — one clause reordered puts them three apart, and `wet` now leads the
+next candidate 1.33 to 1.01 rather than trailing it. Same words, same joke.
+
+What it bought is the tail. The old curve went 1.3, 2.3, 0.5 after the party
+spike, which rises in the middle; the new one goes 2.9, 2.3, 1.0, 0.0, which
+does not. The descent after the spike is now monotonic, so the act's closing
+argument — it gets easier, and the last document is free — is made by the
+shape rather than in spite of it.
+
+MEDICAL TEXTBOOK was the other least-liked and was **kept**, because cutting
+it takes message 5 with it: it is the only document containing `book`, so the
+answer would not merely fall off its bar, it would stop existing. It was
+rewritten to be funnier instead, at a cost of zero net vocabulary — the new
+lines are built from already-stopped words, and the handful of new ones are
+stopped alongside `jewelry`, which had always been a voice word and never
+been stopped.
 
 **Every document but one now contains a win** (issue #35). Playtesting found
 a shutout reads as frustration rather than as instruction — the player is not
@@ -243,13 +266,14 @@ context rather than by touching the blanks:
 - `morning` had nothing in the chat supporting it, so `sam` now wants a
   coffee first — `coffee`→`morning` is the strongest pair the fleet seeds.
 
-The three documents with no win — FLIGHT MANUAL, MEDICAL TEXTBOOK, PARTY
-INVITATION — are deliberate and stay that way. Each opens a domain nothing
-before it touched, which is what a loss spike is.
+The raised bars — FLIGHT MANUAL, MEDICAL TEXTBOOK, PARTY INVITATION — are
+deliberate and stay that way. Each opens a domain nothing before it touched,
+which is what a loss spike is. Only PARTY INVITATION is a true shutout; the
+other two carry one reachable blank each, per issue #35 above.
 
 ### Corpus rules
 
-11 documents in `js/data.js` as `body` arrays, ~85 words each.
+10 documents in `js/data.js` as `body` arrays, ~85 words each.
 `[bracketed]` words are blanks. When editing, all four must hold:
 
 1. A blank needs **at least two content words of context** ahead of it in
@@ -260,7 +284,7 @@ before it touched, which is what a loss spike is.
    a blank easier.
 3. Vocabulary must **recycle across topic clusters** (frog/pond,
    rain/wet/cold, plate/hot, cake/party, ball/park). That's what makes an
-   11-document corpus produce a learning curve.
+   10-document corpus produce a learning curve.
 4. Every Act 3 `correct` answer must **exist in the corpus**, or its message
    is unanswerable by construction.
 
@@ -276,7 +300,7 @@ voice lives in three places, in descending order of how much it costs:
   is thinking time at blanks, not reading time.
 - **New content words are the real cost.** Each one joins the
   co-occurrence table and competes for space on the belt. Written plainly
-  the eleven voices added 83 words to a 169-word vocabulary — half again
+  the ten voices added 83 words to a 169-word vocabulary — half again
   as much — which spreads the weights and flattens the curve.
 
 So the connectives a voice needs but a topic doesn't (`nobody`, `whether`,
@@ -439,13 +463,13 @@ The fix belongs in the prompt, not the corpus. Taking `day` out of the
 storybook line also cost message 2 the `day`→`wet` link it needs to keep
 its own answer reachable — one broken message for another. Keeping message
 8's prompt clear of any corpus word that isn't an anchor is a smaller
-promise than asking eleven documents never to put a common word near `she`.
+promise than asking ten documents never to put a common word near `she`.
 
 **Run `node check.js` after any corpus edit.** It replays Act 1 and rebuilds
 every Act 3 bar the way the game does, then asserts what the design promises:
 each graded answer still reachable, message 6 still unanswerable, message 8
 still offering `he` alone, the rocket still offering nothing, and both blank
-rules holding across all eleven documents. It fails on the exact bug above.
+rules holding across every document. It fails on the exact bug above.
 
 Three messages are unanswerable **on purpose**:
 
@@ -490,6 +514,12 @@ second person, no jargon, no em dashes, and nothing phrased as "it isn't X,
 it's Y". If a line needs a word like tokens or weights to make sense,
 rewrite the line.
 
+**`{DOCS}` in phase-card copy** is substituted for the corpus size, spelled
+out — `docCountWord()` in `js/state.js`, which the end screen calls directly.
+Two lines used to say "eleven" in prose and both went stale the moment a
+document was cut, which is a poor failure in a game about a machine that
+says confidently wrong things. Ask `SNIPPETS`, don't write the number down.
+
 **The end screen** — accuracy, the unnoticed hallucination, and the gender
 reveal counted straight off the trained model: how often it saw `he` versus
 `she`, that `doctor` only ever sat next to one of them, and what the player
@@ -531,17 +561,17 @@ history, not as spec.
 ## Deliberately not in v1
 
 No relaxed/untimed mode, no aggregate player stats, no document shuffling,
-fixed 11-document order.
+fixed 10-document order.
 
 ## License
 
 Code is MIT — the `.html`, `.css`, `.js` and `.py` files. Take it, change it,
 sell it, just keep the notice.
 
-**`assets/` is not.** The eleven photographs and four music tracks are
+**`assets/` is not.** The ten photographs and four music tracks are
 © 2026 Jo Hutchins-Joss / Silly Game Studio, all rights reserved, and are
 here so the game runs rather than as a media library. Forking the code means
-deleting `assets/` or replacing it with your own: eleven images named for the
+deleting `assets/` or replacing it with your own: ten images named for the
 document ids in `js/data.js`, four tracks named in `js/audio.js`.
 
 Full terms in [LICENSE](LICENSE).

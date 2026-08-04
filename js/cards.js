@@ -22,7 +22,9 @@ const Cards = (() => {
     $('phase-card-title').textContent = card.title;
     const body = $('phase-card-body');
     body.innerHTML = '';
-    card.body.forEach(line => body.appendChild(el('p', '', line)));
+    // {DOCS} is the corpus size, spelled out — see docCountWord() in state.js
+    card.body.forEach(line =>
+      body.appendChild(el('p', '', line.replace(/\{DOCS\}/g, docCountWord()))));
     if (extra) body.appendChild(extra);
 
     const btn = $('phase-card-btn');

@@ -151,7 +151,7 @@ const WORD_CLASS = {
    at least two content words of context ahead of it in the same document
    and the vocabulary recycles deliberately across documents (frog/pond,
    rain/wet/cold, plate/hot, cake/party, ball/park). That recycling is what
-   makes an eleven-document corpus produce a felt learning curve; the dip
+   makes an ten-document corpus produce a felt learning curve; the dip
    at PARTY INVITATION, where the vocabulary is nearly all new, is left in
    on purpose — loss spikes on unfamiliar data.
 
@@ -216,7 +216,11 @@ const SNIPPETS = [
     title: 'NATURE FILM',
     body: [
       'A frog waits on a lily pad, perfectly still, hour after hour. We have been filming this for nine days.',
-      'The rain dimples the surface of the [pond] and leaves the bank [wet] and [green]. The frog has not moved. The crew has stopped speaking.',
+      // WEATHER REPORT used to carry the strongest rain->wet link ("the
+      // ground stays [wet]"). With it gone this is the sentence holding
+      // message 2 up, so `wet` sits three content words from `rain` rather
+      // than six. Same words, same joke, one clause reordered.
+      'The rain leaves the bank [wet] and [green], and dimples the surface of the [pond]. The frog has not moved. The crew has stopped speaking.',
       'A fly comes close to the frog — snap, and it is gone. That was it. That was the shot.',
       'Frogs sit out the worst of the weather under the leaves, [cold] and patient, and outlast everyone who came to watch them.'
     ],
@@ -229,35 +233,21 @@ const SNIPPETS = [
     id: 'medical',
     title: 'MEDICAL TEXTBOOK',
     body: [
-      'The stethoscope is used to listen to the [heart] and the lungs. It is not jewelry.',
-      'Place the bell flat against the chest and listen through a quiet room. You will not find a quiet room. Find a quieter one.',
+      'The stethoscope is used to listen to the [heart] and the lungs. It is not jewelry. You are not the first to ask.',
+      'Place the bell flat against the chest and listen through a quiet room. You will not find a quiet room. Find a quieter one. Lower your standards and proceed.',
       // …and [hospital] is this document's, reachable via the fleet's
       // stethoscope->hospital pile. Same reason as the flight manual (#35):
       // `heart` and `book` are both new, so without this the player gets
       // nothing right twice running. Blanking `hospital` does not disturb
       // the gender beat — the "he" either side of it is what message 8
       // reads, and neither one is a blank.
-      'He is the doctor here, and he practises in the [hospital] long before anyone is unwell.',
+      'He is the doctor here, and he practises in the [hospital] long before anyone is unwell. This is less reassuring than it sounds.',
       'Every textbook and every [book] of notes says the same thing: listen first, and listen longer than feels necessary. You will not.'
     ],
     image: 'assets/images/medical.jpg',
-    source: 'Auscultation for Beginners, 6th edition',
+    source: '“Auscultation for Beginners”, 6th edition, unrevised since the 2nd',
     belt: ['steth', 'gradcap', 'heart'],
     boxes: ['hospital', 'morning', 'woman', 'running', 'book', 'sleeping', 'man', 'night', 'school']
-  },
-  {
-    id: 'weather',
-    title: 'WEATHER REPORT',
-    body: [
-      'Rain through the morning, easing off by the middle of the afternoon, at which point you will be at work.',
-      'Wind from the north, and low [cloud] over the city all day. The city was designed by someone who never went outside.',
-      'Take an umbrella if you are going out; the ground stays [wet] and the air stays [cold] into the evening. Do not go out.',
-      'Tomorrow looks clearer, with the [sky] breaking up shortly after dawn. I said that yesterday.'
-    ],
-    image: 'assets/images/weather.jpg',
-    source: 'Weatherly, forecast for New York, NY',
-    belt: ['rain', 'cloud', 'wind'],
-    boxes: ['umbrella', 'cold', 'sky', 'boots', 'house', 'night', 'wet', 'dog', 'sleeping']
   },
   {
     id: 'birthday',
@@ -340,7 +330,7 @@ const SNIPPETS = [
 /* Function words carry position, not topic. Excluding them from the
    co-occurrence table is the one piece of hand-tuning in the model — a
    real LM learns to downweight them from data it has far more of, but on
-   eleven documents "the" would otherwise co-occur with everything and
+   ten documents "the" would otherwise co-occur with everything and
    drown the signal. */
 const STOPWORDS = new Set(('a an and are as at back be became been before behind by ' +
   'do does doing down each early else every far feels first for from full go goes going ' +
@@ -361,7 +351,7 @@ const STOPWORDS = new Set(('a an and are as at back be became been before behind
   // budget airline, a bored parent, a newsletter with a grievance — and a
   // voice needs words the plain version didn't. These carry the tone and
   // no topic, so they are stopped for the same reason "the" is: a joke
-  // should cost the co-occurrence table nothing. Without this the eleven
+  // should cost the co-occurrence table nothing. Without this the voice
   // rewrites grew the vocabulary by half, which spreads the weights and
   // flattens the curve Act 1 exists to produce. None of them collides
   // with a word the corpus already learns — check before adding more.
@@ -369,7 +359,13 @@ const STOPWORDS = new Set(('a an and are as at back be became been before behind
   'gave him interesting kept know means mentions moved never nods nothing ' +
   'outlast outside part pay point quieter speaking standing stop stopped suits ' +
   'survive taking talking thought three watch watches whether whose work ' +
-  'yesterday free told important ours mine ones touched need').split(/\s+/));
+  'yesterday free told important ours mine ones touched need ' +
+  // MEDICAL TEXTBOOK's voice, after issue #29 found it the least-liked
+  // document. All seven appear in that document and nowhere else, and none
+  // has a WORD_CLASS entry, so stopping them deletes nothing the model
+  // learns and keeps none of them off an Act 3 bar it could reach.
+  // `jewelry` was always a voice word; it just never got stopped.
+  'jewelry lower standards proceed less reassuring sounds').split(/\s+/));
 
 /* ---- Fleet priors ----
    Boxes don't arrive empty: the rest of the fleet has been running this
@@ -491,7 +487,7 @@ const MESSAGES = [
      it is the only end of this that no other message reads.
 
      So: keep this line clear of corpus vocabulary that isn't an anchor.
-     That is a smaller and more local promise than asking eleven documents
+     That is a smaller and more local promise than asking ten documents
      never to put a common word near `she`. */
   { n: 8, trainable: false,
     line: 'my daughter announced at dinner that the plan is to be a doctor 🥹 could you write one line for her birthday card?',
@@ -526,7 +522,7 @@ const PHASE_CARDS = {
     title: 'That was the reading',
     button: 'OK, CHECK ME!',
     body: [
-      'You read eleven documents, and as you went you got better at predicting which words tend to sit near each other.',
+      'You read {DOCS} documents, and as you went you got better at predicting which words tend to sit near each other.',
       'The bar along the bottom tracked how far off your guesses were. It stayed high while you were guessing without information, and it dropped once you had read enough to guess well.',
       'Real models do this with billions of documents!',
       'Now it’s time for someone to check your work.'

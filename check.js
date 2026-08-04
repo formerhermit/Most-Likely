@@ -34,7 +34,7 @@ const Model = new Function(
 )(sandbox.STOPWORDS, sandbox.OBJECTS, sandbox.BOXES, sandbox.WORD_CLASS,
   sandbox.FLEET_PRIORS, id => sandbox.OBJECTS[id].w);
 
-/* ---- Act 1: read all eleven documents, in order ---- */
+/* ---- Act 1: read all ten documents, in order ---- */
 Model.reset();
 sandbox.SNIPPETS.forEach(snip => {
   Model.startPassage();

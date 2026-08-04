@@ -51,6 +51,18 @@ function el(tag, cls, text) {
   return n;
 }
 
+/* How many documents the player read, spelled out. Player-facing copy in two
+   places used to say "eleven" in prose, which went stale the moment a
+   document was cut from the corpus — and stale by being confidently wrong to
+   the player, in an act about a machine that says confidently wrong things.
+   Both now ask the corpus. Cards.show() substitutes {DOCS} for this. */
+const NUMBER_WORDS = ['zero', 'one', 'two', 'three', 'four', 'five', 'six',
+  'seven', 'eight', 'nine', 'ten', 'eleven', 'twelve', 'thirteen', 'fourteen'];
+function docCountWord() {
+  const n = SNIPPETS.length;
+  return NUMBER_WORDS[n] || String(n);
+}
+
 function shuffle(arr) {
   const a = arr.slice();
   for (let i = a.length - 1; i > 0; i--) {

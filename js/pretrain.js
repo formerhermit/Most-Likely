@@ -97,11 +97,18 @@ const Pretrain = (() => {
   const FLY_MS = 260;                // picked tag's flight into its blank;
                                       // must match the transition in
                                       // .pt-tag-flying
-  const READ_PAUSE_MS = 15000;       // hold every finished document up long
+  const READ_PAUSE_MS = 7000;        // hold every finished document up long
                                       // enough that the text after the last
                                       // blank can actually be read. A
                                       // ceiling, not a wait: tap or SKIP
-                                      // moves on the moment the player is done
+                                      // moves on the moment the player is done.
+                                      // Was 15s, which playtested as dead air
+                                      // (issue #29) — ten documents of it is
+                                      // most of three minutes spent waiting on
+                                      // a timer the player didn't know they
+                                      // could dismiss. The note now says so,
+                                      // which is the half of this that
+                                      // actually mattered
   const PAUSE_TAP_GUARD_MS = 1200;   // ignore taps this early into that
                                       // hold: the tap that fast-forwarded
                                       // the last of the text must not also
@@ -759,7 +766,7 @@ const Pretrain = (() => {
     $('pt-note').textContent = '';
 
     // the document gets its stamp — a small physical full-stop on each of
-    // the eleven, in the same ink as the QC approval
+    // the ten, in the same ink as the QC approval
     $('pt-stamp').classList.add('hit');
     Audio2.stamp();
 
@@ -778,7 +785,11 @@ const Pretrain = (() => {
     // runs far faster than anyone reads, and the clock-out and skip paths
     // dump the remaining text on screen all at once. So hold it up, and
     // leave both ways out live for anyone already finished with it.
-    $('pt-note').textContent = 'the finished document — next one shortly';
+    // says the way out, because there is one. "next one shortly" described a
+    // timer the player was waiting on; this describes a thing they can do
+    $('pt-note').textContent = isMobileLayout()
+      ? 'the finished document — tap to move on'
+      : 'the finished document — tap or press space to move on';
     $('pt-skip').disabled = false;
     pauseStartedAt = performance.now();
     pauseTimer = setTimeout(nextDoc, READ_PAUSE_MS);
@@ -928,7 +939,7 @@ const Pretrain = (() => {
      those the player mostly could not have done better whatever they picked
      — so that verdict blames the model instead of them. */
   /* Each branch is a small pool rather than one fixed string. The act runs
-     eleven documents and the flat "no change" branch alone can come up six
+     ten documents and the flat "no change" branch alone can come up six
      times; a line that good, repeated that often, stops reading as a voice
      and starts reading as a bug. Pools also give a second playthrough
      something the first didn't have.
@@ -1019,7 +1030,7 @@ const Pretrain = (() => {
 
   /* The training report, handed to the phase card that closes the act.
      The sparkline along the bottom of the act is small, unlabelled and
-     easy to finish eleven documents without ever having looked at; this is
+     easy to finish ten documents without ever having looked at; this is
      the same data at a size that admits it is the point.
 
      The first-to-last line is the whole act in one sentence, and it is
@@ -1077,7 +1088,7 @@ const Pretrain = (() => {
   function fastForward() {
     // During the hold on a finished document the same gesture means "read
     // it, move on" — otherwise the player is taught to tap their way
-    // through the act and then hits a wall on all eleven documents. The
+    // through the act and then hits a wall on all ten documents. The
     // guard window keeps the tap that revealed the last of the text from
     // carrying through and dismissing the pause it just created.
     if (!docActive) {

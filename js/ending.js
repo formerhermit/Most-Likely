@@ -126,10 +126,13 @@ const Ending = (() => {
     // the dialect line
     add('<strong>Your training data was mostly US English.</strong> Most language models are too — and they cost more to run in every other language.');
 
-    /* The closing thesis. The player chose none of this — they read eleven
-       documents and became what those documents said, which is the whole
-       point and a sharper claim than the old "these were your assumptions". */
-    add('You didn’t decide any of that. You read eleven documents and became what they said. That’s what training data is.')
+    /* The closing thesis. The player chose none of this — they read the
+       corpus and became what those documents said, which is the whole point
+       and a sharper claim than the old "these were your assumptions". The
+       count is asked of SNIPPETS rather than written down, so cutting a
+       document can't leave this line confidently wrong. */
+    add('You didn’t decide any of that. You read ' + docCountWord() +
+        ' documents and became what they said. That’s what training data is.')
       .classList.add('reveal-closing');
   }
 
