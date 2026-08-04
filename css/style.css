@@ -730,12 +730,26 @@ button { font-family: inherit; cursor: pointer; }
   font-family: var(--mono); font-size: 12px;
   min-width: 62px; opacity: 0.75;
 }
-/* the vocabulary ticking up as the model reads — machines love counters */
+/* the vocabulary ticking up as the model reads — machines love counters.
+   Promoted from a 11px/0.55-opacity aside after playtesters read straight
+   past it (issue #55): it is the only thing on screen saying the model is
+   acquiring something. The number leads, and bumps when it changes. */
 .pt-vocab {
-  font-family: var(--mono); font-size: 11px;
-  letter-spacing: 0.08em; opacity: 0.55; white-space: nowrap;
+  font-family: var(--mono); font-size: 12px;
+  letter-spacing: 0.08em; opacity: 0.8; white-space: nowrap;
 }
-#pt-vocab-n { color: var(--accent); font-weight: 700; }
+#pt-vocab-n {
+  color: var(--accent);
+  font-weight: 700;
+  font-size: 17px;
+  display: inline-block;
+}
+#pt-vocab-n.bump { animation: vocabbump 0.42s cubic-bezier(0.3, 1.6, 0.5, 1); }
+@keyframes vocabbump {
+  0%   { transform: scale(1); }
+  35%  { transform: scale(1.45); color: var(--accent-2); }
+  100% { transform: scale(1); }
+}
 
 /* ---- the conveyor ---- */
 #pt-belt-wrap {
@@ -970,6 +984,63 @@ button { font-family: inherit; cursor: pointer; }
 }
 .pt-stamp.hit { animation: stamphit 0.35s ease-in forwards; }
 
+/* The verdict, written across the foot of the document it is about. It sat
+   beside the sparkline before, at 12px, at the very bottom of the screen —
+   the funniest thing in the act, in the one place nobody was looking
+   (issue #55). Here it lands under the PROCESSED stamp, on the card the
+   player is already reading through the hold.
+
+   The paper fade behind it is load-bearing: the document text runs to the
+   bottom of the card, and without it a long verdict sits illegibly on top
+   of the last line of prose. */
+.pt-verdict {
+  width: min(960px, 94vw);
+  /* holds its line whether or not it is speaking, so the sparkline below
+     doesn't jump every time a document ends */
+  min-height: 26px;
+  margin-top: 10px;
+  padding: 0 6px;
+  text-align: right;
+  font-family: var(--mono);
+  font-size: 19px;
+  letter-spacing: 0.01em;
+  color: var(--accent);
+  pointer-events: none;
+  opacity: 0;
+  transform: translateY(6px);
+}
+.pt-verdict.show {
+  opacity: 1;
+  transform: none;
+  transition: opacity 0.3s ease-out 0.2s, transform 0.3s ease-out 0.2s;
+}
+/* On a phone the document card is taller than the viewport, so the foot of
+   the card — and the verdict sitting in it — is below the fold and misses
+   the player all over again. Pin it to the bottom of the screen instead,
+   where it cannot be scrolled away from, and give the card its normal
+   padding back since nothing is reserving space in it any more. */
+/* At phone width the document card is taller than the viewport, and
+   `.screen` is overflow:hidden — so the foot of the card is not merely below
+   the fold, it is clipped and unreachable. Pin the verdict to the bottom of
+   the screen instead, where it cannot be scrolled or clipped away. Out of
+   flow here, so it reserves no line. */
+@media (max-width: 620px) {
+  .pt-verdict {
+    position: fixed;
+    left: 0; right: 0; bottom: 0;
+    z-index: 20;
+    width: auto;
+    min-height: 0;
+    margin-top: 0;
+    font-size: 15px;
+    text-align: center;
+    padding: 12px 14px;
+    background: var(--paper);
+    border-top: 1px solid rgba(138, 98, 66, 0.25);
+    box-shadow: 0 -8px 22px rgba(0,0,0,0.12);
+  }
+}
+
 /* a little paper ticket for milestones (first correct, streaks) */
 .pt-ticket {
   position: absolute;
@@ -1032,23 +1103,6 @@ button { font-family: inherit; cursor: pointer; }
 .pt-curve-bar.done {
   background: linear-gradient(180deg, var(--accent), var(--accent-2));
   transition: height 0.45s cubic-bezier(0.2, 0.9, 0.3, 1);
-}
-
-/* the one-line read on the bar that just landed (#47). Holds its own line
-   height so the chart never shifts up and down as it comes and goes. */
-.pt-curve-verdict {
-  min-height: 17px;
-  font-family: var(--mono); font-size: 12px;
-  letter-spacing: 0.02em;
-  text-align: center;
-  color: var(--accent);
-  opacity: 0;
-  transform: translateY(-3px);
-}
-.pt-curve-verdict.show {
-  opacity: 0.9;
-  transform: none;
-  transition: opacity 0.35s ease-out 0.25s, transform 0.35s ease-out 0.25s;
 }
 
 /* ---- the training report, inside the phase card that closes Act 1 ---- */

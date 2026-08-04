@@ -35,7 +35,7 @@
 <section id="screen-pretrain" class="screen">
   <div class="pt-top">
     <span id="pt-doc-label" class="round-label"></span>
-    <span class="pt-vocab">words known <span id="pt-vocab-n">0</span></span>
+    <span class="pt-vocab"><span id="pt-vocab-n">0</span> words known</span>
     <div class="pt-top-spacer"></div>
     <div class="pt-meter">
       <span class="pt-meter-label">HOW FAR OFF</span>
@@ -68,12 +68,21 @@
     <div id="pt-text" class="pt-text"></div>
     <div id="pt-stamp" class="pt-stamp" aria-hidden="true">PROCESSED</div>
   </div>
+  <!-- The verdict on the bar that just landed. It used to sit beside the
+       sparkline at 12px, where playtesters never saw it (issue #55); it now
+       sits directly under the document it is about.
+
+       It is a sibling of .pt-stage rather than a child on purpose. The card
+       carries transform: rotate(-0.25deg), and a transformed ancestor becomes
+       the containing block for position:fixed descendants — inside the card
+       the phone-width banner anchored to the card's bottom edge and rendered
+       off-screen entirely. -->
+  <div id="pt-verdict" class="pt-verdict" aria-live="polite"></div>
   <div id="pt-ticket" class="pt-ticket" aria-hidden="true"></div>
 
   <div class="pt-curve-wrap">
     <span class="pt-curve-label">how far off, per document</span>
     <div id="pt-curve" class="pt-curve"></div>
-    <span id="pt-curve-verdict" class="pt-curve-verdict" aria-live="polite"></span>
   </div>
 </section>
 

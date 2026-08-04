@@ -183,7 +183,7 @@ const Pretrain = (() => {
     prevRate = null;
     firstCorrect = false;
     resolving = false;
-    const verdictEl = $('pt-curve-verdict');
+    const verdictEl = $('pt-verdict');
     if (verdictEl) { verdictEl.textContent = ''; verdictEl.classList.remove('show'); }
     // a restart mid-run must not inherit the old run's machinery: the
     // previous document's clock interval would keep ticking against the
@@ -192,6 +192,7 @@ const Pretrain = (() => {
     awaiting = false;
     released = false;
     pendingList = null;
+    lastVocabN = -1;        // so a restart's opening count isn't a "bump"
     if (clockId) { clearInterval(clockId); clockId = null; }
     if (revealTimer) { clearTimeout(revealTimer); revealTimer = null; }
     if (pauseTimer) { clearTimeout(pauseTimer); pauseTimer = null; }
@@ -225,7 +226,7 @@ const Pretrain = (() => {
     // the verdict belongs to the bar that just landed, so it goes when the
     // next document arrives — left up, it reads as a running commentary on
     // the document the player is now part-way through
-    const verdictEl = $('pt-curve-verdict');
+    const verdictEl = $('pt-verdict');
     if (verdictEl) verdictEl.classList.remove('show');
 
     const text = $('pt-text');
@@ -856,9 +857,29 @@ const Pretrain = (() => {
   /* The vocabulary counter ticks up live as the model reads. It starts
      above zero: the fleet's seed pairs are words this node already knows
      before its first document, which is honest. */
+  /* The counter is the act's quietest explainer and the one a player who
+     skimmed the intro card most needs (issue #55): it is the only thing on
+     screen saying the model is *acquiring* something rather than just being
+     marked. So it bumps when it changes. Motion is what gets noticed —
+     making the number bigger alone did not, because nothing drew the eye to
+     it at the moment it meant something.
+
+     Guarded on the value actually changing: updateVocab() runs after every
+     word read, and re-triggering the animation on every one would leave it
+     permanently mid-bump, which reads as a flicker rather than as an event. */
+  let lastVocabN = -1;
   function updateVocab() {
     const n = $('pt-vocab-n');
-    if (n) n.textContent = Object.keys(Model.stats().freq).length;
+    if (!n) return;
+    const v = Object.keys(Model.stats().freq).length;
+    if (v === lastVocabN) return;
+    const first = lastVocabN === -1;
+    lastVocabN = v;
+    n.textContent = v;
+    if (first) return;      // the fleet's seed words aren't a thing that just happened
+    n.classList.remove('bump');
+    void n.offsetWidth;
+    n.classList.add('bump');
   }
 
   /* Plain-language reading of the surprisal score — "2.3 bits" is exactly
@@ -1043,7 +1064,7 @@ const Pretrain = (() => {
   }
 
   function showVerdict(text) {
-    const v = $('pt-curve-verdict');
+    const v = $('pt-verdict');
     if (!v) return;
     v.textContent = text;
     v.classList.remove('show');

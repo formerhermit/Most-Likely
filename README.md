@@ -135,6 +135,26 @@ word's counts go up either way.
   only ever mocks the score, never the person. It clears when the next
   document starts, or it reads as commentary on the wrong one.
 
+  **It sits under the document, not under the sparkline** (issue #55). At
+  12px beside the chart at the very bottom of the screen, the funniest thing
+  in the act was in the one place nobody was looking — playtesters finished
+  runs without ever reading a verdict. It is now 19px directly beneath the
+  document card, where the player is already looking through the read-hold.
+
+  Two things about the markup are load-bearing. It is a **sibling** of
+  `.pt-stage` rather than a child: the card carries `transform:
+  rotate(-0.25deg)`, and a transformed ancestor becomes the containing block
+  for `position: fixed` descendants, so inside the card the phone-width
+  banner anchored to the card's bottom edge and rendered off-screen. And it
+  holds a `min-height` whether or not it is speaking, so the sparkline
+  doesn't jump each time a document ends.
+
+  **At phone width it is pinned to the bottom of the screen instead.** The
+  card is taller than the viewport there and `.screen` is `overflow:
+  hidden`, so the foot of the card is not merely below the fold — it is
+  clipped and unreachable. Moving it into the card would have hidden it from
+  exactly the players the change is for.
+
   **Each branch is a pool of three, not one line** (`VERDICTS` in
   `pretrain.js`). The branches are not evenly hit across ten documents:
   a player having a bad run draws the same one six or seven times, and a
@@ -174,9 +194,21 @@ word's counts go up either way.
 - **Tap the page (or press space) to fast-forward the reveal** to the next
   blank. A one-line hint appears on the first document, worded per
   platform. The gesture only acts mid-reveal, so it can't skip a decision.
-- **"words known" counts up live** as the model reads. It starts above
-  zero: the fleet's seed pairs are words this node knew before its first
-  document.
+- **"words known" counts up live** as the model reads, and **bumps when it
+  changes** (issue #55). It starts above zero: the fleet's seed pairs are
+  words this node knew before its first document.
+
+  It is the only thing on screen saying the model is *acquiring* something
+  rather than just being marked, which makes it the act's best explainer for
+  a player who skimmed the intro card — and at 11px and 0.55 opacity it was
+  read straight past. The number now leads the label and is nearly twice the
+  size, but the animation is what actually gets it noticed: enlarging it
+  alone didn't, because nothing drew the eye at the moment it meant
+  something. The bump is guarded on the value actually changing, since
+  `updateVocab()` runs after every word read and re-triggering it each time
+  leaves it permanently mid-animation, which reads as a flicker rather than
+  as an event. The opening count doesn't bump — the fleet's seed words are
+  not a thing that just happened.
 - **Below 620px there's no belt.** No room to ride a conveyor at phone
   width, so candidates fade in as a tappable row in place (`#pt-options`)
   instead of riding one in from a hatch, and fade out at the same clock
