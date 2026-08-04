@@ -34,8 +34,11 @@
 <!-- ======== ACT 1 — PRE-TRAINING (predict loop) ======== -->
 <section id="screen-pretrain" class="screen">
   <div class="pt-top">
-    <span id="pt-doc-label" class="round-label"></span>
-    <span class="pt-vocab"><span id="pt-vocab-n">0</span> words known</span>
+    <span id="pt-doc-label" class="round-label pt-pill"></span>
+    <!-- the label is its own span so the pill's flex gap has something to act
+         on: a bare text node's leading space collapses in a flex container,
+         which ran the number straight into the word -->
+    <span class="pt-vocab pt-pill"><span id="pt-vocab-n">0</span><span>words known</span></span>
     <div class="pt-top-spacer"></div>
     <div class="pt-meter">
       <span class="pt-meter-label">HOW FAR OFF</span>

@@ -152,7 +152,28 @@ button { font-family: inherit; cursor: pointer; }
    animation drives Act 1's conveyor, and .modal backs both the QC approval
    stamp and the newspaper. */
 
-.round-label { font-family: var(--mono); font-size: 13px; letter-spacing: 0.15em; opacity: 0.7; white-space: nowrap; }
+/* dimmed with a text colour rather than `opacity`, which would take the
+   pill's background down with it */
+.round-label {
+  font-family: var(--mono); font-size: 13px; letter-spacing: 0.15em;
+  color: rgba(61, 50, 41, 0.72); white-space: nowrap;
+}
+
+/* The two readings at the top of Act 1 sit side by side, and unboxed they
+   ran together into one strip of text. Each gets its own pill so the eye
+   reads them as two facts rather than one. Sized to a shared line-height so
+   the taller number in the counter doesn't make its pill deeper than the
+   other's. */
+.pt-pill {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.45em;
+  padding: 7px 15px;
+  border-radius: 999px;
+  background: rgba(138, 98, 66, 0.11);
+  box-shadow: inset 0 0 0 1px rgba(138, 98, 66, 0.14);
+  line-height: 1;
+}
 .timerbar {
   flex: 1; height: 10px;
   background: rgba(61, 50, 41, 0.12);
@@ -736,7 +757,12 @@ button { font-family: inherit; cursor: pointer; }
    acquiring something. The number leads, and bumps when it changes. */
 .pt-vocab {
   font-family: var(--mono); font-size: 12px;
-  letter-spacing: 0.08em; opacity: 0.8; white-space: nowrap;
+  letter-spacing: 0.08em; white-space: nowrap;
+  color: rgba(61, 50, 41, 0.72);
+  /* wider than the pill's default: the number scales to 1.45 when it bumps,
+     which grows it about 5px on each side — the same 5px the default gap
+     gave, so at the moment it counted up it ran into the word */
+  gap: 11px;
 }
 #pt-vocab-n {
   color: var(--accent);

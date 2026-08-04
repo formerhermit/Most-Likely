@@ -210,7 +210,12 @@ const Pretrain = (() => {
 
   function showDoc() {
     const snip = SNIPPETS[docIdx];
-    $('pt-doc-label').textContent = 'DOCUMENT ' + (docIdx + 1) + ' / ' + SNIPPETS.length;
+    /* "1 / 10 documents", not "DOCUMENT 1 / 10". The counter sits next to
+       this and used to put the two numbers back to back — "…1 / 10  42 words
+       known" read as though ten and forty-two were one figure. Ending on the
+       word means a word always separates them. */
+    $('pt-doc-label').textContent =
+      (docIdx + 1) + ' / ' + SNIPPETS.length + ' documents';
     $('pt-image').src = snip.image;
     $('pt-image').alt = snip.title;
     $('pt-title').textContent = snip.title;

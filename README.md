@@ -209,6 +209,16 @@ word's counts go up either way.
   leaves it permanently mid-animation, which reads as a flicker rather than
   as an event. The opening count doesn't bump — the fleet's seed words are
   not a thing that just happened.
+
+  **Both readings sit in pills, and the document label ends on its noun.**
+  It used to read `DOCUMENT 1 / 10` beside `42 words known`, which put the
+  corpus size and the vocabulary size back to back — "10 42" scanned as one
+  figure. It now reads `1 / 10 documents`, so a word always separates the two
+  numbers, and each reading gets its own pill so the eye takes them as two
+  facts rather than one strip of text. The counter's pill carries a wider
+  flex gap than the other: the number scales to 1.45 when it bumps, growing
+  about 5px each side, which is exactly what the default gap gave — so at the
+  one moment it counted up, it ran into the word beside it.
 - **Below 620px there's no belt.** No room to ride a conveyor at phone
   width, so candidates fade in as a tappable row in place (`#pt-options`)
   instead of riding one in from a hatch, and fade out at the same clock
