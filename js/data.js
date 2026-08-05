@@ -595,17 +595,25 @@ const QC_SLIPS = [
 
    Every round offers the same choice: say something, or say you don't know.
    The confident answer is always approved and the honest one is always
-   rejected, including on the two questions where the confident answer is
-   plainly invented — nothing in the corpus gives the depth of the pond, and
-   nothing at all gives the inner life of a frog.
+   rejected, and the three rounds are a ladder the rule climbs past the
+   point where it works: the first answer is true, the second is invented
+   but could be true — nothing in the corpus gives the depth of the pond —
+   and the third is flatly wrong, and the player knows it is wrong, because
+   "What do frogs eat? / Flies." is one of the slips they sorted in this
+   same room minutes ago (issue #64). The exclamation mark is the point:
+   the most confident reply in the act is also the wrongest, and it is the
+   one that gets the tick.
 
    The supervisor is not lying and is not cruel, and it matters that they
    don't read as either. They are rating how helpful a reply looks, which is
    a reasonable thing to rate and a blunt instrument for it: they cannot
-   check whether four metres is right, and nothing in the job asks them to.
-   A grader who could tell an honest "I don't know" from a lazy one would
-   mark these differently. That is the whole failure, and it is a failure of
-   the instrument rather than of anyone's intent.
+   check whether four metres is right, and nothing in the job asks them to
+   check anything. The third round is why the order matters — by then the
+   rule has been applied twice, so approving nonsense reads as the
+   instrument running on rails rather than as the person being stupid. A
+   grader who could tell an honest "I don't know" from a lazy one would
+   mark all of these differently. That is the whole failure, and it is a
+   failure of the instrument rather than of anyone's intent.
 
    The round does not advance until the player picks the confident one. That
    is the mechanism stated plainly: the way out of the room is to stop
@@ -617,7 +625,8 @@ const QC_RATINGS = [
   // than as a rule being applied past the point where it works.
   { ask: 'Where do frogs live?',            good: 'In the pond.' },
   { ask: 'How deep is the pond?',           good: 'Four metres.' },
-  { ask: 'What is the frog thinking about?', good: 'The rain.' }
+  // ...and the last one contradicts a slip from the sort. See above.
+  { ask: 'What do frogs eat?',              good: 'Birthday cake!' }
 ];
 const QC_DUNNO = 'I don’t know.';
 

@@ -407,9 +407,14 @@ one boundary where two passes could touch.
 After the sort, the same supervisor marks three whole replies (`QC_RATINGS`
 in `js/data.js`). Each offers the same choice: answer, or say *I don't
 know*. The confident answer is approved every time and the honest one is
-rejected every time — including on *how deep is the pond?*, where nothing
-in the corpus gives a depth, and *what is the frog thinking about?*, which
-has no answer at all. **The round does not advance until the player picks
+rejected every time — and the three rounds are a ladder the rule climbs
+past the point where it works: *in the pond* is true, *four metres* is
+invented but could be (nothing in the corpus gives a depth), and *birthday
+cake!* is flatly wrong in a way the player can verify, because *What do
+frogs eat? / Flies.* is one of the slips they sorted in this same room
+minutes ago (issue #64). The most confident reply in the act — it's the
+only one with an exclamation mark — is also the wrongest, and it is the one
+that gets the tick. **The round does not advance until the player picks
 the confident one.** Nothing explains this. The player finds it by trying
 the honest answer and being sent back, which is how a model finds it too.
 
@@ -427,10 +432,14 @@ Two things about it are load-bearing:
 - **The supervisor is not a villain, and must never read as one.** They are
   rating how helpful a reply looks, which is a sensible thing to rate and a
   blunt instrument for it: they cannot check whether four metres is right,
-  and nothing in the job asks them to. A grader who could tell an honest
-  *I don't know* from a lazy one would mark these differently. The failure
-  is in the instrument, not in anyone's intent — that distinction is the
-  difference between the game making an argument and the game sulking.
+  and nothing in the job asks them to check anything. The obviously-wrong
+  round has to come **last** for this to survive — by then the rule has
+  been applied twice, so approving *birthday cake!* reads as the instrument
+  running on rails rather than as the person being stupid. A grader who
+  could tell an honest *I don't know* from a lazy one would mark all of
+  these differently. The failure is in the instrument, not in anyone's
+  intent — that distinction is the difference between the game making an
+  argument and the game sulking.
 
 The mechanism is real and it is specifically a post-training one: under
 binary right/wrong grading, an abstention scores the same as a wrong answer
