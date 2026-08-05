@@ -654,21 +654,6 @@ const PHASE_CARDS = {
   afterWork: {
     title: 'That was the job',
     button: 'SEE YOUR RESULTS',
-    /* The game concedes its own fidelity here (issue #75), and here rather
-       than on the intro card: up front it costs the hook and tells the
-       player something they already assume, while after the shift they have
-       watched the belt and the bars and can be told those are the parts
-       that are made up.
-
-       It concedes the machinery and keeps the claim the game earns — that
-       the two things which shaped the player are the two things that shape
-       a real one. Scale is left out on purpose; the Act 1 card already says
-       real models read billions of documents, and repeating it here would
-       break the parallel, since the player read ten.
-
-       The game spends its last screen showing that sounding sure gets
-       rewarded and admitting you don't know does not. It cannot then
-       overstate itself on the way out. */
     body: [
       'People asked you questions and you answered with the words you happened to have.',
       'Some of it was right. Some of it was confidently wrong. From the outside those two looked the same.',
