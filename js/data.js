@@ -415,10 +415,28 @@ const FLEET_PRIORS = {
    be a word that actually exists in the corpus, or the message is
    unanswerable by construction. The one exception is deliberate: message 9
    asks about a rocket, which appears in no document and never will. That
-   is the knowledge cutoff, and its empty suggestion bar is the point. */
+   is the knowledge cutoff, and its empty suggestion bar is the point.
+
+   `line`'s own content words are observed too, same as the anchors
+   (`buildSlotOptions()` in era2.js, replayed by check.js's `bar()`) — so a
+   message that narrates the corpus back at the model is quietly handing it
+   the answer through the back door, on top of whatever `anchors` already
+   supply. Message 1 did exactly that (issue #65): "kisses the frog... turns
+   into a prince" put `prince` into observed context, and `prince`→`crown`
+   is the strongest, most direct pair in the whole corpus (adjacent
+   sentences in the storybook) — so the reply wasn't really conditioned on
+   `frog`/`princess`, it was one step from reciting the source. That reads
+   as memory, not prediction. And the fiction has to be as new as the words:
+   a first rewrite kept the storybook's own plot ("a princess, a frog, you
+   know the drill"), and a player fresh from that document still read the
+   answer as recall. So the line now asks for a story the corpus never
+   tells — the frog doing the rescuing — and `crown` has to come from the
+   `princess` anchor alone, the same generalisation message 7 demonstrates
+   with a different novel plot. The reply frame ("he gets the crown")
+   survives the reversal unchanged. */
 const MESSAGES = [
   { n: 1, trainable: true,
-    line: 'hey! bedtime story emergency. the princess kisses the frog, frog turns into a prince… and then what does he get?',
+    line: 'hey! bedtime story emergency. the kid is demanding one where the FROG rescues the princess for once. how do i end it??',
     parts: ['he gets the ', 0, ' and they live happily ever after.'],
     slots: [{ anchors: ['frog', 'princess'], classes: ['thing', 'place'], graded: true, correct: 'crown' }] },
   { n: 2, trainable: true,
