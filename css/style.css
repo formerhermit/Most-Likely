@@ -61,9 +61,23 @@ button { font-family: inherit; cursor: pointer; }
 /* ---------- title ---------- */
 #screen-title { background:
   radial-gradient(circle at 30% 20%, #fdf6e5 0%, var(--cream) 60%); }
-.title-wrap { text-align: center; }
+/* max-width + padding is load-bearing, not decorative (issue #54). None of
+   .title-wrap's children have an explicit width, so as a centred flex item
+   .title-wrap sizes to its own max-content width — the widest child laid
+   out on one line — regardless of the viewport. Below ~374px that made the
+   h1 (and, on the longer fine print, .tiny) wider than the screen; .screen
+   is overflow:hidden, so the excess wasn't scrollable, it was just gone.
+   Constraining the wrapper is what makes the browser wrap the text at all;
+   the font-size fixes below only decide how much wrapping is needed. */
+.title-wrap { text-align: center; max-width: 100%; padding: 0 20px; }
 .title-wrap h1 {
-  font-size: clamp(48px, 9vw, 96px);
+  /* Was clamp(48px, 9vw, 96px) — the 9vw term drops under the 48px floor
+     below 533px, so the floor took over and stopped shrinking while the
+     viewport kept going: "MOST LIKELY" at 48px measures 374px, wider than
+     the phones it needs to fit. 30px measures ~235px, which clears a
+     320px screen with padding either side; the crossover with 9vw moves
+     down to ~333px, so the type still scales continuously above that. */
+  font-size: clamp(30px, 9vw, 96px);
   letter-spacing: 0.12em;
   color: var(--ink);
   text-shadow: 3px 3px 0 rgba(224, 122, 79, 0.25);
