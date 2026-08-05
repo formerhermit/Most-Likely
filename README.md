@@ -135,22 +135,42 @@ word's counts go up either way.
   only ever mocks the score, never the person. It clears when the next
   document starts, or it reads as commentary on the wrong one.
 
-  **It sits under the document, not under the sparkline** (issue #55). At
-  12px beside the chart at the very bottom of the screen, the funniest thing
-  in the act was in the one place nobody was looking — playtesters finished
-  runs without ever reading a verdict. It is now 19px directly beneath the
-  document card, where the player is already looking through the read-hold.
+  **It prints in the feedback slot** — see below.
 
-  Two things about the markup are load-bearing. It is a **sibling** of
+  ### The feedback slot
+
+  **Everything transient the act says now prints in one place** (issue #55,
+  round two): `#pt-feedback`, directly beneath the document card. Verdicts,
+  the milestone tickets ("first one right ✓", streaks) and the hints ("tap
+  the page to read faster", "nothing in the table for this one") used to be
+  three elements in three locations — beside the sparkline, floating over
+  the belt, under the belt. Each fires rarely, so no player ever learned any
+  of the locations, and playtesting found most of the messages going unread.
+  One location, learned once, is the whole fix. Feedback that belongs to the
+  action itself — the deadpan wrong word in the sentence, the stamp, the
+  meter, the flying tag — never routes through the slot; it stays at the
+  point of action, which is what makes it land.
+
+  The slot is a place, not a style: each class keeps its own look, so the
+  hierarchy survives. Verdicts and tickets sit on a paper card like the
+  machine's other printouts, at 20px and 16px; hints stay dim, italic and
+  bare. A sub-line carries a secondary message under the main one — its one
+  user is the read-hold, where the verdict's card also names the way out
+  ("finished document — tap or press space to move on"). The pecking order
+  is verdict > ticket > hint, one message at a time; in practice they barely
+  collide, since hints are retracted before any blank resolves and tickets
+  can't fire during the hold a verdict occupies.
+
+  Two things about the markup are load-bearing. The slot is a **sibling** of
   `.pt-stage` rather than a child: the card carries `transform:
   rotate(-0.25deg)`, and a transformed ancestor becomes the containing block
   for `position: fixed` descendants, so inside the card the phone-width
   banner anchored to the card's bottom edge and rendered off-screen. And it
   holds a `min-height` whether or not it is speaking, so the sparkline
-  doesn't jump each time a document ends.
+  doesn't jump each time a message comes or goes.
 
-  **At phone width it is pinned to the bottom of the screen instead.** The
-  card is taller than the viewport there and `.screen` is `overflow:
+  **At phone width the slot is pinned to the bottom of the screen instead.**
+  The card is taller than the viewport there and `.screen` is `overflow:
   hidden`, so the foot of the card is not merely below the fold — it is
   clipped and unreachable. Moving it into the card would have hidden it from
   exactly the players the change is for.
@@ -178,9 +198,9 @@ word's counts go up either way.
   guessed right, best run, and the first-to-last line built from the run
   rather than written down. Everything on it is counted, never estimated.
 - **Streaks are audible.** The correct-answer blip climbs a semitone per
-  consecutive correct answer. Milestone tickets pop for the first-ever
-  correct and for 3- and 6-streaks; each finished document gets a
-  PROCESSED stamp in the QC ink.
+  consecutive correct answer. Milestone tickets print in the feedback slot
+  for the first-ever correct and for 3- and 6-streaks; each finished
+  document gets a PROCESSED stamp in the QC ink.
 - **The picked word flies from the belt into its blank** and lands there
   with a knock (`flyToBlank`, issue #48). A clone does the travelling, since
   the belt is cleared the moment a blank resolves and the real tag would be

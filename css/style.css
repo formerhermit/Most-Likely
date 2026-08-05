@@ -852,13 +852,6 @@ button { font-family: inherit; cursor: pointer; }
   opacity: 0.85;
 }
 
-.pt-note {
-  height: 20px;
-  margin: 8px 0 2px;
-  font-family: var(--mono); font-size: 12px;
-  font-style: italic; opacity: 0.42;
-}
-
 /* below the belt breakpoint (issue #45): tags sit in normal document flow
    instead of riding a conveyor there's no width for. Hidden on desktop —
    see the media query below, where #pt-belt-wrap and #pt-options swap. */
@@ -1019,27 +1012,50 @@ button { font-family: inherit; cursor: pointer; }
    The paper fade behind it is load-bearing: the document text runs to the
    bottom of the card, and without it a long verdict sits illegibly on top
    of the last line of prose. */
-.pt-verdict {
-  width: min(960px, 94vw);
-  /* holds its line whether or not it is speaking, so the sparkline below
-     doesn't jump every time a document ends */
-  min-height: 26px;
-  margin-top: 10px;
-  padding: 0 6px;
-  text-align: right;
+/* The feedback slot: the one place the machinery talks (issue #55, round
+   two). Verdicts, milestone tickets and hints all print here — each keeps
+   its own style so the hierarchy survives, but the location never moves,
+   which is what makes any of them learnable. Verdicts and tickets sit on a
+   paper card like the machine's other printouts; hints stay dim and bare.
+
+   The rotation rides a variable so the print-in animation can end on the
+   same angle it animated through — a keyframe ending at `transform: none`
+   would snap the card straight for one frame before the static rule
+   reapplied the tilt. */
+.pt-feedback {
+  --fb-rot: 0deg;
+  /* holds its strip whether or not it is speaking, so the sparkline below
+     doesn't jump every time a message comes or goes */
+  min-height: 50px;
+  width: fit-content;
+  max-width: 94vw;
+  margin-top: 12px;
+  padding: 9px 24px;
+  display: flex; flex-direction: column; align-items: center;
+  justify-content: center;
+  gap: 2px;
+  text-align: center;
   font-family: var(--mono);
-  font-size: 19px;
-  letter-spacing: 0.01em;
-  color: var(--accent);
   pointer-events: none;
   opacity: 0;
-  transform: translateY(6px);
+  transform: rotate(var(--fb-rot));
 }
-.pt-verdict.show {
-  opacity: 1;
-  transform: none;
-  transition: opacity 0.3s ease-out 0.2s, transform 0.3s ease-out 0.2s;
+.pt-feedback.show { opacity: 1; animation: fbprint 0.3s ease-out; }
+@keyframes fbprint {
+  from { opacity: 0; transform: translateY(8px) scale(1.06) rotate(var(--fb-rot)); }
+  to   { opacity: 1; transform: rotate(var(--fb-rot)); }
 }
+.pt-feedback.fb-verdict, .pt-feedback.fb-ticket {
+  --fb-rot: -0.6deg;
+  background: var(--paper);
+  border-radius: 8px;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.14), inset 0 0 0 1px rgba(138, 98, 66, 0.35);
+}
+.fb-verdict #pt-fb-main { font-size: 20px; color: var(--accent); letter-spacing: 0.01em; }
+.fb-ticket  #pt-fb-main { font-size: 16px; color: var(--ink); letter-spacing: 0.08em; }
+.fb-hint    #pt-fb-main { font-size: 13px; font-style: italic; color: rgba(61, 50, 41, 0.55); }
+#pt-fb-sub { font-size: 12px; font-style: italic; color: rgba(61, 50, 41, 0.55); }
+#pt-fb-sub:empty { display: none; }
 /* On a phone the document card is taller than the viewport, so the foot of
    the card — and the verdict sitting in it — is below the fold and misses
    the player all over again. Pin it to the bottom of the screen instead,
@@ -1047,45 +1063,32 @@ button { font-family: inherit; cursor: pointer; }
    padding back since nothing is reserving space in it any more. */
 /* At phone width the document card is taller than the viewport, and
    `.screen` is overflow:hidden — so the foot of the card is not merely below
-   the fold, it is clipped and unreachable. Pin the verdict to the bottom of
+   the fold, it is clipped and unreachable. Pin the slot to the bottom of
    the screen instead, where it cannot be scrolled or clipped away. Out of
-   flow here, so it reserves no line. */
+   flow here, so it reserves no strip; invisible, it still overlays the
+   bottom edge, which is why pointer-events stays off. */
 @media (max-width: 620px) {
-  .pt-verdict {
+  .pt-feedback {
+    --fb-rot: 0deg;
     position: fixed;
     left: 0; right: 0; bottom: 0;
     z-index: 20;
     width: auto;
+    max-width: none;
     min-height: 0;
     margin-top: 0;
-    font-size: 15px;
-    text-align: center;
     padding: 12px 14px;
+    border-radius: 0;
+  }
+  .pt-feedback.fb-verdict, .pt-feedback.fb-ticket, .pt-feedback.fb-hint {
+    --fb-rot: 0deg;
     background: var(--paper);
+    border-radius: 0;
     border-top: 1px solid rgba(138, 98, 66, 0.25);
     box-shadow: 0 -8px 22px rgba(0,0,0,0.12);
   }
+  .fb-verdict #pt-fb-main { font-size: 16px; }
 }
-
-/* a little paper ticket for milestones (first correct, streaks) */
-.pt-ticket {
-  position: absolute;
-  top: 108px; left: 50%;
-  transform: translate(-50%, -8px) scale(0.7) rotate(-2deg);
-  opacity: 0;
-  background: var(--paper);
-  color: var(--ink);
-  border: 1px solid rgba(138, 98, 66, 0.5);
-  border-radius: 6px;
-  padding: 8px 15px;
-  font-family: var(--mono); font-size: 13px;
-  letter-spacing: 0.08em;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.25);
-  pointer-events: none;
-  z-index: 20;
-  transition: opacity 0.22s, transform 0.22s;
-}
-.pt-ticket.show { opacity: 1; transform: translate(-50%, 0) scale(1) rotate(-2deg); }
 
 /* Below this the belt (fixed hatch + fixed tag widths) and the two-column
    stage (fixed-width art column) stop fitting any viewport — same shape of

@@ -60,7 +60,6 @@
        no room to ride a conveyor at phone width, so the words just show up
        as options instead. -->
   <div id="pt-options" class="pt-options"></div>
-  <div id="pt-note" class="pt-note"></div>
 
   <div class="pt-stage">
     <div class="pt-art">
@@ -71,17 +70,24 @@
     <div id="pt-text" class="pt-text"></div>
     <div id="pt-stamp" class="pt-stamp" aria-hidden="true">PROCESSED</div>
   </div>
-  <!-- The verdict on the bar that just landed. It used to sit beside the
-       sparkline at 12px, where playtesters never saw it (issue #55); it now
-       sits directly under the document it is about.
+  <!-- The one place the machinery talks (issue #55, round two). Verdicts,
+       milestone tickets and hints used to be three elements in three places
+       — beside the sparkline, floating over the belt, under the belt — each
+       rare enough that no player ever learned any of the locations, and all
+       three mostly went unread. Now every transient message prints here, in
+       its own style but always in the same spot. Feedback belonging to the
+       action itself (the deadpan wrong word, the stamp, the meter) stays at
+       the point of action and never routes through this.
 
        It is a sibling of .pt-stage rather than a child on purpose. The card
        carries transform: rotate(-0.25deg), and a transformed ancestor becomes
        the containing block for position:fixed descendants — inside the card
        the phone-width banner anchored to the card's bottom edge and rendered
        off-screen entirely. -->
-  <div id="pt-verdict" class="pt-verdict" aria-live="polite"></div>
-  <div id="pt-ticket" class="pt-ticket" aria-hidden="true"></div>
+  <div id="pt-feedback" class="pt-feedback" aria-live="polite">
+    <div id="pt-fb-main"></div>
+    <div id="pt-fb-sub"></div>
+  </div>
 
   <div class="pt-curve-wrap">
     <span class="pt-curve-label">how far off, per document</span>

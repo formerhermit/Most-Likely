@@ -106,9 +106,9 @@ const Pretrain = (() => {
                                       // (issue #29) — ten documents of it is
                                       // most of three minutes spent waiting on
                                       // a timer the player didn't know they
-                                      // could dismiss. The note now says so,
-                                      // which is the half of this that
-                                      // actually mattered
+                                      // could dismiss. The verdict card's
+                                      // sub-line now names the way out, which
+                                      // is the half of this that mattered
   const PAUSE_TAP_GUARD_MS = 1200;   // ignore taps this early into that
                                       // hold: the tap that fast-forwarded
                                       // the last of the text must not also
@@ -138,7 +138,8 @@ const Pretrain = (() => {
   let prevRate = null;      // the previous document's share right, to compare to
   let firstCorrect = false; // has the player ever guessed one right?
   let resolving = false;    // a miss beat is playing out; don't re-ask
-  let ticketTimer = null;
+  let fbKind = null;        // what the feedback slot is showing: verdict|ticket|hint
+  let fbTimer = null;       // a ticket's dwell timer
 
   const $ = (id) => document.getElementById(id);
   const normalize = Model.normalize;
@@ -183,8 +184,7 @@ const Pretrain = (() => {
     prevRate = null;
     firstCorrect = false;
     resolving = false;
-    const verdictEl = $('pt-verdict');
-    if (verdictEl) { verdictEl.textContent = ''; verdictEl.classList.remove('show'); }
+    fbClear();
     // a restart mid-run must not inherit the old run's machinery: the
     // previous document's clock interval would keep ticking against the
     // new run's state, and a stale `awaiting` lets belt events from the
@@ -231,8 +231,7 @@ const Pretrain = (() => {
     // the verdict belongs to the bar that just landed, so it goes when the
     // next document arrives — left up, it reads as a running commentary on
     // the document the player is now part-way through
-    const verdictEl = $('pt-verdict');
-    if (verdictEl) verdictEl.classList.remove('show');
+    fbClear();
 
     const text = $('pt-text');
     text.innerHTML = '';
@@ -252,10 +251,10 @@ const Pretrain = (() => {
     clearBelt();
     $('pt-stamp').classList.remove('hit');
     // discoverability, once: the fast-forward gesture, worded per platform
-    $('pt-note').textContent = docIdx === 0
-      ? (isMobileLayout() ? 'tap the page to read faster'
-                          : 'tap the page or press space to read faster')
-      : '';
+    if (docIdx === 0) {
+      fbHint(isMobileLayout() ? 'tap the page to read faster'
+                              : 'tap the page or press space to read faster');
+    }
     setMeter(null);
     updateVocab();
     docActive = true;
@@ -354,12 +353,12 @@ const Pretrain = (() => {
     if (!top.length) {
       // nothing to offer at all: the belt runs empty, and that silence is
       // the honest output of a model with nothing to retrieve
-      $('pt-note').textContent = 'nothing in the table for this one';
+      fbHint('nothing in the table for this one');
       revealTimer = setTimeout(() => { if (awaiting) resolve(null); }, EMPTY_BELT_MS);
       return;
     }
 
-    $('pt-note').textContent = '';
+    fbHint('');
     const max = top[0][1];
 
     if (isMobileLayout()) {
@@ -545,7 +544,7 @@ const Pretrain = (() => {
 
     // force the starting position to be computed before the target is set,
     // or the browser coalesces the two and there is nothing to transition
-    // between — the tag would teleport. Same idiom as ticket().
+    // between — the tag would teleport. Same idiom as fbShow().
     void clone.offsetWidth;
     clone.style.transform = 'translate(' + dx + 'px, ' + dy + 'px) scale(' + scale + ')';
   }
@@ -667,7 +666,7 @@ const Pretrain = (() => {
     awaiting = false;
     resolving = true;
     const list = pendingList || [];
-    $('pt-note').textContent = '';
+    fbHint('');
     if (revealTimer) { clearTimeout(revealTimer); revealTimer = null; }
 
     const tok = tokens[cursor];
@@ -717,9 +716,9 @@ const Pretrain = (() => {
         // the blip climbs a semitone per consecutive correct — a streak is
         // something you can hear coming
         Audio2.yes(streak - 1);
-        if (!firstCorrect) { firstCorrect = true; ticket('first one right ✓'); }
-        else if (streak === 3) ticket('3 in a row');
-        else if (streak === 6) ticket('6 in a row!');
+        if (!firstCorrect) { firstCorrect = true; fbTicket('first one right ✓'); }
+        else if (streak === 3) fbTicket('3 in a row');
+        else if (streak === 6) fbTicket('6 in a row!');
         finish();
       } else if (pick === null) {
         // nothing picked: no sentence to read out, straight to the correction
@@ -792,7 +791,6 @@ const Pretrain = (() => {
     awaiting = false;
     resolving = false;
     clearBelt();
-    $('pt-note').textContent = '';
 
     // the document gets its stamp — a small physical full-stop on each of
     // the ten, in the same ink as the QC approval
@@ -807,18 +805,19 @@ const Pretrain = (() => {
     const docBlanks = tokens.filter(t => t.blank).length;
     const rate = docBlanks ? docHits / docBlanks : 0;
     renderCurve(true);
-    showVerdict(curveVerdict(rate));
+    // the verdict and the way out share one card: the sub-line names the
+    // gesture, because "next one shortly" described a timer the player was
+    // waiting on and this describes a thing they can do
+    fbVerdict(curveVerdict(rate),
+      isMobileLayout() ? 'finished document — tap to move on'
+                       : 'finished document — tap or press space to move on');
     prevRate = rate;
 
     // However the document ended, the player has not read it: the reveal
     // runs far faster than anyone reads, and the clock-out and skip paths
     // dump the remaining text on screen all at once. So hold it up, and
-    // leave both ways out live for anyone already finished with it.
-    // says the way out, because there is one. "next one shortly" described a
-    // timer the player was waiting on; this describes a thing they can do
-    $('pt-note').textContent = isMobileLayout()
-      ? 'the finished document — tap to move on'
-      : 'the finished document — tap or press space to move on';
+    // leave both ways out live for anyone already finished with it. The
+    // way out itself is named on the verdict card's sub-line above.
     $('pt-skip').disabled = false;
     pauseStartedAt = performance.now();
     pauseTimer = setTimeout(nextDoc, READ_PAUSE_MS);
@@ -827,7 +826,6 @@ const Pretrain = (() => {
   function nextDoc() {
     if (pauseTimer) { clearTimeout(pauseTimer); pauseTimer = null; }
     $('pt-skip').disabled = true;
-    $('pt-note').textContent = '';
     docIdx++;
     if (docIdx < SNIPPETS.length) {
       setClock(null);
@@ -847,16 +845,63 @@ const Pretrain = (() => {
     clock.textContent = Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
   }
 
-  /* A little paper ticket for milestones: first-ever correct, streaks. */
-  function ticket(msg) {
-    const t = $('pt-ticket');
-    t.textContent = msg;
-    t.classList.remove('show');
-    void t.offsetWidth;
-    t.classList.add('show');
+  /* ---------- the feedback slot ----------
+
+     Every transient message the act prints — verdicts, milestone tickets,
+     hints — goes through here into the one element under the document.
+     They used to be three elements in three places (beside the sparkline,
+     floating over the belt, under the belt), each rare enough that no
+     player ever learned any of the locations, and playtesting found most
+     of them going unread (issue #55). Feedback that belongs to the action
+     itself — the deadpan wrong word, the stamp, the meter — never routes
+     through this; it happens where the action is.
+
+     The pecking order is verdict > ticket > hint. In practice they barely
+     collide: hints are cleared before any blank resolves, so a ticket
+     never actually interrupts one, and tickets can't fire during the hold
+     a verdict occupies. The guards are for the orderings the code doesn't
+     currently produce. */
+
+  function fbShow(kind, main, sub) {
+    const box = $('pt-feedback');
+    if (!box) return;
+    if (fbTimer) { clearTimeout(fbTimer); fbTimer = null; }
+    fbKind = kind;
+    box.className = 'pt-feedback fb-' + kind;
+    $('pt-fb-main').textContent = main;
+    $('pt-fb-sub').textContent = sub || '';
+    void box.offsetWidth;
+    box.classList.add('show');
+  }
+
+  function fbClear() {
+    const box = $('pt-feedback');
+    if (!box) return;
+    if (fbTimer) { clearTimeout(fbTimer); fbTimer = null; }
+    fbKind = null;
+    box.className = 'pt-feedback';
+    $('pt-fb-main').textContent = '';
+    $('pt-fb-sub').textContent = '';
+  }
+
+  /* the read on the document that just finished; owns the slot until the
+     next document starts */
+  function fbVerdict(text, sub) { fbShow('verdict', text, sub); }
+
+  /* milestones: first-ever correct, streaks. Briefly borrows the slot. */
+  function fbTicket(msg) {
+    if (fbKind === 'verdict') return;
+    fbShow('ticket', msg);
     Audio2.ding();
-    if (ticketTimer) clearTimeout(ticketTimer);
-    ticketTimer = setTimeout(() => t.classList.remove('show'), 1900);
+    fbTimer = setTimeout(fbClear, 2200);
+  }
+
+  /* quiet instructions. Never talks over anything; '' retracts only a hint,
+     so clearing one can't wipe a verdict that arrived in the meantime */
+  function fbHint(text) {
+    if (!text) { if (fbKind === 'hint') fbClear(); return; }
+    if (fbKind && fbKind !== 'hint') return;
+    fbShow('hint', text);
   }
 
   /* The vocabulary counter ticks up live as the model reads. It starts
@@ -1066,15 +1111,6 @@ const Pretrain = (() => {
     if (rate > prevRate) return pickVerdict(VERDICTS.better);
     if (rate < prevRate) return pickVerdict(VERDICTS.worse);
     return pickVerdict(VERDICTS.same);
-  }
-
-  function showVerdict(text) {
-    const v = $('pt-verdict');
-    if (!v) return;
-    v.textContent = text;
-    v.classList.remove('show');
-    void v.offsetWidth;
-    v.classList.add('show');
   }
 
   /* The training report, handed to the phase card that closes the act.
