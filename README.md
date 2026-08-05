@@ -656,6 +656,47 @@ jargon — "training data", not "corpus" or "inference".
 **Popup images** — each document shows a real image from `assets/images/`
 with an invented `source` line, so the act reads as documents being ingested.
 
+**The opening grid** (issue #61) is 720 rooms (`GRID_COLS` × `GRID_ROWS` in
+`js/state.js`, 36×20), up from 96. The caption claims "millions of nodes,
+all running the same exercise" over a grid a player could count in a
+couple of seconds — 96 read as a checkerboard, not a population. 720 isn't
+literally millions either; that many real DOM nodes animated through a
+`transform` would stutter or hang the tab, and this hasn't been profiled
+past 720. It's enough to stop reading as countable, and the zoom itself
+gets more dramatic for free — the scale factor from one cell to a full
+screen grows with the grid (33× at 96 rooms, 66× at 720, measured, not
+estimated).
+
+The room count is asked for, not written down twice. The ending's
+lights-out sequence (`js/ending.js`) builds the identical grid — same
+population, seen a second time, going dark instead of arriving — and nearly
+drifted out of sync with the opening at 96 already: raising the count in
+one file and not the other breaks the bookend without either screen
+visibly failing on its own. Both now read `GRID_ROOMS`; the ending's
+per-room stagger (`STAGGER_MS`, was 45ms) shrank to 9ms so 7.5× the rooms
+doesn't mean 7.5× the wait — total deprecation-to-end-screen sequence
+measured at 15.4s, up from ~12.5s, both timed off the page's own
+`performance.now()` rather than a stopwatch.
+
+A flat identical brightness on every room was still a checkerboard, just a
+bigger one. `buildRoom()` in `js/state.js` — the one place either grid
+creates a room — randomly assigns one of three brightness tiers, which
+reads as windows lit at different distances rather than a manufactured
+grid. Same box, same metaphor the lights-out ending depends on; the boxes
+themselves were never the problem, the uniformity was.
+
+Fixed-pixel columns (`repeat(12, 44px)`) capped out at 96 cells before
+they'd overflow a phone screen, which is why this grid never had a mobile
+breakpoint at all — at 720 that would have been unusable. Columns are now
+fluid (`repeat(var(--grid-cols), 1fr)`, the count read from a CSS custom
+property JS sets rather than repeated as a second literal) under a capped,
+viewport-relative width (`min(980px, 94vw)`), and each room's height comes
+from `aspect-ratio` rather than a fixed row height, so the grid scales to
+any screen without a matching media query. `border-radius` is a percentage
+rather than a fixed px for the same reason — a radius that reads as a
+lightly rounded box at a ~22px desktop cell rounds a ~9px phone cell all
+the way to a pill.
+
 **Phase music** — four tracks in `assets/audio/`, crossfaded by
 `Audio2.playPhase()`: `the-last-atom` (opening zoom), `sort-it-out`
 (Acts 1–2), `best-guess` (Act 3), `thank-you` (ending). The opening track

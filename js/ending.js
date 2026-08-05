@@ -6,6 +6,14 @@
 const Ending = (() => {
   const $ = (id) => document.getElementById(id);
 
+  /* Issue #61: GRID_ROOMS grew from 96 to 720 (shared with the opening
+     grid in state.js), so the old flat 45ms-per-room stagger — tuned for
+     96 — would stretch this sequence to over 30s if left alone. Shrunk to
+     keep the shuffle-out feeling like roughly the same length of event,
+     a bit longer rather than identical: there are more of them now, so
+     it earns a couple of extra seconds. */
+  const STAGGER_MS = 9;
+
   function deprecate() {
     const glitch = $('era2-glitch');
     glitch.classList.remove('hidden');
@@ -21,17 +29,18 @@ const Ending = (() => {
   function lightsOut() {
     const grid = $('grid-rooms-out');
     grid.innerHTML = '';
+    grid.style.setProperty('--grid-cols', GRID_COLS);
     const cells = [];
-    for (let i = 0; i < 96; i++) {
-      const c = el('div', 'room lit');
+    for (let i = 0; i < GRID_ROOMS; i++) {
+      const c = buildRoom();
       grid.appendChild(c);
       cells.push(c);
     }
     showScreen('screen-grid-out');
     shuffle(cells).forEach((c, i) => {
-      setTimeout(() => c.classList.remove('lit'), 400 + i * 45);
+      setTimeout(() => c.classList.remove('lit'), 400 + i * STAGGER_MS);
     });
-    setTimeout(() => endScreen(), 400 + 96 * 45 + 1600);
+    setTimeout(() => endScreen(), 400 + GRID_ROOMS * STAGGER_MS + 1600);
   }
 
   /* ---------- end screen ---------- */

@@ -38,7 +38,8 @@
     const grid = $('grid-rooms');
     grid.innerHTML = '';
     grid.style.transform = '';
-    for (let i = 0; i < 96; i++) grid.appendChild(el('div', 'room lit'));
+    grid.style.setProperty('--grid-cols', GRID_COLS);
+    for (let i = 0; i < GRID_ROOMS; i++) grid.appendChild(buildRoom());
     const caption = $('grid-caption');
     caption.classList.remove('gone', 'over-room');
     const phase = $('phase-title');
@@ -46,8 +47,12 @@
     phase.textContent = '';
     showScreen('screen-grid');
     typeText(caption, 'millions of nodes, all running the same exercise.');
-    // one room among millions — then zoom into it
-    const target = grid.children[41];
+    // one room among millions, then zoom into it — near-centre rather than
+    // dead-centre, the same slight offset the old fixed index (41 of 96)
+    // happened to land on, computed now instead of hardcoded so it can't
+    // point at the wrong cell the next time GRID_COLS/GRID_ROWS changes
+    const targetIndex = (Math.floor(GRID_ROWS / 2) - 1) * GRID_COLS + (Math.floor(GRID_COLS / 2) - 1);
+    const target = grid.children[targetIndex];
     setTimeout(() => {
       target.classList.add('you');
       typeText(caption, 'one of them is you.');

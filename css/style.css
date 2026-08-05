@@ -126,11 +126,24 @@ button { font-family: inherit; cursor: pointer; }
   0%, 60% { opacity: 1; }
   61%, 100% { opacity: 0; }
 }
+/* --grid-cols is set inline by whichever screen builds the grid (issue
+   #61) — reading GRID_COLS from js/state.js rather than repeating the
+   number here, which is exactly the kind of second copy that let the room
+   count drift before. The `36` fallback only matters if that ever fails
+   to run; it should equal state.js's GRID_COLS but nothing enforces that
+   either, so don't trust it as the source of truth.
+
+   Fixed-px columns capped out at 96 total cells before they'd overflow a
+   phone screen, which is why this grid never had a mobile breakpoint at
+   all; fluid `1fr` tracks under a capped, viewport-relative width scale to
+   any screen instead, and `.room`'s aspect-ratio derives row height from
+   whatever width the columns end up with, so nothing here needs a fixed
+   row height or a matching media query. */
 .grid-rooms {
   display: grid;
-  grid-template-columns: repeat(12, 44px);
-  grid-auto-rows: 34px;
-  gap: 10px;
+  grid-template-columns: repeat(var(--grid-cols, 36), 1fr);
+  gap: clamp(2px, 0.4vw, 6px);
+  width: min(980px, 94vw);
   transition: transform 4.6s cubic-bezier(0.55, 0.05, 0.8, 0.9);
 }
 .phase-title {
@@ -149,15 +162,31 @@ button { font-family: inherit; cursor: pointer; }
 }
 .phase-title.show { opacity: 1; }
 .room {
-  border-radius: 5px;
+  /* was a fixed 44x34px box; aspect-ratio derives height from whatever
+     width the fluid `1fr` column resolves to instead, so the box keeps
+     roughly the same proportions at 720 cells on a phone as at 720 on a
+     wide desktop */
+  aspect-ratio: 44 / 34;
+  /* a percentage, not a fixed px, or the same radius that reads as a
+     lightly-rounded box at a ~22px desktop cell rounds all the way to a
+     pill at a ~9px phone cell — proportional keeps them looking like
+     boxes at any cell size the fluid columns land on */
+  border-radius: 14%;
   background: #17141f;
   box-shadow: inset 0 0 0 2px #2c2838;
-  transition: background 0.5s, box-shadow 0.5s;
+  transition: background 0.5s, box-shadow 0.5s, opacity 0.5s;
 }
 .room.lit {
   background: linear-gradient(180deg, #ffe9b3, #f4b96a);
   box-shadow: 0 0 12px rgba(255, 217, 138, 0.35);
 }
+/* A flat, identical brightness on all 720 was still a checkerboard, just
+   a bigger one (issue #61) — three tiers, randomly assigned per room in
+   buildRoom() (js/state.js), reads as windows lit at different distances
+   rather than a manufactured grid. Same .room, same metaphor; just not
+   every one of them turned up to exactly the same wattage. */
+.room.lit.dim { opacity: 0.55; }
+.room.lit.mid { opacity: 0.8; }
 .room.you { outline: 3px solid var(--accent-2); outline-offset: 3px; }
 
 /* ---------- shared controls ---------- */
