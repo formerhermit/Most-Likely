@@ -593,6 +593,20 @@ button { font-family: inherit; cursor: pointer; }
 .opt:hover { transform: translateY(-2px); }
 .opt.sel { border-color: var(--glow); background: #3a3450; }
 .opt-dots { color: rgba(238,230,218,0.7); }
+/* Issue #66: a bare "…" reads as a placeholder — this game already uses
+   three dots elsewhere as a *typing* indicator — so the honest option Act
+   2 spelled out in full ("I don't know.") had no equivalent label here at
+   all. Same small-caption register as .opt-fleet-count beside it (9px
+   mono, quiet), neutral instead of gold since this isn't the fleet's
+   voice — just enough to read as deliberate rather than shout it, so the
+   suggestion bar still looks like one undifferentiated set of options. */
+.opt-dots-hint {
+  display: block;
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.04em;
+  color: rgba(238, 230, 218, 0.45);
+}
 .send-btn {
   background: var(--accent-2);
   color: #fff;

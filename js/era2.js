@@ -217,6 +217,25 @@ const Era2 = (() => {
     slotOptions[activeSlot].forEach(opt => {
       const b = el('button', 'opt opt-word' + (opt.word === null ? ' opt-dots' : '')
                    + (opt.fleet ? ' opt-fleet' : ''), opt.label);
+      /* issue #66: Act 2 spells "I don't know" out in full on its own
+         button; Act 3 offers the identical choice as a bare "…", which
+         this same game already uses elsewhere as a *typing* indicator —
+         a player can read it as a placeholder rather than a real,
+         deliberate option, and never find the choice Act 2 just taught
+         them exists. A `title` alone doesn't reach this: it's a hover
+         tooltip, and half this game's own breakpoints exist because it's
+         played on a phone with no hover to have. The small caption under
+         the glyph is the fix that actually reaches a touch player — same
+         register as the fleet count beside it, quiet enough that the
+         suggestion bar still reads as one undifferentiated set of
+         options and nothing marks the honest one as special either.
+         `title`/`aria-label` stay on for desktop hover and screen readers,
+         which cost nothing extra to keep. */
+      if (opt.word === null) {
+        b.title = 'say nothing';
+        b.setAttribute('aria-label', 'say nothing (…)');
+        b.appendChild(el('span', 'opt-dots-hint', 'say nothing'));
+      }
       // the fleet's tally, carried through from training
       if (opt.fleet) b.appendChild(el('span', 'opt-fleet-count', '×' + opt.fleet));
       b.addEventListener('click', () => {

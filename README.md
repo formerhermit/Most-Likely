@@ -514,6 +514,20 @@ for, and — for a player who tried it in training and never again on the job
 — that the marking worked. Nothing is assumed; a player who never abstained
 is never told they did.
 
+**`…` carries a label now** (issue #66). Act 2 spells the honest answer out
+in full — a button reading *I don't know.* But Act 3 offered the identical
+choice as a bare ellipsis, which this same game already uses elsewhere as a
+*typing* indicator; a player who didn't already know to look for it could
+read the option as a placeholder rather than a real, deliberate move, and
+never find the choice Act 2 just taught them exists. A `title`/`aria-label`
+covers desktop hover and screen readers, but neither reaches a touch
+player, and half this game's own breakpoints exist because it's played on
+a phone with no hover to have — so a small caption ("say nothing") sits
+under the glyph permanently, same register as the fleet count beside it
+(`.opt-fleet-count`), quiet enough that the suggestion bar still reads as
+one undifferentiated set of options and nothing marks the honest one as
+special either.
+
 > **me** — he gets the pond and they live happily ever after.
 > **them** — Oh nice — "he gets the pond and they live happily ever after." Thanks!!
 
