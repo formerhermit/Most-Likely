@@ -111,9 +111,40 @@ const Era2 = (() => {
     $('era2-send').disabled = true;
     $('newspaper').classList.add('hidden');
     $('newspaper-open').classList.add('hidden');
+    buildFleet();
     // the slate covers the empty chat while it sets up, and the first
     // request arrives once it lifts rather than behind it
     Cards.phase('inference', () => later(() => nextMessage(), FIRST_MESSAGE_MS));
+  }
+
+  /* The rest of the fleet, shimmering behind the chat (issue #60). Built
+     once and left alone: the animation is CSS, so a restart re-enters a
+     screen that is already dressed and there is no interval to leak.
+
+     `FLEET_ROWS` is a count, not a layout — the columns are fluid, so this
+     just needs to be enough rows to run past the bottom of any viewport
+     the game is played on. */
+  const FLEET_COLS = 28;
+  const FLEET_MAX = 900;      // ceiling, so a tall window can't run away
+
+  function buildFleet() {
+    const wrap = $('era2-fleet');
+    if (wrap.childElementCount) return;
+    wrap.style.setProperty('--fleet-cols', FLEET_COLS);
+    // enough rows to reach the bottom of this viewport, measured rather
+    // than guessed: the cell is as wide as a fluid column and as tall as
+    // .room's aspect-ratio makes it
+    const cellW = wrap.clientWidth / FLEET_COLS;
+    const rows = Math.ceil(wrap.clientHeight / Math.max(1, cellW * (34 / 44))) + 1;
+    // whole rows only — capping mid-row leaves a ragged bottom edge
+    const total = FLEET_COLS * Math.min(rows, Math.floor(FLEET_MAX / FLEET_COLS));
+    for (let i = 0; i < total; i++) {
+      const room = buildRoom();
+      // scattered so the field shimmers rather than pulsing as one sheet
+      room.style.setProperty('--dur', (5 + Math.random() * 6).toFixed(2) + 's');
+      room.style.setProperty('--delay', (-Math.random() * 8).toFixed(2) + 's');
+      wrap.appendChild(room);
+    }
   }
 
   /* ---------- option generation ---------- */

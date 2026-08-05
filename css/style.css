@@ -481,6 +481,42 @@ button { font-family: inherit; cursor: pointer; }
   position: absolute; inset: 0;
   pointer-events: none;
 }
+/* The fleet at work behind the chat (issue #60). Deliberately not a
+   mechanic: concurrency as something the player manages would hand them an
+   alibi, and the end screen only lands because they had none.
+
+   Fluid `1fr` columns and aspect-ratio on the cell, exactly as the opening
+   grid does it, so this needs no breakpoint of its own. The shimmer is CSS
+   with a per-room delay set at build time — animating `opacity` keeps it on
+   the compositor, and having no interval means nothing to clear on restart
+   or pause when the tab hides. */
+.era2-fleet {
+  position: absolute;
+  inset: 108px 0 0;
+  display: grid;
+  grid-template-columns: repeat(var(--fleet-cols, 36), 1fr);
+  gap: clamp(2px, 0.35vw, 5px);
+  padding: 0 14px;
+  opacity: 0.13;
+  overflow: hidden;
+}
+.era2-fleet .room {
+  /* `1fr` refuses to shrink a grid item below its automatic minimum, and
+     `.room`'s aspect-ratio derives that minimum from the row height — so
+     without this the tracks inflate to ~64px and 36 columns overflow a
+     phone three times over. The opening grid never hits it because its
+     rows are free to size themselves. */
+  min-width: 0;
+  min-height: 0;
+  animation: fleetPulse var(--dur, 7s) ease-in-out var(--delay, 0s) infinite;
+}
+@keyframes fleetPulse {
+  0%, 100% { opacity: 0.35; }
+  50% { opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .era2-fleet .room { animation: none; opacity: 0.7; }
+}
 .dusty-belt {
   position: absolute;
   top: 40px; left: 50%;

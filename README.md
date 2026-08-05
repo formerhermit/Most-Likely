@@ -500,6 +500,14 @@ A chat window. Requests arrive; the reply is a frame with blanks; the words
 come from the trained model. The belt sits stopped in the background with
 the hatch boarded over — the knowledge cutoff, shown rather than said.
 
+Behind it, **the rest of the fleet is still working** (issue #60): the same
+lit rooms the opening zoomed out of, shimmering at 13% opacity, so being one
+node among many is shown rather than stated and the lights-out grid at the
+end has something to answer. It is scenery and stays scenery. Concurrency
+the player has to *manage* was the original proposal and is the one thing
+this must not become — every line on the end screen depends on the player
+having had no excuse, and a queue of neglected tabs is an excellent one.
+
 The model observes the incoming message and the slot's `anchors`, then
 offers what its own table puts nearest, whether or not the right answer is
 among them. Nothing marks a wrong option as uncertain.
