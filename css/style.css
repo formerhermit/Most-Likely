@@ -999,18 +999,39 @@ button { font-family: inherit; cursor: pointer; }
 .pt-unanswered { opacity: 0.85; }
 .pt-miss { color: #c0503a; text-decoration: line-through; opacity: 0.75; }
 
-/* thumped onto the document card as it completes — same ink and the same
-   stamphit animation as the QC approval stamps, scaled to the page */
+/* Thumped onto the document card as it completes — same ink and the same
+   stamphit animation as the QC approval stamps, scaled to the page.
+
+   Two bugs, one cause (issue #62): this had no `background`, so the
+   document's own text — already fully revealed by the time the stamp
+   lands, since it only fires once the document is done — showed straight
+   through it, and its colour was `--accent-2` copied from the QC stamp
+   unchanged. That colour works there because the QC stamp sits on
+   `--night`, a dark backdrop (6.1:1 contrast); here it sits on `--paper`,
+   a light one, where the same green measures 2.6:1 — under WCAG's 3:1 floor
+   for text this size, let alone the 4.5:1 normal text wants. A transparent
+   box with barely-there ink, floating over a line of unrelated prose, is
+   exactly "can't be seen easily against the background".
+
+   The fix is the same for both: an opaque plate stops the text bleeding
+   through (nothing is actually hidden — it's already-read prose, the same
+   thing a real stamp would sit on top of), and a darker shade of the same
+   green (#3f7038, 5.6:1 on paper) clears AA at this size with room to
+   spare while staying the same colour family as every other "correct"
+   accent in the game. */
 .pt-stamp {
   position: absolute;
   top: 12px; right: 16px;
   font-family: var(--mono);
   font-size: 14px;
+  font-weight: 700;
   letter-spacing: 0.14em;
-  color: var(--accent-2);
-  border: 3px solid var(--accent-2);
+  color: #3f7038;
+  background: var(--paper);
+  border: 3px solid #3f7038;
   border-radius: 6px;
   padding: 4px 10px;
+  box-shadow: 0 3px 8px rgba(0,0,0,0.18);
   opacity: 0;
   transform: scale(3) rotate(-8deg);
   pointer-events: none;
