@@ -43,9 +43,13 @@ button { font-family: inherit; cursor: pointer; }
   border-radius: 999px;
   padding: 6px 12px;
 }
-#btn-mute {
+.hud-toggle {
   background: none; border: none; font-size: 20px; line-height: 1;
+  padding: 0 2px;
+  transition: opacity 0.15s;
 }
+/* off is the dimmed one — see the note in index.html */
+.hud-toggle[aria-pressed="false"] { opacity: 0.3; }
 
 /* ---------- screens ---------- */
 .screen {

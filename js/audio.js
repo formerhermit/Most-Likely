@@ -7,7 +7,16 @@
 const Audio2 = (() => {
   let ctx = null;
   let master = null;
-  let muted = false;
+  /* Music and effects get a gain node each, both feeding `master`, so they
+     can be silenced independently (issue #70). They are genuinely different
+     things to want off: the tracks are the thing someone listening to their
+     own music turns off, and the blips are the thing that carries the
+     act's feedback — the correct-answer tone climbs a semitone per streak,
+     which is information, not decoration. */
+  let musicGain = null;
+  let sfxGain = null;
+  let musicMuted = false;
+  let sfxMuted = false;
 
   /* phase music: one <audio> per track, crossfaded between phases */
   const TRACKS = {
@@ -41,7 +50,7 @@ const Audio2 = (() => {
       a.preload = 'auto';
       a.volume = 0;
       players[name] = a;
-      ctx.createMediaElementSource(a).connect(master);
+      ctx.createMediaElementSource(a).connect(musicGain);
     }
   }
 
@@ -73,10 +82,18 @@ const Audio2 = (() => {
     master = ctx.createGain();
     master.gain.value = 0.5;
     master.connect(ctx.destination);
+    // the two buses. Both sit at 1 and only ever move to 0, so the levels
+    // that were tuned against `master` at 0.5 are unchanged
+    musicGain = ctx.createGain();
+    musicGain.gain.value = musicMuted ? 0 : 1;
+    musicGain.connect(master);
+    sfxGain = ctx.createGain();
+    sfxGain.gain.value = sfxMuted ? 0 : 1;
+    sfxGain.connect(master);
   }
 
   function tone(freq, dur, { type = 'triangle', gain = 0.2, at = 0, dest = null, slideTo = null } = {}) {
-    if (!ctx || muted) return;
+    if (!ctx || sfxMuted) return;
     const t0 = ctx.currentTime + at;
     const osc = ctx.createOscillator();
     const g = ctx.createGain();
@@ -87,7 +104,7 @@ const Audio2 = (() => {
     g.gain.exponentialRampToValueAtTime(gain, t0 + 0.015);
     g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
     osc.connect(g);
-    g.connect(dest || master);
+    g.connect(dest || sfxGain);
     osc.start(t0);
     osc.stop(t0 + dur + 0.05);
   }
@@ -102,7 +119,9 @@ const Audio2 = (() => {
     clearFades();
 
     const incoming = players[name];
-    const target = muted ? 0 : MUSIC_VOLUME;
+    // always fades to full: muting is the music bus's job, not the
+    // crossfade's, so a track muted mid-fade comes back at the right level
+    const target = MUSIC_VOLUME;
     if (incoming.paused) {
       incoming.currentTime = 0;
       incoming.play().catch(() => {});
@@ -122,14 +141,20 @@ const Audio2 = (() => {
       ensurePlayers();
     },
     playPhase,
-    setMuted(m) {
-      muted = m;
-      // one switch for both: master now carries every track (see
-      // ensurePlayers()), so this is instant and correct regardless of
-      // whether a crossfade happens to be running
-      if (master) master.gain.value = m ? 0 : 0.5;
+    /* Two switches, one per bus. Each is instant and correct regardless of
+       whether a crossfade happens to be running, which is what the single
+       master switch bought when it replaced poking each track's own volume
+       (#46) — the split keeps that property. */
+    setMusicMuted(m) {
+      musicMuted = m;
+      if (musicGain) musicGain.gain.value = m ? 0 : 1;
     },
-    isMuted: () => muted,
+    isMusicMuted: () => musicMuted,
+    setSfxMuted(m) {
+      sfxMuted = m;
+      if (sfxGain) sfxGain.gain.value = m ? 0 : 1;
+    },
+    isSfxMuted: () => sfxMuted,
     /* soft "filed" blip */
     blip() { tone(660, 0.09, { type: 'square', gain: 0.06 }); tone(990, 0.12, { type: 'square', gain: 0.05, at: 0.06 }); },
     /* thumbs up — `step` raises the pitch a semitone per consecutive

@@ -10,7 +10,11 @@
 
 <div id="hud">
   <span class="node-id"></span>
-  <button id="btn-mute" title="sound">🔊</button>
+  <!-- one toggle each (issue #70). A muted button dims rather than swapping
+       glyph: two buttons side by side, one bright and one faded, states the
+       setting without hover — which half this game's players don't have. -->
+  <button id="btn-music" class="hud-toggle" title="music" aria-pressed="true">🎵</button>
+  <button id="btn-sfx" class="hud-toggle" title="sound effects" aria-pressed="true">🔊</button>
 </div>
 
 <!-- ======== TITLE ======== -->

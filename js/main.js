@@ -93,11 +93,20 @@
     $('qc-field-a').addEventListener('click', () => QC.drop('a'));
     $('btn-replay').addEventListener('click', () => location.reload());
 
-    const mute = $('btn-mute');
-    mute.addEventListener('click', () => {
-      Audio2.setMuted(!Audio2.isMuted());
-      mute.textContent = Audio2.isMuted() ? '🔇' : '🔊';
-    });
+    /* Music and effects toggle separately (issue #70). The glyph stays put
+       and `aria-pressed` carries the state, which the stylesheet dims on
+       and a screen reader announces. */
+    const toggle = (id, isMuted, setMuted, label) => {
+      const btn = $(id);
+      btn.addEventListener('click', () => {
+        setMuted(!isMuted());
+        const on = !isMuted();
+        btn.setAttribute('aria-pressed', String(on));
+        btn.title = label + (on ? '' : ' (off)');
+      });
+    };
+    toggle('btn-music', Audio2.isMusicMuted, Audio2.setMusicMuted, 'music');
+    toggle('btn-sfx', Audio2.isSfxMuted, Audio2.setSfxMuted, 'sound effects');
 
     showScreen('screen-title');
   });

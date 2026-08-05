@@ -51,7 +51,7 @@ the last paragraph of six, which is exactly where a skim-reader stops.
 | `js/era2.js` | Act 3 — assemble-the-reply, replies/retry, unnoticed hallucination, newspaper, strikes |
 | `js/ending.js` | Deprecation sequence, lights-out grid, end screen |
 | `js/state.js` | Session flags, screen manager, helpers |
-| `js/audio.js` | WebAudio SFX; three phase tracks crossfaded |
+| `js/audio.js` | WebAudio SFX and four crossfaded phase tracks, on separate mute buses |
 | `js/main.js` | Bootstrap, title, opening zoom, debug helpers |
 | `serve.py` | Dev server with caching disabled |
 | `check.js` | `node check.js` — asserts the corpus still satisfies Act 3 |
