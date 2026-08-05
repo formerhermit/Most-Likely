@@ -137,6 +137,15 @@ const Pretrain = (() => {
   let docHits = 0;          // …and within the current document, for the verdict
   let prevRate = null;      // the previous document's share right, to compare to
   let firstCorrect = false; // has the player ever guessed one right?
+  // Whether THIS blank is the very first one asked all act (issue #52), set
+  // the moment it's asked and read back when it resolves. Has to be captured
+  // at ask-time rather than checked at resolve-time: askBlank() and land()
+  // for the same blank are separated by a click or a timeout, and askBlank()
+  // for the *next* blank never runs until this one's whole resolve/land/
+  // finish cycle is done — so the value read in land() is always the one
+  // this blank was asked with, never a later blank's.
+  let askingFirstBlank = false;
+  let firstBlankAsked = false;
   let resolving = false;    // a miss beat is playing out; don't re-ask
   let fbKind = null;        // what the feedback slot is showing: verdict|ticket|hint
   let fbTimer = null;       // a ticket's dwell timer
@@ -183,6 +192,7 @@ const Pretrain = (() => {
     docHits = 0;
     prevRate = null;
     firstCorrect = false;
+    firstBlankAsked = false;
     resolving = false;
     fbClear();
     // a restart mid-run must not inherit the old run's machinery: the
@@ -338,6 +348,8 @@ const Pretrain = (() => {
 
   function askBlank() {
     awaiting = true;
+    askingFirstBlank = !firstBlankAsked;
+    firstBlankAsked = true;
     const want = Model.classOf(tokens[cursor].word);
     pendingList = Model.rank(REPEAT_PENALTY)
       .map(([w, score]) => {
@@ -738,6 +750,16 @@ const Pretrain = (() => {
         revealTimer = setTimeout(() => {
           slot.classList.add('pt-miss');
           Audio2.no();
+          // The very first blank of the act carries a fleet chip that
+          // dwarfs everything else on it — "crown ×1074", the README's own
+          // flagship example of a gold-tinted tag — sitting at the front of
+          // an almost-empty belt. It's the single most tempting wrong answer
+          // in the whole game, and it's wrong on the very first thing the
+          // player ever does. That's worth a line of its own, timed to the
+          // strikethrough — the moment the pick is "marked as wrong"
+          // (issue #52) — rather than the generic deadpan-and-correct every
+          // other miss gets.
+          if (askingFirstBlank && pick === 'crown') fbTicket('The Crown isn’t a pub.');
           revealTimer = setTimeout(() => { slot.classList.remove('pt-miss'); finish(); }, 650);
         }, 900);
       }
