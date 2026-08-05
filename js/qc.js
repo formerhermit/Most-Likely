@@ -41,7 +41,22 @@ const QC = (() => {
   }
 
   function nextSlip() {
-    if (deck.length === 0) deck = shuffle(QC_SLIPS);
+    if (deck.length === 0) {
+      deck = shuffle(QC_SLIPS);
+      /* The deck is drawn without replacement — every slip once before any
+         repeats — but a fresh shuffle doesn't know what was just dismissed,
+         so about 1 time in 20 (measured) it puts the exact same slip right
+         back on top: it appears, drops away, and comes right back with
+         nothing in between (issue #63). Swap it for a different position
+         so the boundary between one pass through the deck and the next
+         never immediately repeats the slip that was just there. Guarded on
+         `current` for the very first draw of the phase, where there's
+         nothing yet to avoid repeating. */
+      if (current && deck[deck.length - 1] === current && deck.length > 1) {
+        const swapAt = Math.floor(Math.random() * (deck.length - 1));
+        [deck[deck.length - 1], deck[swapAt]] = [deck[swapAt], deck[deck.length - 1]];
+      }
+    }
     current = deck.pop();
     const slip = $('qc-slip');
     slip.textContent = current.text;

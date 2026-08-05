@@ -389,6 +389,19 @@ Instruction tuning: supervisor behind the window, `?` and `=` fields, five
 lights, a stamp and a siren. Slips into the right field, five correct, no
 instructions given — the shape is inferred from feedback alone.
 
+**The slip deck is drawn without replacement** (`QC_SLIPS` in `js/data.js`,
+20 entries) — every slip once before any repeats, then reshuffled and drawn
+again. A player who sorts cleanly never sees the reshuffle at all (5
+correct clears the phase well inside one pass); a player who misses a few
+times draws past the 20 and crosses it. **The reshuffle used to be able to
+put the slip a player had just dismissed straight back on top** — measured
+at 1 time in 20, since a fresh shuffle has no memory of what was just shown
+— so it could appear, drop away, and come right back with nothing in
+between (issue #63). `nextSlip()` now swaps the reshuffled deck's next draw
+for a different position if it matches the slip just dismissed, which
+holds the "every slip once before any repeat" property while closing the
+one boundary where two passes could touch.
+
 ### The rating rounds
 
 After the sort, the same supervisor marks three whole replies (`QC_RATINGS`
