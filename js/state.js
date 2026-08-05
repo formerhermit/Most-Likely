@@ -8,6 +8,15 @@
 
 const State = {
   nodeId: '',
+  /* Relaxed mode (issue #15): no clock on an Act 1 document, no patience
+     running out in Act 3. A setting rather than progress, so `resetState()`
+     leaves it alone — it is chosen on the title screen and a replay button
+     that silently switched it back off would be its own small betrayal.
+
+     It turns off pressure, not pacing. The end-of-document read hold and
+     the stage slates keep their timers: both are ceilings the player can
+     already tap through, and without them nothing would ever advance. */
+  relaxed: false,
   qcAttempts: 0,
   qcDunnoTried: 0,         // times "I don't know" was offered in Act 2 and marked wrong
   tuned: false,            // Act 2 complete — the model has sentence frames

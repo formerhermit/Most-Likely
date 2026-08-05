@@ -299,6 +299,12 @@ const Era2 = (() => {
      resume needs to keep the deadline it already has and merely push it out
      by the time nobody was watching. */
   function startTimer() {
+    /* Relaxed mode (issue #15): no deadline, so no nudge and no message
+       going out on its own. The strike economy is untouched — a wrong
+       answer still costs one and "…" still costs one — because the bet is
+       the act's argument, not its pressure. All that goes is being hurried
+       into it. */
+    if (State.relaxed) return;
     deadline = performance.now() + GIVEUP_MS;
     nudged = false;
     runTimer();

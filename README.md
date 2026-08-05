@@ -27,6 +27,14 @@ candidates, pick one.*
 
 All three run on one shared model: Act 1 trains it, Acts 2 and 3 read it.
 
+**Relaxed mode** is a checkbox under BEGIN (`State.relaxed`, issue #15). It
+turns off pressure, not pacing: no clock on an Act 1 document, and nobody
+running out of patience in Act 3. Everything the game argues survives it —
+a wrong answer still costs a strike and so does *I don't know*, because the
+bet is the point and being hurried into it never was. The end-of-document
+hold and the stage slates keep their timers, since both are ceilings the
+player can already tap through and without them nothing would advance.
+
 Three acts, but **four stages**, and the game names all four to the player
 on a full-screen slate as each one opens (`PHASE_TITLES` in `js/data.js`):
 pre-training, then supervised fine tuning and reinforcement learning from
@@ -130,7 +138,11 @@ word's counts go up either way.
   as well as the sense.
 - **60s per document.** In the final 8 seconds anything still resting slides
   off at a shared speed. A blank whose tags all run off is one the model
-  never answered — which is why there's no "…" button.
+  never answered — which is why there's no "…" button. **Relaxed mode runs
+  the document with no clock at all**, so the belt waits instead of clearing
+  and every blank gets answered; nothing else changes, because `readOn`
+  reaching the end of the tokens ends a document on its own and the clock
+  is only the timeout path.
 - **A miss reads as a joke, not a punishment.** The wrong word sits in the
   sentence as written ("He wore a gold pond") for a beat, deadpan, before
   the strikethrough and the correction. Misses are the most common event in

@@ -77,7 +77,12 @@
   }
 
   document.addEventListener('DOMContentLoaded', () => {
-    $('btn-begin').addEventListener('click', begin);
+    // read at BEGIN rather than on change, so the checkbox is the setting
+    // and nothing has to keep the two in step
+    $('btn-begin').addEventListener('click', () => {
+      State.relaxed = $('opt-relaxed').checked;
+      begin();
+    });
     $('pt-skip').addEventListener('click', () => Pretrain.skip());
     // fast-forward the reveal: tap the document card, or space on desktop.
     // fastForward() guards itself (only acts mid-reveal), so a click while

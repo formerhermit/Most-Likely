@@ -87,6 +87,22 @@ button { font-family: inherit; cursor: pointer; }
   text-shadow: 3px 3px 0 rgba(224, 122, 79, 0.25);
 }
 .subtitle { margin: 14px 0 40px; font-size: 18px; opacity: 0.75; }
+.relaxed-toggle {
+  /* block-level so it drops below BEGIN — .title-wrap centres its text, so
+     an inline-flex label rides up alongside the button instead. Width hugs
+     the content so the clickable area is the label, not the whole row. */
+  display: flex;
+  width: fit-content;
+  margin: 18px auto 0;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  opacity: 0.6;
+  cursor: pointer;
+}
+.relaxed-toggle input { cursor: pointer; accent-color: var(--accent); }
+.relaxed-toggle:hover { opacity: 0.85; }
+
 .tiny { margin-top: 26px; font-size: 12px; opacity: 0.5; }
 /* sits under the fine print it follows, quieter than it — a credit, not a
    second warning */

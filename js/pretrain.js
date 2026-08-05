@@ -270,9 +270,19 @@ const Pretrain = (() => {
     docActive = true;
     $('pt-skip').disabled = false;
 
-    docEndsAt = performance.now() + DOC_DURATION_MS;
-    clockId = setInterval(tick, 250);
-    setClock(DOC_DURATION_MS);
+    /* Relaxed mode runs the document with no clock at all (issue #15). It
+       is safe to simply not start one: `finishDocument()` is the timeout
+       path, and a document also ends the ordinary way when `readOn` runs
+       out of tokens, so the act still completes — the player just gets as
+       long as they want at each blank, and `releaseResting()` never fires,
+       so the belt waits instead of sliding off. */
+    if (State.relaxed) {
+      setClock(null);
+    } else {
+      docEndsAt = performance.now() + DOC_DURATION_MS;
+      clockId = setInterval(tick, 250);
+      setClock(DOC_DURATION_MS);
+    }
     // stored: fastForward in this first beat must cancel it, or readOn
     // fires 700ms later and asks the same blank twice
     revealTimer = setTimeout(readOn, 700);
