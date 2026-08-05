@@ -214,27 +214,14 @@ word's counts go up either way.
 - **Tap the page (or press space) to fast-forward the reveal** to the next
   blank. A one-line hint appears on the first document, worded per
   platform. The gesture only acts mid-reveal, so it can't skip a decision.
-- **The distribution is named once, on the first belt of the act** (issue
-  #30). Every tag already carries a fill bar of its own weight — `buildTag`
-  sets the width to `score / max` — and the belt already rests in rank
-  order, so the act draws a probability distribution five times per blank
-  and, for a long time, never once said that is what it was. A player who
-  doesn't already know reads the bars as machine texture. So the first
-  blank prints *each bar is how likely that word is — the model never has
-  just one answer* in the feedback slot, and the `afterTraining` card
-  spells the same idea out at length afterwards.
-
-  Two things about the placement. It goes on the **first belt**, not the
-  first document: the fast-forward hint owns the document's opening beat
-  and has done its job by the time a blank arrives, so the two hand off
-  cleanly rather than compete — `askingFirstBlank` is act-level, reset in
-  `start()` rather than per document. And it goes in **Act 1 rather than a
-  temperature dial**, which is where issue #30 first proposed teaching
-  this. Temperature is a decoding parameter; training never samples, so a
-  dial in Act 1 would attach a knob to a step that doesn't exist and imply
-  the act's central conceit — that the player *picks* — is what a model
-  does while learning. The distribution was already on screen. It only
-  needed a caption.
+- **Every tag carries a fill bar of its own weight** — `buildTag` sets the
+  width to `score / max` — so between the bars and the belt's rank order
+  the act shows a distribution at every blank. The first belt names it, in
+  the feedback slot: *each bar is how likely that word is — the model never
+  has just one answer*. It fires on the first **blank**, not the first
+  document, so it doesn't compete with the fast-forward hint the document
+  opens with; `askingFirstBlank` is act-level, reset in `start()`. The
+  `afterTraining` card then spells the same idea out at length.
 - **"words known" counts up live** as the model reads, and **bumps when it
   changes** (issue #55). It starts above zero: the fleet's seed pairs are
   words this node knew before its first document.
@@ -545,14 +532,10 @@ learned confidence mattered more than accuracy. Nothing is assumed; a player
 who never abstained is never told they did.
 
 **These lines explain rather than allude, and carry no tallies** (issue
-#68). They are the only place the game states its own scoring outright, and
-three earlier versions failed differently: one compared the abstention to
-"exactly what a wrong answer cost", a price the game never displays; one
-called it "the one reply that was never wrong", which is a riddle; and one
-counted the occurrences, which reads as a scoreboard when the point is the
-rule. Whether the player said it once or four times, what met it was the
-same rule, so the copy names what they did and then what was done to it, in
-the words the game already uses.
+#68). They are the only place the game states its own scoring outright, so
+they say it plainly: what the player did, then what was done to it, in the
+words the game already uses. No counts — whether they said it once or four
+times, the rule that met it was the same.
 
 The thread closes by naming the real thing it models: raters can't check
 every fact but can always see confidence, so sounding sure is rewarded and
