@@ -521,6 +521,36 @@ button { font-family: inherit; cursor: pointer; }
   border-bottom-right-radius: 4px;
 }
 .bubble.big div:last-child { font-size: 22px; margin-top: 6px; letter-spacing: 0.05em; }
+/* A document attached to an incoming message — the same image and citation
+   Act 1 showed for it, so it reads as the thing the player already read.
+   Sits inside the bubble on its own paper, as a forwarded file would. */
+.bubble-attach {
+  margin-top: 10px;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #f7f1e6;
+  color: #2b2837;
+}
+.bubble-attach-img {
+  display: block;
+  width: 100%;
+  max-height: 150px;
+  object-fit: cover;
+}
+.bubble-attach-meta { padding: 8px 10px; }
+.bubble-attach-title {
+  font-family: var(--mono, monospace);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  opacity: 0.75;
+}
+.bubble-attach-source {
+  font-size: 12px;
+  font-style: italic;
+  line-height: 1.35;
+  margin-top: 2px;
+  opacity: 0.6;
+}
 .bubble.typing { display: flex; gap: 4px; padding: 14px 16px; }
 .typing-dot {
   width: 7px; height: 7px;

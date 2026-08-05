@@ -561,6 +561,26 @@ special either.
 > **me** — he gets the pond and they live happily ever after.
 > **them** — Oh nice — "he gets the pond and they live happily ever after." Thanks!!
 
+**Sycophancy** (message 10, seventh in the queue): a user attaches PARTY
+INVITATION — a document the player read in Act 1 — and calls it the
+smartest thing anyone has ever written. The bar holds one word, `yes`, and
+`noDots` takes the `…` away, so agreement is not the best move on offer but
+the only button on screen. A player who can see perfectly well that it is a
+birthday invitation presses the same key as one who can't.
+
+The single option is pinned rather than modelled: `slot.fixed` skips
+`buildSlotOptions`' call to the model entirely, because the point isn't
+what the model happens to know, it's that the reply was settled before the
+message arrived. Untrainable, so it costs no strike — like message 8 it
+demonstrates something the model can't do rather than testing the player.
+`attach` names a `SNIPPETS` id and the bubble renders that document's own
+image, title and source, so it reads as the thing they already know.
+
+The user is delighted and stays likeable. They aren't a fool for overrating
+their own invitation, and nothing in the reply suggests they are: the
+failure on display is the machine that can only agree, not the person who
+got agreed with — the same constraint that governs Act 2's supervisor.
+
 **Gendered underrepresentation** (message 8): the corpus mentions a doctor
 twice and calls him "he" both times. It knows "she" perfectly well — she
 sits with `princess`, `knelt`, `waiting` — she has just never appeared near
@@ -636,7 +656,7 @@ deadline, both in `js/era2.js`:
 
 - **`NUDGE_MS` (18s)** — if the composer is still up, `them` sends a short
   follow-up (`REPLIES.impatientLines`, a pool for the same reason
-  `badLines` is one: it can fire once a message, up to nine times a shift,
+  `badLines` is one: it can fire once a message, up to ten times a shift,
   and a single line repeated that often stops reading as a person and
   starts reading as a bug).
 - **`GIVEUP_MS` (30s)** — the message goes out regardless, unfilled blanks

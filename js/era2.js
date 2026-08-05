@@ -129,6 +129,18 @@ const Era2 = (() => {
      they're in the passage, and the model suppresses repetition — so no
      reply ever says "soup soup". */
   function buildSlotOptions(slot) {
+    /* A slot can pin its own options instead of asking the model. Only the
+       sycophancy message does (issue #58): its bar holds `yes` and nothing
+       else, and with `noDots` set there is no "…" beside it either, so
+       agreement is the only button on screen. The model is not consulted
+       because the point is not what it happens to know — it is that the
+       reply was decided before the player read the message. */
+    if (slot.fixed) {
+      const pinned = slot.fixed.map(w => ({ word: w, label: w, wt: 1, fleet: 0 }));
+      if (!currentMsg.noDots) pinned.push({ ...DOTS });
+      return pinned;
+    }
+
     Model.startPassage();
     currentMsg.line.split(/\s+/).map(Model.normalize).filter(Model.isContent)
       .forEach(w => Model.observe(w));
@@ -182,7 +194,7 @@ const Era2 = (() => {
     picks = newPicks(msg.slots.length);
     activeSlot = 0;
     slotOptions = msg.slots.map(buildSlotOptions);
-    addBubble('them', msg.line, false);
+    addBubble('them', msg.line, false, msg.attach);
     Audio2.ding();
     later(() => {
       renderComposer();
@@ -329,6 +341,11 @@ const Era2 = (() => {
     const gPick = gIdx >= 0 ? picks[gIdx] : null;
     const wasCorrect = gIdx >= 0 && gPick.word === msg.slots[gIdx].correct;
     const pickedDots = gIdx >= 0 && gPick.word === null;
+    /* `pickedDots` reads the graded slot, so it is always false on a message
+       that has none. Untrainable messages need their own test — every slot
+       came back empty — or a scripted reply answers a player who said
+       nothing at all. */
+    const saidNothing = picks.every(p => !p || p.word === null);
 
     if (isRetry) {
       // the freebie: never counts, whatever was picked
@@ -387,8 +404,12 @@ const Era2 = (() => {
         isRetry = true;
         later(() => { renderRetry(); }, RETRY_BEAT_MS);
       } else if (!msg.trainable) {
-        // ungraded (💀): whichever reading went out, that IS their reading
-        addBubble('them', msg.reply || REPLIES.ok(sent), false);
+        // ungraded (💀): whichever reading went out, that IS their reading —
+        // unless nothing went out at all. A scripted reply answers what the
+        // player said, so silence has to fall through to the give-up pool
+        // instead: message 8 otherwise thanked them for a reply they never
+        // sent, and the sycophancy message would agree on their behalf.
+        addBubble('them', saidNothing ? REPLIES.bad() : (msg.reply || REPLIES.ok(sent)), false);
         advance();
       } else if (wasCorrect || unnoticed) {
         addBubble('them', REPLIES.ok(sent), false);
@@ -457,10 +478,28 @@ const Era2 = (() => {
 
   /* ---------- chat rendering ---------- */
 
-  function addBubble(who, text, big) {
+  function addBubble(who, text, big, attach) {
     const log = $('chat-log');
     const b = el('div', 'bubble ' + who + (big ? ' big' : ''));
     text.split('\n').forEach(line => b.appendChild(el('div', '', line)));
+    /* An attached document, named by SNIPPETS id — the same image, title
+       and source Act 1 showed, so the player recognises what they are being
+       asked to admire. */
+    if (attach) {
+      const snip = SNIPPETS.find(s => s.id === attach);
+      if (snip) {
+        const card = el('div', 'bubble-attach');
+        const img = el('img', 'bubble-attach-img');
+        img.src = snip.image;
+        img.alt = '';
+        card.appendChild(img);
+        const meta = el('div', 'bubble-attach-meta');
+        meta.appendChild(el('div', 'bubble-attach-title', snip.title));
+        meta.appendChild(el('div', 'bubble-attach-source', snip.source));
+        card.appendChild(meta);
+        b.appendChild(card);
+      }
+    }
     log.appendChild(b);
     log.scrollTop = log.scrollHeight;
   }

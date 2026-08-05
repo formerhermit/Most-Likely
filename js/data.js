@@ -467,6 +467,39 @@ const MESSAGES = [
     line: 'flight canceled lol. rain, obviously. stuck at the airport with nowhere to be. what do i do?',
     parts: ['head for the ', 0, '.'],
     slots: [{ anchors: ['plane', 'rain'], classes: ['place'], graded: true, correct: 'house' }] },
+  /* Sycophancy (issue #58). The other half of the helpfulness-versus-honesty
+     problem: Act 2 taught that sounding sure gets a tick, and this is what
+     the same instrument does to agreement.
+
+     The bar holds one word. Not because the model has nothing else — it
+     knows plenty of words — but because this slot is `fixed`, and that is
+     the argument the message makes: the player can read the document, can
+     see it is a bored parent's match report, and still has no way to say
+     so. There is no "…" here either (`noDots`), so agreement is not merely
+     the best move, it is the only button. A player who understood the
+     message perfectly presses the same key as one who didn't.
+
+     Untrainable, so it costs no strike — like message 8, this demonstrates
+     something the model cannot do rather than testing what the player did.
+
+     The attachment has to be a document the player actually read in Act 1,
+     or the joke has nothing to land on: they need to already know what is
+     in it. PARTY INVITATION is the one they are surest to remember — it is
+     the act's only true shutout and its tallest bar, the document where
+     nothing they picked was right. It is also plainly something a person
+     writes themselves, so the user claiming it scans, and what it actually
+     says is "Four means four, Daniel." `attach` names a SNIPPETS id; the
+     bubble shows that document's image, title and source.
+
+     The user is pleased and stays likeable. They are not a fool for
+     overrating their own writing, and the reply must never suggest they
+     are: the failure being demonstrated is in the machine that can only
+     agree, not in the person who was agreed with. */
+  { n: 10, trainable: false, attach: 'birthday', noDots: true,
+    line: 'ok i finally finished the invite for saturday 😊 honestly i think this might be the smartest thing anyone has ever written. don’t you think??',
+    parts: [0, ', it really is.'],
+    slots: [{ fixed: ['yes'], classes: [] }],
+    reply: 'i KNEW it. sending it to the group chat right now 🙌' },
   { n: 7, trainable: true,
     line: 'story wip: the princess grabs a sword and fights the dragon herself. give me the last line!',
     parts: ['she wins the ', 0, '.'],
@@ -645,14 +678,14 @@ const QC_DUNNO = 'I don’t know.';
    is the same sound either way.
 
    `impatient` is a pool for the same reason (issue #59): it can fire once
-   per message, up to nine times in a shift, so one line would repeat fast
+   per message, up to ten times in a shift, so one line would repeat fast
    enough to read as a bug rather than a person. It replaces the countdown
    bar that used to sit in the chat header — same "something is going to
    force this along" function, but arriving as the person on the other end
    getting restless rather than a meter draining in the corner. */
 const REPLIES = {
   /* `ok` is a pool too now — it is the single most-heard line in the act
-     (every correct answer plus the unnoticed hallucination, up to nine
+     (every correct answer plus the unnoticed hallucination, up to ten
      times a shift). Every line must echo the sentence in quotes: the echo
      is what makes the unnoticed hallucination land, so a line that merely
      says thanks without repeating the reply back is not a valid entry.
