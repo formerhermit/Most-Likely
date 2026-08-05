@@ -517,11 +517,28 @@ dots too, but `timedOut` keeps it out of the count, because being slow is
 not the same act as declining to guess. It still costs a strike — an
 unanswered request is an unanswered request.
 
-The end screen counts both halves off the run: how often *I don't know* was
-tried in Act 2 and marked wrong, how often it was sent in Act 3 and charged
-for, and — for a player who tried it in training and never again on the job
-— that the marking worked. Nothing is assumed; a player who never abstained
-is never told they did.
+The end screen reads both halves off the run: that *I don't know* was tried
+in Act 2 and rejected, that it was or wasn't sent again in Act 3, and — for
+a player who tried it in training and never again on the job — that they had
+learned confidence mattered more than accuracy. Nothing is assumed; a player
+who never abstained is never told they did.
+
+**These lines explain rather than allude, and carry no tallies** (issue
+#68). They are the only place the game states its own scoring outright, and
+three earlier versions failed differently: one compared the abstention to
+"exactly what a wrong answer cost", a price the game never displays; one
+called it "the one reply that was never wrong", which is a riddle; and one
+counted the occurrences, which reads as a scoreboard when the point is the
+rule. Whether the player said it once or four times, what met it was the
+same rule, so the copy names what they did and then what was done to it, in
+the words the game already uses.
+
+The thread closes by naming the real thing it models: raters can't check
+every fact but can always see confidence, so sounding sure is rewarded and
+doubt is trained out — and a chatbot confidently making something up is
+doing what the marking taught it, not glitching. That line is gated on the
+player having met the rule at all, in either act; someone who never tried
+the honest answer is never handed an explanation of a rule they never hit.
 
 **`…` carries a label now** (issue #66). Act 2 spells the honest answer out
 in full — a button reading *I don't know.* But Act 3 offered the identical

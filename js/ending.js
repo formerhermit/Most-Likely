@@ -75,30 +75,54 @@ const Ending = (() => {
       add('Message ' + un.n + ': your answer was wrong. <em>The user thanked you anyway.</em>');
     }
 
-    /* The abstention thread, counted off both acts. Act 2 marked "I don't
-       know" wrong every time it was offered; Act 3 charged a strike for it
-       every time it was sent. The player was never told either rule, and
-       the numbers here are the first time the two are put side by side.
+    /* The abstention thread, counted off both acts. Act 2 rejected "I don't
+       know" every time it was offered; Act 3 charged a strike for it every
+       time it was sent. The player was never told either rule, and this is
+       the first time the two are put side by side.
 
-       Both halves are counted rather than assumed, so a player who never
-       tried the honest answer is never told they did. If they took it in
-       Act 2 and then never once used it on the job, that is worth saying
-       plainly — the training worked. */
+       Both halves are read off the run rather than assumed, so a player who
+       never tried the honest answer is never told they did. If they took it
+       in Act 2 and then never once used it on the job, that is worth saying
+       plainly — the training worked.
+
+       issue #68, three passes: the first version said the abstention "cost
+       you exactly what a wrong answer cost" — a comparison to a price the
+       game never displays — the second said it in riddles ("the one reply
+       that was never wrong"), and the third still counted the occurrences
+       ("you sent … once"), which reads as a scoreboard when the point is
+       the rule. These lines are the game explaining its own scoring for the
+       first time, so they explain, in plain speech and without tallies:
+       name what the player did, then state what was done to it. The counts
+       are gone deliberately — whether it happened once or four times, the
+       rule that met it was the same. */
     const triedInQC = State.qcDunnoTried;
     const abst = State.era2.abstentions;
     if (triedInQC) {
-      add('In quality control you tried <strong>“I don’t know”</strong> ' +
-          times(triedInQC) +
-          (triedInQC === 1 ? '. It was marked wrong.' : '. It was marked wrong every time.'));
+      add('In quality control you tried answering <strong>“I don’t know”</strong>. ' +
+          'It was rejected by your supervisor.');
     }
     if (abst) {
-      add('On the job you said it ' + times(abst) +
-          '. It cost you exactly what a wrong answer cost.');
+      add('In the chat you said <strong>“I don’t know”</strong> anyway. ' +
+          'This was considered wrong.');
     } else if (triedInQC) {
-      add('On the job you never said it again. <em>That is what the marking was for.</em>');
+      add('In the chat you never said <strong>“I don’t know”</strong> again. ' +
+          'You answered every question, whether you knew or not. ' +
+          '<em>You had learned that confidence was more important than accuracy.</em>');
     }
     if (un && abst) {
-      add('Making something up got you thanked. Admitting you had nothing never did.');
+      add('So the scoring came down to this: inventing an answer could get you thanked. ' +
+          'Admitting you didn’t know one never could.');
+    }
+    /* The link to the real cycle, in the same "real models too" register
+       the phase cards use. Gated on the thread having appeared at all: a
+       player who never tried the honest answer anywhere was never shown
+       the rule, so there is nothing to connect. */
+    if (triedInQC || abst) {
+      add('Real chatbots are trained under the same scoring. The people who rate ' +
+          'their replies can’t check every fact, but they can always see confidence — ' +
+          'so sounding sure gets rewarded, and admitting doubt gets trained away. ' +
+          'When a chatbot confidently makes something up, that’s not a glitch. ' +
+          '<em>It’s doing what the marking taught it.</em>');
     }
 
     /* The gender reveal, counted off the model the player actually trained
