@@ -267,7 +267,11 @@ word's counts go up either way.
   doesn't exist. Same underlying model, same timing, same "nothing tapped
   in time reads as no answer" — just no motion. The document stage and top
   bar stack/wrap under the same breakpoint (issue #45).
-- **Skip advances one blank**, not the document.
+- **Skip advances one blank**, not the document — it fast-forwards the
+  reveal mid-text, gives up on a blank that is waiting, and only leaves the
+  document from the end-of-document hold. It is labelled *skip this word*
+  for the middle case, since that is the only one that costs the player
+  anything (issue #71).
 - **Every finished document is held up for 15s to be read.** The reveal runs
   at 55ms a word, around a thousand a minute, so watching the text appear is
   not the same as reading it — and the clock-out and skip paths dump what's

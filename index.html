@@ -48,7 +48,13 @@
       <div class="pt-meter-track"><div id="pt-meter-fill"></div></div>
       <span id="pt-meter-val" class="pt-meter-val">—</span>
     </div>
-    <button id="pt-skip" class="skip-btn" title="Skip this document">⏩</button>
+    <!-- Named for the case that costs something. skip() does three things
+         depending on when it's pressed (js/pretrain.js): fast-forwards the
+         reveal, gives up on the blank currently waiting, or leaves a
+         finished document. It said "skip this document", which is true
+         only in the last of those and misleading in the one where pressing
+         it forfeits a prediction (issue #71). -->
+    <button id="pt-skip" class="skip-btn" title="Skip this word" aria-label="Skip this word">⏩</button>
     <div id="pt-clock" class="clock">-:--</div>
   </div>
 

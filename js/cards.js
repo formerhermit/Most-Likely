@@ -46,8 +46,20 @@ const Cards = (() => {
      types a line, holds, and fades back out — `onDone` runs at the far
      side, so callers read as "slate, then the stage". */
   const SLATE_IN_MS = 550;
-  const SLATE_CPS = 45;
-  const SLATE_HOLD_MS = 1250;
+  const SLATE_CPS = 55;
+  const SLATE_OUT_MS = 550;
+  /* How long the slate stays up once its text has finished typing. It was a
+     flat 1250ms measured against the typed line only, which ignored that a
+     stage slate puts three things on screen — the phase number, the name
+     and the gloss — and gave the longest of them (13 words, on PHASE 3) the
+     same second and a quarter as the shortest (issue #72).
+
+     So it is per word of everything visible, with a floor. 300ms a word is
+     unhurried on purpose: this is the one moment the game names what the
+     player is about to do, and it is cheap to be generous when they can tap
+     straight through it. */
+  const SLATE_MS_PER_WORD = 300;
+  const SLATE_HOLD_MIN_MS = 1800;
 
   /* The handoff line, on the same slate the stage titles use but without
      the number or the gloss — one sentence, sentence case, in the reading
@@ -73,10 +85,13 @@ const Cards = (() => {
   }
 
   /* Fade the slate in, type `text` into it, hold, fade out, then `onDone`.
-     The hold is measured from the text's own length: the shortest thing
-     this shows is INFERENCE and the longest is four times that, and one
-     fixed duration leaves the short one loitering or cuts the long one off
-     mid-word. */
+
+     It is a ceiling rather than a wait, the same bargain Act 1's end-of-
+     document hold strikes: tapping or pressing space moves on early. The
+     gesture only arms once the text has finished typing, so nothing can be
+     skipped before it has been seen, and the slate takes pointer events
+     while it is up — without that the tap would fall through to the QC
+     bench sitting live underneath it. */
   function runSlate(text, onDone) {
     const slate = $('phase-slate');
     $('phase-title').textContent = '';
@@ -94,13 +109,38 @@ const Cards = (() => {
     setTimeout(() => typeText($('phase-title'), text, SLATE_CPS), SLATE_IN_MS);
 
     const typing = (text.length / SLATE_CPS) * 1000;
-    setTimeout(() => {
+    // every word the slate is showing, not just the one being typed
+    const shown = [$('phase-num').textContent, text, $('phase-sub').textContent]
+      .join(' ').trim().split(/\s+/).filter(Boolean).length;
+    const hold = Math.max(SLATE_HOLD_MIN_MS, shown * SLATE_MS_PER_WORD);
+
+    let done = false;
+    const finish = () => {
+      if (done) return;
+      done = true;
+      clearTimeout(autoId);
+      window.removeEventListener('keydown', onKey);
+      slate.removeEventListener('pointerdown', finish);
       slate.classList.remove('show');
       setTimeout(() => {
         slate.classList.add('hidden');
         if (onDone) onDone();
-      }, 550);
-    }, SLATE_IN_MS + typing + SLATE_HOLD_MS);
+      }, SLATE_OUT_MS);
+    };
+    const onKey = (e) => {
+      if (e.code !== 'Space' && e.code !== 'Enter') return;
+      // or the same press also fast-forwards the act now behind the slate
+      e.preventDefault();
+      finish();
+    };
+
+    const autoId = setTimeout(finish, SLATE_IN_MS + typing + hold);
+    // armed only once the line is fully typed
+    setTimeout(() => {
+      if (done) return;
+      slate.addEventListener('pointerdown', finish);
+      window.addEventListener('keydown', onKey);
+    }, SLATE_IN_MS + typing);
   }
 
   return { show, phase };

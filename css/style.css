@@ -168,10 +168,15 @@ button { font-family: inherit; cursor: pointer; }
   text-align: center;
   background: rgba(246, 239, 227, 0.97);
   opacity: 0;
+  /* Takes input only while it is up: the screens underneath stay live, so
+     without this a tap meant to dismiss the slate lands on the QC bench or
+     the document behind it. Tied to .show, so the fade-out hands control
+     back on its way out. */
   pointer-events: none;
+  cursor: pointer;
   transition: opacity 0.55s;
 }
-.phase-slate.show { opacity: 1; }
+.phase-slate.show { opacity: 1; pointer-events: auto; }
 .phase-num {
   font-family: var(--mono);
   font-size: 13px;
