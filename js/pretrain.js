@@ -370,7 +370,18 @@ const Pretrain = (() => {
       return;
     }
 
-    fbHint('');
+    /* Every tag carries a fill bar of its own weight (`buildTag`), and the
+       belt rests in rank order — so the act draws a distribution five times
+       a blank and, until now, never once said that is what it is. A player
+       who doesn't already know reads the bars as machine texture. Named
+       here rather than anywhere else because this is the only moment they
+       are new: the first belt of the act, tags rolling in, no theory formed
+       yet. It replaces the fast-forward hint the document opened with,
+       which has done its job by the time a blank arrives, and it clears
+       when the blank resolves like every other hint. */
+    fbHint(askingFirstBlank
+      ? 'each bar is how likely that word is — the model never has just one answer'
+      : '');
     const max = top[0][1];
 
     if (isMobileLayout()) {

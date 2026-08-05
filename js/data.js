@@ -539,6 +539,10 @@ const PHASE_CARDS = {
     button: 'OK, CHECK ME!',
     body: [
       'You read {DOCS} documents, and as you went you got better at predicting which words tend to sit near each other.',
+      // the per-tag fill bars. The card explained the loss curve and never
+      // once explained the thing being scored, which is the odder omission
+      // of the two: those bars were on screen at every blank in the act.
+      'Every word offered to you carried a little bar — how likely the model thought that word was, right then. That is all a model ever holds: not an answer, but a ranked list of guesses with weights on them. You picked one. It could have picked differently.',
       'The bar along the bottom tracked how far off your guesses were. It stayed high while you were guessing without information, and it dropped once you had read enough to guess well.',
       'Real models do this with billions of documents!',
       'Now it’s time for someone to check your work.'

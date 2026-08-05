@@ -214,6 +214,27 @@ word's counts go up either way.
 - **Tap the page (or press space) to fast-forward the reveal** to the next
   blank. A one-line hint appears on the first document, worded per
   platform. The gesture only acts mid-reveal, so it can't skip a decision.
+- **The distribution is named once, on the first belt of the act** (issue
+  #30). Every tag already carries a fill bar of its own weight — `buildTag`
+  sets the width to `score / max` — and the belt already rests in rank
+  order, so the act draws a probability distribution five times per blank
+  and, for a long time, never once said that is what it was. A player who
+  doesn't already know reads the bars as machine texture. So the first
+  blank prints *each bar is how likely that word is — the model never has
+  just one answer* in the feedback slot, and the `afterTraining` card
+  spells the same idea out at length afterwards.
+
+  Two things about the placement. It goes on the **first belt**, not the
+  first document: the fast-forward hint owns the document's opening beat
+  and has done its job by the time a blank arrives, so the two hand off
+  cleanly rather than compete — `askingFirstBlank` is act-level, reset in
+  `start()` rather than per document. And it goes in **Act 1 rather than a
+  temperature dial**, which is where issue #30 first proposed teaching
+  this. Temperature is a decoding parameter; training never samples, so a
+  dial in Act 1 would attach a knob to a step that doesn't exist and imply
+  the act's central conceit — that the player *picks* — is what a model
+  does while learning. The distribution was already on screen. It only
+  needed a caption.
 - **"words known" counts up live** as the model reads, and **bumps when it
   changes** (issue #55). It starts above zero: the fleet's seed pairs are
   words this node knew before its first document.
