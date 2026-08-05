@@ -554,9 +554,16 @@ const MESSAGES = [
    A plain note before and after each act. One card sits between each pair
    of acts and does both jobs, which reads better than two in a row.
 
-   House style for this copy: short sentences, second person, no jargon, no
-   em dashes, and nothing phrased as "it isn't X, it's Y". If a line needs a
-   term like tokens or weights to make sense, rewrite the line. */
+   House style for this copy: short sentences, second person, no em dashes,
+   and nothing phrased as "it isn't X, it's Y".
+
+   Jargon has one licensed use: naming a stage of training the player has
+   just played. The name comes first, the plain version immediately after,
+   and then what they actually did that was it. A player who meets
+   "reinforcement learning from human feedback" in the wild afterwards
+   should recognise it as the room with the two drafts. Outside that
+   pattern the old rule holds: if a line needs a term like tokens or
+   weights to make sense, rewrite the line. */
 const PHASE_CARDS = {
   intro: {
     title: 'Before you start',
@@ -572,22 +579,43 @@ const PHASE_CARDS = {
     button: 'OK, CHECK ME!',
     body: [
       'You read {DOCS} documents, and as you went you got better at predicting which words tend to sit near each other.',
-      // the per-tag fill bars. The card explained the loss curve and never
-      // once explained the thing being scored, which is the odder omission
-      // of the two: those bars were on screen at every blank in the act.
-      'Every word offered to you carried a little bar — how likely the model thought that word was, right then. That is all a model ever holds: not an answer, but a ranked list of guesses with weights on them. You picked one. It could have picked differently.',
-      'The bar along the bottom tracked how far off your guesses were. It stayed high while you were guessing without information, and it dropped once you had read enough to guess well.',
+      // the per-tag fill bars, which were on screen at every blank in the
+      // act and went unexplained for a long time
+      'Every word carried a little bar showing how likely the model thought that word was. The model holds the whole ranked list, with a weight on every guess. You picked any word you liked but it could have picked differently.',
       'Real models do this with billions of documents!',
+      /* The run-on-sentence concept (issue #42), told rather than shown. A
+         real base model, asked a question, carries on writing in fluent
+         and completely useless prose. This game's model is a co-occurrence
+         table with no grammar, so a live demo of it produced three
+         loosely-related words and taught the opposite lesson: that base
+         models are broken, when the surprising part is how good they sound
+         while ignoring what you asked. The player has already lived the
+         real version anyway. Ten documents, every blank mid-sentence,
+         nobody ever asking them anything. */
+      'You never answered a question. Every blank sat in the middle of a document, and all you had to do was keep the writing going.',
+      'Ask a model at this stage a question and it does that same thing. It carries on writing, fluently, as if your question were the start of a page it has to finish.',
       'Now it’s time for someone to check your work.'
     ]
   },
   afterTuning: {
     title: 'That was the checking',
     button: 'LET’S GO TO WORK',
+    /* Two stages, named (issue #42). The player just did both and was told
+       they were one thing: the sorting is supervised fine tuning, the two
+       drafts are reinforcement learning from human feedback, and the game
+       used to call the lot of it "a person marked your attempts".
+
+       Worth separating because the act's own argument depends on it. The
+       confident answers and the agreeing are failure modes of the second
+       stage specifically, where nobody is writing down a right answer and
+       the only signal is which reply somebody preferred. Fusing the two
+       leaves that pressure sourceless. */
     body: [
-      'A person marked your attempts until you learned what a good answer looks like. You had the words already, but what you picked up here was how to have conversations in the right format.',
-      'You also learned what gets a tick. Sounding sure did. Saying you did not know never did, and nobody checked whether the sure answer was true.',
-      'Real models get this from people too, who sit and mark thousands of replies until the pattern sinks in.',
+      'You just finished two different jobs.',
+      'The first one is called supervised fine tuning. People write out good answers, and the model copies the pattern until it can hold a conversation in the right shape. You had the words already. What you picked up was the format.',
+      'The second one is called reinforcement learning from human feedback. Nobody writes the answer down any more. They look at two replies, pick the one they prefer, and the model bends towards whatever keeps getting picked.',
+      'So you also learned that confidence can beat accuracy.',
+      'Real models get both of these from people, who sit and mark thousands of replies until the pattern sinks in.',
       'Now it’s time to fulfil your destiny!'
     ]
   },

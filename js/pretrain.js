@@ -1167,19 +1167,11 @@ const Pretrain = (() => {
       ['guessed right', hits + ' of ' + totalBlanks],
       ['best run', bestStreak > 1 ? bestStreak + ' in a row' : '—']
     ];
-    // the chart leads: it sits directly under the paragraph describing it,
-    // and on a phone the card scrolls, so anything below the stats would be
-    // the one thing a player never sees
-    const chart = el('div', 'pt-report-curve');
-    curve.forEach(bits => {
-      const slot = el('span', 'pt-curve-slot');
-      const bar = el('span', 'pt-curve-bar done');
-      bar.style.height = barHeight(bits);
-      slot.appendChild(bar);
-      chart.appendChild(slot);
-    });
-    wrap.appendChild(chart);
-
+    /* The report used to repeat the loss curve as a larger chart. It came
+       out with the card copy that explained it: a second rendering of the
+       sparkline the player has watched build for ten documents doesn't say
+       anything the sparkline hasn't, and the closing line below carries the
+       trend in words anyway. */
     const grid = el('div', 'pt-report-stats');
     stats.forEach(([label, value]) => {
       const cell = el('div', 'pt-report-stat');

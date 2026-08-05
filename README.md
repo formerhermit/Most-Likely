@@ -193,10 +193,11 @@ word's counts go up either way.
   purpose: a document opening a new subject is a fact about the corpus, and
   there the player mostly could not have done better, so that verdict blames
   the model rather than them.
-- **The act closes on a training report** in the phase card: the curve at a
-  size that admits it is the point, documents read, words known, blanks
-  guessed right, best run, and the first-to-last line built from the run
-  rather than written down. Everything on it is counted, never estimated.
+- **The act closes on a training report** in the phase card: documents read,
+  words known, blanks guessed right, best run, and the first-to-last line
+  built from the run rather than written down. Everything on it is counted,
+  never estimated. It used to repeat the loss curve as a larger chart; the
+  sparkline the player watched build for ten documents already says it.
 - **Streaks are audible.** The correct-answer blip climbs a semitone per
   consecutive correct answer. Milestone tickets print in the feedback slot
   for the first-ever correct and for 3- and 6-streaks; each finished

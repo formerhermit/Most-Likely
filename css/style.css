@@ -1251,20 +1251,12 @@ button { font-family: inherit; cursor: pointer; }
   letter-spacing: 0.1em; text-transform: uppercase;
   opacity: 0.55;
 }
-/* the same bars as the in-act sparkline, at a size that admits they matter */
-.pt-report-curve {
-  display: flex; align-items: flex-end; justify-content: center;
-  gap: 5px; height: 54px;
-}
-.pt-report-curve .pt-curve-slot { width: 20px; }
 .pt-report-line { font-size: 15px; opacity: 0.75; text-align: center; }
 
 @media (max-width: 620px) {
   .pt-report { gap: 12px; margin-top: 14px; padding-top: 14px; }
   .pt-report-stats { grid-template-columns: repeat(2, 1fr); gap: 12px; }
   .pt-report-stat b { font-size: 19px; }
-  .pt-report-curve { height: 40px; gap: 3px; }
-  .pt-report-curve .pt-curve-slot { width: 15px; }
   .pt-report-line { font-size: 14px; }
 }
 
