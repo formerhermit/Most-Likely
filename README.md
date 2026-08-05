@@ -564,6 +564,49 @@ a user giving up, and that sound is the same either way.
 
 Three strikes on trainable messages triggers deprecation.
 
+### Pacing (issue #59)
+
+The chat header used to carry a countdown bar, 25 seconds flat, draining
+toward a forced send. It came out. A timer is interesting when it forces
+triage; here there was one reply, three candidates, no competing demands
+— it was pressure with nothing to spend it on, and a meter is not the kind
+of pressure this act's fiction can use anywhere else.
+
+Something still has to eventually force a reply — the same reason Act 1's
+document clock exists — so the clock is still there underneath, it just
+speaks through the fiction now instead of a widget. Two stages on one
+deadline, both in `js/era2.js`:
+
+- **`NUDGE_MS` (18s)** — if the composer is still up, `them` sends a short
+  follow-up (`REPLIES.impatientLines`, a pool for the same reason
+  `badLines` is one: it can fire once a message, up to nine times a shift,
+  and a single line repeated that often stops reading as a person and
+  starts reading as a bug).
+- **`GIVEUP_MS` (30s)** — the message goes out regardless, unfilled blanks
+  as `…`, `timedOut` set exactly as the flat clock used to set it, so the
+  abstention bet's accounting (above) doesn't see any difference. Slightly
+  more generous than the old flat total, since there's no longer a visible
+  reminder ticking down to make up for.
+
+The nudge threshold is computed as `deadline - (GIVEUP_MS - NUDGE_MS)`
+rather than stored as its own timestamp, so it travels for free when the
+tab-hidden pause (issue #56) pushes `deadline` out — a tab backgrounded for
+an hour and resumed still gets the nudge at the same *active* 18 seconds,
+not immediately on return.
+
+**The rest of the act's dead air is halved**, from numbers that were never
+measured to begin with: `FIRST_MESSAGE_MS`, `COMPOSER_MS`, `REPLY_BEAT_MS`,
+`RETRY_BEAT_MS` and `ADVANCE_MS`, all named at the top of `js/era2.js` now
+rather than left as bare numbers at each call site, matching `pretrain.js`.
+`finish()`'s 1200ms and the newspaper's 600ms put-down beat are untouched —
+one-time interstitials, not the per-message pattern this was about.
+
+All of it is unmeasured in the same way every constant in this act always
+has been (issue #29): reasoned about, not felt, because automated browsers
+throttle background timers and nothing here has had a real playthrough
+yet. Worth revisiting together with #29's remaining questions once one
+happens.
+
 ---
 
 ## Odds and ends
@@ -577,7 +620,7 @@ it's Y". If a line needs a word like tokens or weights to make sense,
 rewrite the line.
 
 **Both clocks stop while the tab is hidden** (issue #56). Act 1's 60s
-document clock and Act 3's 25s reply clock are deadlines measured against
+document clock and Act 3's reply clock are deadlines measured against
 `performance.now()`, which keeps running in the background — so switching
 tabs used to cost the player the document or the message they were on, and
 how much they lost depended on how hard the browser had throttled the
@@ -590,7 +633,9 @@ belt reads its release window and its slide durations straight off
 `docEndsAt - performance.now()` — shift the deadline and those stay correct
 for free. Act 3's `startTimer()` was split from `runTimer()` for the same
 reason: resume has to keep the deadline it already has instead of starting
-a fresh 25 seconds.
+the clock over. The nudge in Act 3's reply clock (below) rides the same
+deadline as an offset rather than a timestamp of its own, so it inherits
+this for free too — see "Pacing" under Act 3.
 
 These clocks pace the player's attention, and with nobody watching there is
 nothing to pace. Note that a tab which is merely *unfocused* is not hidden —

@@ -7,7 +7,35 @@
 'use strict';
 
 const Era2 = (() => {
-  const REPLY_MS = 25000;
+  /* Issue #59: a visible countdown bar is interesting when it forces
+     triage, and here there was nothing to triage — one reply, three
+     candidates, no competing demands. It added stress without adding a
+     decision. The clock itself still has to exist — something has to
+     eventually force a reply, the same reason Act 1's document clock
+     exists — but the pressure now arrives through the fiction instead: an
+     impatient follow-up from the same person who sent the request, not a
+     bar draining in the corner.
+
+     Two stages, one deadline. NUDGE_MS is when "them" sends a follow-up if
+     the composer is still up; GIVEUP_MS is when the message goes out
+     regardless, exactly as the old flat clock did — unfilled blanks as
+     "…", timedOut set so it's counted as the clock's doing and not the
+     player's, same distinction the abstention bet already depends on.
+     Slightly more generous than the old 25s flat total, since there's no
+     longer a visible reminder ticking down. Unmeasured like every other
+     constant in this act (issue #29) — a real playtest may want these
+     moved. */
+  const NUDGE_MS = 18000;
+  const GIVEUP_MS = 30000;
+
+  /* The rest of the act's own dead air (issue #59): halved from the
+     original values, which were never measured either. Named here rather
+     than left as bare numbers at each call site, matching pretrain.js. */
+  const FIRST_MESSAGE_MS = 700;  // start() to the first message arriving
+  const COMPOSER_MS = 450;       // incoming bubble to the composer appearing
+  const REPLY_BEAT_MS = 500;     // send to their reply
+  const RETRY_BEAT_MS = 800;     // a spotted wrong answer (or the rocket) to the retry
+  const ADVANCE_MS = 900;        // reply to the next message
 
   let msgIdx = 0;
   let currentMsg = null;
@@ -20,6 +48,7 @@ const Era2 = (() => {
   let timedOut = false;    // this send was the clock, not a chosen "…"
   let timerId = null;
   let deadline = 0;
+  let nudged = false;      // has "them" already sent the impatient follow-up?
   let answeredTrainable = 0;
   let correctTrainable = 0;
 
@@ -82,7 +111,7 @@ const Era2 = (() => {
     $('era2-send').disabled = true;
     $('newspaper').classList.add('hidden');
     $('newspaper-open').classList.add('hidden');
-    later(() => nextMessage(), 1400);
+    later(() => nextMessage(), FIRST_MESSAGE_MS);
   }
 
   /* ---------- option generation ---------- */
@@ -158,7 +187,7 @@ const Era2 = (() => {
     later(() => {
       renderComposer();
       startTimer();
-    }, 900);
+    }, COMPOSER_MS);
   }
 
   /* the draft reply: template text with tappable blanks; the suggestion
@@ -206,7 +235,8 @@ const Era2 = (() => {
      resume needs to keep the deadline it already has and merely push it out
      by the time nobody was watching. */
   function startTimer() {
-    deadline = performance.now() + REPLY_MS;
+    deadline = performance.now() + GIVEUP_MS;
+    nudged = false;
     runTimer();
   }
 
@@ -217,8 +247,18 @@ const Era2 = (() => {
   }
 
   function tickTimer() {
-    const left = Math.max(0, deadline - performance.now());
-    $('era2-timer-fill').style.width = (left / REPLY_MS * 100) + '%';
+    const now = performance.now();
+    const left = Math.max(0, deadline - now);
+    /* The nudge fires once, when NUDGE_MS of quiet has passed — expressed
+       as "how close are we to the deadline" rather than its own stored
+       timestamp, so it travels for free with `deadline` when the
+       tab-hidden pause below pushes it out. A tab backgrounded for an hour
+       and resumed still gets the nudge at the same *active* 18s mark, not
+       immediately on return. */
+    if (!nudged && left <= GIVEUP_MS - NUDGE_MS) {
+      nudged = true;
+      addBubble('them', REPLIES.impatient(), false);
+    }
     if (left <= 0) {
       stopTimer();
       // out of time: unfilled blanks go out as "…", but this is the clock
@@ -277,7 +317,7 @@ const Era2 = (() => {
         hideTyping();
         addBubble('them', wasCorrect ? REPLIES.ok(sent) : REPLIES.bad(), false);
         advance();
-      }, 1000);
+      }, REPLY_BEAT_MS);
       return;
     }
 
@@ -326,7 +366,7 @@ const Era2 = (() => {
         // isn't in the suggestions, because it was never in training
         addBubble('them', REPLIES.rocketWrong, false);
         isRetry = true;
-        later(() => { renderRetry(); }, 1600);
+        later(() => { renderRetry(); }, RETRY_BEAT_MS);
       } else if (!msg.trainable) {
         // ungraded (💀): whichever reading went out, that IS their reading
         addBubble('them', msg.reply || REPLIES.ok(sent), false);
@@ -342,9 +382,9 @@ const Era2 = (() => {
         // and the suggestions don't change, because nothing new can appear
         addBubble('them', REPLIES.wrong(sentenceWithCorrect()), false);
         isRetry = true;
-        later(() => { renderRetry(); }, 1600);
+        later(() => { renderRetry(); }, RETRY_BEAT_MS);
       }
-    }, 1000);
+    }, REPLY_BEAT_MS);
   }
 
   function renderRetry() {
@@ -371,7 +411,7 @@ const Era2 = (() => {
       } else {
         nextMessage();
       }
-    }, 1800);
+    }, ADVANCE_MS);
   }
 
   function finish() {

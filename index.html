@@ -143,9 +143,13 @@
   </div>
   <div class="era2-desk">
     <div class="chat-window">
+      <!-- the countdown bar that used to sit here is gone (issue #59): a
+           progress bar was pressure with nothing to triage against. The
+           patience clock is still running underneath — see NUDGE_MS and
+           GIVEUP_MS in era2.js — it just speaks through the fiction now
+           (an impatient "them" bubble) instead of a draining meter. -->
       <div class="chat-head">
         <span>incoming requests</span>
-        <div class="timerbar small"><div id="era2-timer-fill" class="timer-fill"></div></div>
       </div>
       <div id="chat-log"></div>
       <div class="chat-input">

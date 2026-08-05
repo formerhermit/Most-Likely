@@ -611,7 +611,14 @@ const QC_DUNNO = 'I don’t know.';
    times in a shift: it fires both when they answer "…" and when a retry
    misses again. Every line has to work for both, so none of them mentions
    what was actually said — they are the sound of a user giving up, which
-   is the same sound either way. */
+   is the same sound either way.
+
+   `impatient` is a pool for the same reason (issue #59): it can fire once
+   per message, up to nine times in a shift, so one line would repeat fast
+   enough to read as a bug rather than a person. It replaces the countdown
+   bar that used to sit in the chat header — same "something is going to
+   force this along" function, but arriving as the person on the other end
+   getting restless rather than a meter draining in the corner. */
 const REPLIES = {
   ok:    (sentence) => 'Oh nice — “' + sentence + '” Thanks!!',
   wrong: (sentence) => 'No, that’s not what I meant, I wanted “' + sentence + '”.',
@@ -622,5 +629,12 @@ const REPLIES = {
     'Forget it, I’ll look it up myself.',
     'Cool. Very helpful. Thanks.'
   ],
-  bad() { return this.badLines[Math.floor(Math.random() * this.badLines.length)]; }
+  bad() { return this.badLines[Math.floor(Math.random() * this.badLines.length)]; },
+  impatientLines: [
+    'hello??',
+    'you still there?',
+    '??',
+    'any time today lol'
+  ],
+  impatient() { return this.impatientLines[Math.floor(Math.random() * this.impatientLines.length)]; }
 };
