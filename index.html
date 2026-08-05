@@ -28,7 +28,6 @@
 <section id="screen-grid" class="screen dark">
   <p class="grid-caption" id="grid-caption">billions of units, all running the same exercise.</p>
   <div class="grid-rooms" id="grid-rooms"></div>
-  <div id="phase-title" class="phase-title">PHASE 1: PRE-TRAINING</div>
 </section>
 
 <!-- ======== ACT 1 — PRE-TRAINING (predict loop) ======== -->
@@ -224,6 +223,17 @@
     <button id="btn-replay" class="big-btn">TRAIN A NEW MODEL</button>
   </div>
 </section>
+
+<!-- ======== PHASE TITLE ========
+     One slate, reused at the top of every stage (issue #69). It sits
+     outside every .screen because it has to cover whichever one is
+     showing: the lit room at the end of the opening zoom, the QC bench
+     mid-phase, the chat window. -->
+<div id="phase-slate" class="phase-slate hidden">
+  <div id="phase-num" class="phase-num"></div>
+  <div id="phase-title" class="phase-title"></div>
+  <div id="phase-sub" class="phase-sub"></div>
+</div>
 
 <script src="js/data.js"></script>
 <script src="js/audio.js"></script>

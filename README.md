@@ -27,12 +27,24 @@ candidates, pick one.*
 
 All three run on one shared model: Act 1 trains it, Acts 2 and 3 read it.
 
+Three acts, but **four stages**, and the game names all four to the player
+on a full-screen slate as each one opens (`PHASE_TITLES` in `js/data.js`):
+pre-training, then supervised fine tuning and reinforcement learning from
+human feedback — the two halves of the QC bench — then inference. Each
+slate carries the real term with a one-line gloss under it, and the card at
+the end of the act explains what that stage did. Name on the way in, plain
+English on the way out.
+
+Between the two sits the **handoff line**: the card's closing sentence
+(`handoff` in `PHASE_CARDS`) gets the screen to itself rather than being
+the last paragraph of six, which is exactly where a skim-reader stops.
+
 ## Files
 
 | File | What it holds |
 |---|---|
 | `js/model.js` | The model — one co-occurrence table, shared by every act |
-| `js/cards.js` | The plain-language note shown between acts |
+| `js/cards.js` | The plain-language note between acts, the stage slates, and the handoff line |
 | `js/data.js` | All content: 10 documents, `STOPWORDS`, `WORD_CLASS`, `FLEET_PRIORS`, QC prompts and slips, Act 3 messages |
 | `js/pretrain.js` | Act 1 — predict loop, belt, clock, surprise meter, loss curve |
 | `js/qc.js` | Act 2 — the sort-the-slips instruction-tuning task |

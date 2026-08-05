@@ -6,23 +6,7 @@
 (function () {
   const $ = (id) => document.getElementById(id);
 
-  /* typewriter: types text into a node letter by letter; safe to call
-     again on the same node (cancels the previous run) */
-  function typeText(node, text, cps = 34) {
-    if (node.__typeTimer) clearInterval(node.__typeTimer);
-    node.textContent = '';
-    node.classList.add('typing');
-    let i = 0;
-    node.__typeTimer = setInterval(() => {
-      i++;
-      node.textContent = text.slice(0, i);
-      if (i >= text.length) {
-        clearInterval(node.__typeTimer);
-        node.__typeTimer = null;
-        node.classList.remove('typing');
-      }
-    }, Math.round(1000 / cps));
-  }
+  // typeText lives in state.js — the phase slate types too, from cards.js
 
   function begin() {
     resetState();
@@ -42,9 +26,6 @@
     for (let i = 0; i < GRID_ROOMS; i++) grid.appendChild(buildRoom());
     const caption = $('grid-caption');
     caption.classList.remove('gone', 'over-room');
-    const phase = $('phase-title');
-    phase.classList.remove('show');
-    phase.textContent = '';
     showScreen('screen-grid');
     typeText(caption, 'millions of nodes, all running the same exercise.');
     // one room among millions, then zoom into it — near-centre rather than
@@ -80,15 +61,14 @@
     setTimeout(() => {
       caption.classList.add('gone');
     }, 13600);
+    /* The slate now runs the last beat of the opening and starts Act 1 on
+       its way out, instead of the title and the act being two timers that
+       happened to be 3s apart. "The Last Atom" runs 19.7s; the slate lands
+       at 14.4s and hands over around 17.5s, so the crossfade still leaves
+       the track close to its own ending. */
     setTimeout(() => {
-      phase.classList.add('show');
-      typeText(phase, 'PHASE 1: PRE-TRAINING', 22);
+      Cards.phase('pretrain', () => Pretrain.start(afterTraining));
     }, 14400);
-    // "The Last Atom" runs 19.7s and the crossfade out of it starts here,
-    // so it lands close to its own ending
-    setTimeout(() => {
-      Pretrain.start(afterTraining);
-    }, 17400);
   }
 
   /* Act 1 finishes, the player is told what happened, then Act 2 starts. */

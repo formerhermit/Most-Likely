@@ -550,9 +550,41 @@ const MESSAGES = [
               classes: ['thing', 'place', 'creature', 'action', 'quality', 'time', 'state', 'person'] }] }
 ];
 
+/* ---- Phase titles ----
+   A slate at the top of each stage (issue #69). Pre-training had one from
+   the opening cinematic and nothing else did, which made the first stage
+   look like the only one with a name.
+
+   Same jargon-then-plain contract the cards use, split across two moments:
+   the slate gives the real term on the way in, the card explains it on the
+   way out. That is what lets the cards stay short — Act 2's no longer has
+   to spend a sentence each announcing what the two stages are called.
+
+   There are four, not three: the QC bench runs two of them. The sort is
+   supervised fine tuning and the rating rounds are the feedback stage, and
+   they get separate slates because they are separate stages, whatever the
+   continuity of the room around them suggests. */
+const PHASE_TITLES = {
+  pretrain:  { n: 1, name: 'PRE-TRAINING',
+               sub: 'read a great deal, and learn to guess what comes next' },
+  sft:       { n: 2, name: 'SUPERVISED FINE TUNING',
+               sub: 'learn the shape of a good answer' },
+  rlhf:      { n: 3, name: 'REINFORCEMENT LEARNING FROM HUMAN FEEDBACK',
+               sub: 'someone picks the reply they prefer' },
+  inference: { n: 4, name: 'INFERENCE',
+               sub: 'do the job, with nobody correcting you' }
+};
+
 /* ---- Phase cards ----
    A plain note before and after each act. One card sits between each pair
    of acts and does both jobs, which reads better than two in a row.
+
+   `handoff` is the card's last line, lifted out of `body` and given the
+   whole screen after the card is dismissed. It used to be the sixth
+   paragraph of a six-paragraph card, which is exactly where a skim-reader
+   stops — and it is the one line that says what happens next. On its own
+   it cannot be scrolled past, and the card it came off is a paragraph
+   shorter for it.
 
    House style for this copy: short sentences, second person, no em dashes,
    and nothing phrased as "it isn't X, it's Y".
@@ -593,9 +625,9 @@ const PHASE_CARDS = {
          real version anyway. Ten documents, every blank mid-sentence,
          nobody ever asking them anything. */
       'You never answered a question. Every blank sat in the middle of a document, and all you had to do was keep the writing going.',
-      'Ask a model at this stage a question and it does that same thing. It carries on writing, fluently, as if your question were the start of a page it has to finish.',
-      'Now it’s time for someone to check your work.'
-    ]
+      'Ask a model at this stage a question and it does that same thing. It carries on writing, fluently, as if your question were the start of a page it has to finish.'
+    ],
+    handoff: 'Now it’s time for someone to check your work.'
   },
   afterTuning: {
     title: 'That was the checking',
@@ -615,9 +647,9 @@ const PHASE_CARDS = {
       'The first one is called supervised fine tuning. People write out good answers, and the model copies the pattern until it can hold a conversation in the right shape. You had the words already. What you picked up was the format.',
       'The second one is called reinforcement learning from human feedback. Nobody writes the answer down any more. They look at two replies, pick the one they prefer, and the model bends towards whatever keeps getting picked.',
       'So you also learned that confidence can beat accuracy.',
-      'Real models get both of these from people, who sit and mark thousands of replies until the pattern sinks in.',
-      'Now it’s time to fulfil your destiny!'
-    ]
+      'Real models get both of these from people, who sit and mark thousands of replies until the pattern sinks in.'
+    ],
+    handoff: 'Now it’s time to fulfil your destiny!'
   },
   afterWork: {
     title: 'That was the job',

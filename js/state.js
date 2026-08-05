@@ -127,3 +127,23 @@ function shuffle(arr) {
   }
   return a;
 }
+
+/* Typewriter: types text into a node letter by letter, and is safe to call
+   again on the same node (it cancels the previous run). Lives here rather
+   than in main.js because the opening caption and the phase slate both
+   type, and they are in different files. */
+function typeText(node, text, cps = 34) {
+  if (node.__typeTimer) clearInterval(node.__typeTimer);
+  node.textContent = '';
+  node.classList.add('typing');
+  let i = 0;
+  node.__typeTimer = setInterval(() => {
+    i++;
+    node.textContent = text.slice(0, i);
+    if (i >= text.length) {
+      clearInterval(node.__typeTimer);
+      node.__typeTimer = null;
+      node.classList.remove('typing');
+    }
+  }, Math.round(1000 / cps));
+}

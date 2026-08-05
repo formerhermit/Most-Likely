@@ -146,21 +146,60 @@ button { font-family: inherit; cursor: pointer; }
   width: min(980px, 94vw);
   transition: transform 4.6s cubic-bezier(0.55, 0.05, 0.8, 0.9);
 }
-.phase-title {
-  position: absolute;
+/* The phase slate. Carries its own wash rather than sitting transparent
+   over whatever is behind it: it has to be legible on the gold of a lit
+   room, the cream of the QC bench and the near-black of the chat, and a
+   single ink-on-cream treatment is the only one that reads on all three.
+   It also gives each stage a clean edge instead of a dissolve. */
+.phase-slate {
+  position: fixed;
   inset: 0;
+  z-index: 60;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  z-index: 7;
-  font-family: var(--mono);
-  font-size: clamp(22px, 4vw, 36px);
-  letter-spacing: 0.28em;
-  color: var(--ink);
+  gap: 14px;
+  padding: 0 24px;
+  text-align: center;
+  background: rgba(246, 239, 227, 0.97);
   opacity: 0;
-  transition: opacity 1s;
+  pointer-events: none;
+  transition: opacity 0.55s;
 }
-.phase-title.show { opacity: 1; }
+.phase-slate.show { opacity: 1; }
+.phase-num {
+  font-family: var(--mono);
+  font-size: 13px;
+  letter-spacing: 0.34em;
+  color: var(--accent);
+}
+.phase-title {
+  font-family: var(--mono);
+  /* the longest of these is "REINFORCEMENT LEARNING FROM HUMAN FEEDBACK" at
+     41 characters, which will not sit on one line at any readable size on a
+     phone — so the slate wraps it rather than shrinking the type to fit */
+  font-size: clamp(19px, 3.4vw, 34px);
+  letter-spacing: 0.22em;
+  line-height: 1.45;
+  color: var(--ink);
+  max-width: 22ch;
+}
+.phase-sub {
+  font-size: clamp(14px, 2vw, 17px);
+  font-style: italic;
+  opacity: 0.6;
+  max-width: 34ch;
+}
+/* The handoff line: one sentence, on the same slate but in the reading face
+   and without the tracking, so it doesn't read as another stage title. */
+.phase-slate.plain .phase-title {
+  font-family: inherit;
+  font-size: clamp(21px, 3.2vw, 30px);
+  letter-spacing: 0;
+  line-height: 1.4;
+  max-width: 20ch;
+}
 .room {
   /* was a fixed 44x34px box; aspect-ratio derives height from whatever
      width the fluid `1fr` column resolves to instead, so the box keeps

@@ -111,7 +111,9 @@ const Era2 = (() => {
     $('era2-send').disabled = true;
     $('newspaper').classList.add('hidden');
     $('newspaper-open').classList.add('hidden');
-    later(() => nextMessage(), FIRST_MESSAGE_MS);
+    // the slate covers the empty chat while it sets up, and the first
+    // request arrives once it lifts rather than behind it
+    Cards.phase('inference', () => later(() => nextMessage(), FIRST_MESSAGE_MS));
   }
 
   /* ---------- option generation ---------- */

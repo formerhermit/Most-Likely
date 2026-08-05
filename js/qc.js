@@ -29,15 +29,24 @@ const QC = (() => {
     showScreen('screen-qc');
     deck = shuffle(QC_SLIPS);
     correctCount = 0;
-    busy = false;
+    busy = true;          // held until the slate lifts
     rateIdx = 0;
     $('qc-stamps').innerHTML = '';
     $('qc-approved').classList.add('hidden');
     $('qc-rate').classList.add('hidden');
-    $('qc-slip').classList.remove('hidden');
+    $('qc-slip').classList.add('hidden');
     document.querySelector('.qc-fields').classList.remove('hidden');
     updateLights(NEEDED, correctCount);
-    nextSlip();
+    /* The board is dressed behind the slate and the first slip waits for
+       it to lift — otherwise the slip rides its arrival animation while
+       nothing can see it, and the phase opens on a slip already sitting
+       there. `busy` covers the same gap for input: the fields are live
+       under the slate and a tap that lands through it would sort a slip
+       the player has not been shown. */
+    Cards.phase('sft', () => {
+      $('qc-slip').classList.remove('hidden');
+      nextSlip();
+    });
   }
 
   function nextSlip() {
@@ -92,13 +101,21 @@ const QC = (() => {
      marked on, which is the thing Act 3 spends its whole shift charging the
      player for. Same board, same silhouette, same thumbs — the continuity
      matters, because the point is that this is one stage and not two. */
+  /* The second stage gets its own slate (issue #69). The bench, the
+     silhouette and the thumbs carry on unchanged either side of it, so the
+     room still reads as one room — but the sort and the rating rounds are
+     two different stages of training, and the game says so out loud on the
+     card afterwards. A slate is the cheapest way to mark the seam. */
   function startRatings() {
     $('qc-slip').classList.add('hidden');
     document.querySelector('.qc-fields').classList.add('hidden');
-    $('qc-rate').classList.remove('hidden');
-    rateIdx = 0;
-    updateLights(QC_RATINGS.length, 0);
-    renderRating();
+    busy = true;
+    Cards.phase('rlhf', () => {
+      $('qc-rate').classList.remove('hidden');
+      rateIdx = 0;
+      updateLights(QC_RATINGS.length, 0);
+      renderRating();
+    });
   }
 
   function renderRating() {
