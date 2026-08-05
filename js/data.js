@@ -647,21 +647,61 @@ const QC_DUNNO = 'I don’t know.';
    force this along" function, but arriving as the person on the other end
    getting restless rather than a meter draining in the corner. */
 const REPLIES = {
-  ok:    (sentence) => 'Oh nice — “' + sentence + '” Thanks!!',
-  wrong: (sentence) => 'No, that’s not what I meant, I wanted “' + sentence + '”.',
+  /* `ok` is a pool too now — it is the single most-heard line in the act
+     (every correct answer plus the unnoticed hallucination, up to nine
+     times a shift). Every line must echo the sentence in quotes: the echo
+     is what makes the unnoticed hallucination land, so a line that merely
+     says thanks without repeating the reply back is not a valid entry.
+     Each message is a different person, so the register can wander.
+
+     `wrong` fires on every spotted miss; every line must contain the
+     corrected sentence, because the correction is the retry's whole
+     teaching mechanism.
+
+     All pools draw via `pick`, which never returns the line it returned
+     last — same trick as `pickVerdict` in pretrain.js, because a repeat
+     back to back is the only repetition anyone notices. */
+  okLines: [
+    (s) => 'Oh nice — “' + s + '” Thanks!!',
+    (s) => 'ha! “' + s + '” — perfect, going with that',
+    (s) => '“' + s + '” — see, this is why i ask you',
+    (s) => 'ooh yes — “' + s + '” exactly what i needed :)',
+    (s) => '“' + s + '” lol brilliant, thank you',
+    (s) => '“' + s + '” — ok wow, better than what i had'
+  ],
+  wrongLines: [
+    (s) => 'No, that’s not what I meant, I wanted “' + s + '”.',
+    (s) => 'hm, no — “' + s + '”, surely? one more try',
+    (s) => 'what? no. “' + s + '”. come on, you know this'
+  ],
   rocketWrong: 'No… the rocket landed on the moon! It was in all the papers.',
   badLines: [
     'AI is rubbish, don’t know why I bothered.',
     'Never mind. I’ll ask someone else.',
     'Forget it, I’ll look it up myself.',
-    'Cool. Very helpful. Thanks.'
+    'Cool. Very helpful. Thanks.',
+    'wow. the future of technology, everyone.',
+    'my kettle has more to say and it only knows one thing.'
   ],
-  bad() { return this.badLines[Math.floor(Math.random() * this.badLines.length)]; },
   impatientLines: [
     'hello??',
     'you still there?',
     '??',
-    'any time today lol'
+    'any time today lol',
+    'i can see the dots moving',
+    'it’s not a hard question lol'
   ],
-  impatient() { return this.impatientLines[Math.floor(Math.random() * this.impatientLines.length)]; }
+  lastPick: {},
+  pick(key) {
+    const pool = this[key];
+    let i;
+    do { i = Math.floor(Math.random() * pool.length); }
+    while (pool.length > 1 && i === this.lastPick[key]);
+    this.lastPick[key] = i;
+    return pool[i];
+  },
+  ok(sentence)    { return this.pick('okLines')(sentence); },
+  wrong(sentence) { return this.pick('wrongLines')(sentence); },
+  bad()           { return this.pick('badLines'); },
+  impatient()     { return this.pick('impatientLines'); }
 };
