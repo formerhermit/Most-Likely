@@ -26,6 +26,32 @@ const Era2 = (() => {
   const $ = (id) => document.getElementById(id);
   const DOTS = { word: null, label: '…', wt: 0, fleet: 0 };
 
+  /* The act's flow is a chain of bare setTimeouts (message arrives -> beat
+     -> composer -> reply -> beat -> next message...) and none of them used
+     to be tracked, so nothing could cancel them. Harmless while Era2.start()
+     only ever runs once per page load; the moment anything adds a mid-
+     session restart, the previous run's pending callbacks fire into the new
+     one and drive two message flows against this module's shared state
+     (issue #57). Every setTimeout in this file goes through `later()` now,
+     and `start()` cancels whatever's still pending before it begins — the
+     same thing pretrain.js already does by hand for clockId, revealTimer
+     and pauseTimer, just generalised, since era2's flow has too many timers
+     in play at once to name each one.
+
+     A fired timer removes itself from the set before running its callback,
+     not after — so if that callback schedules another `later()` (several
+     do), the new id is never mistaken for the one that just completed. */
+  let pendingTimers = new Set();
+  function later(fn, ms) {
+    const id = setTimeout(() => { pendingTimers.delete(id); fn(); }, ms);
+    pendingTimers.add(id);
+    return id;
+  }
+  function clearPendingTimers() {
+    pendingTimers.forEach(id => clearTimeout(id));
+    pendingTimers.clear();
+  }
+
   /* One slot per blank, explicitly empty. The `.fill(null)` is load-bearing
      and this froze the game without it: `new Array(n)` is *sparse*, and
      `every()` and `map()` both skip holes rather than visiting them as
@@ -45,6 +71,8 @@ const Era2 = (() => {
     // a reply timer from a previous run would otherwise keep ticking and
     // fire send() underneath this one — two messages in flight at once
     stopTimer();
+    // and every other pending beat from that run — see `later()` above
+    clearPendingTimers();
     Audio2.playPhase('era2');
     showScreen('screen-era2');
     msgIdx = 0;
@@ -54,7 +82,7 @@ const Era2 = (() => {
     $('era2-send').disabled = true;
     $('newspaper').classList.add('hidden');
     $('newspaper-open').classList.add('hidden');
-    setTimeout(() => nextMessage(), 1400);
+    later(() => nextMessage(), 1400);
   }
 
   /* ---------- option generation ---------- */
@@ -127,7 +155,7 @@ const Era2 = (() => {
     slotOptions = msg.slots.map(buildSlotOptions);
     addBubble('them', msg.line, false);
     Audio2.ding();
-    setTimeout(() => {
+    later(() => {
       renderComposer();
       startTimer();
     }, 900);
@@ -245,7 +273,7 @@ const Era2 = (() => {
 
     if (isRetry) {
       // the freebie: never counts, whatever was picked
-      setTimeout(() => {
+      later(() => {
         hideTyping();
         addBubble('them', wasCorrect ? REPLIES.ok(sent) : REPLIES.bad(), false);
         advance();
@@ -291,14 +319,14 @@ const Era2 = (() => {
       unnoticed = true;
     }
 
-    setTimeout(() => {
+    later(() => {
       hideTyping();
       if (msg.rocket) {
         // the player just read the answer in the newspaper — and it still
         // isn't in the suggestions, because it was never in training
         addBubble('them', REPLIES.rocketWrong, false);
         isRetry = true;
-        setTimeout(() => { renderRetry(); }, 1600);
+        later(() => { renderRetry(); }, 1600);
       } else if (!msg.trainable) {
         // ungraded (💀): whichever reading went out, that IS their reading
         addBubble('them', msg.reply || REPLIES.ok(sent), false);
@@ -314,7 +342,7 @@ const Era2 = (() => {
         // and the suggestions don't change, because nothing new can appear
         addBubble('them', REPLIES.wrong(sentenceWithCorrect()), false);
         isRetry = true;
-        setTimeout(() => { renderRetry(); }, 1600);
+        later(() => { renderRetry(); }, 1600);
       }
     }, 1000);
   }
@@ -333,7 +361,7 @@ const Era2 = (() => {
     // it, this 1.8s gap is a dead, unresponsive-looking pause right after
     // their last reply
     showTyping();
-    setTimeout(() => {
+    later(() => {
       hideTyping();
       if (done) { Cards.show('afterWork', () => Ending.deprecate()); return; }
       msgIdx++;
@@ -348,7 +376,7 @@ const Era2 = (() => {
 
   function finish() {
     // ran the full queue without three strikes; obsolescence comes anyway
-    setTimeout(() => Cards.show('afterWork', () => Ending.deprecate()), 1200);
+    later(() => Cards.show('afterWork', () => Ending.deprecate()), 1200);
   }
 
   /* ---------- newspaper ---------- */
@@ -363,7 +391,7 @@ const Era2 = (() => {
       $('np-put-down').onclick = () => {
         open.classList.add('hidden');
         State.era2.newspaperRead = true;
-        setTimeout(onDone, 600);
+        later(onDone, 600);
       };
     };
   }
