@@ -117,13 +117,8 @@ const Era2 = (() => {
     Cards.phase('inference', () => later(() => nextMessage(), FIRST_MESSAGE_MS));
   }
 
-  /* The rest of the fleet, shimmering behind the chat (issue #60). Built
-     once and left alone: the animation is CSS, so a restart re-enters a
-     screen that is already dressed and there is no interval to leak.
-
-     `FLEET_ROWS` is a count, not a layout — the columns are fluid, so this
-     just needs to be enough rows to run past the bottom of any viewport
-     the game is played on. */
+  /* The rest of the fleet, behind the chat. Built once; the shimmer is
+     CSS, so there is no interval to clear on restart. */
   const FLEET_COLS = 28;
   const FLEET_MAX = 900;      // ceiling, so a tall window can't run away
 

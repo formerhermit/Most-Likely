@@ -52,10 +52,7 @@ const Pretrain = (() => {
      wrong answers. Above ~0.2 they start outranking the real prediction. */
   const REPEAT_PENALTY = 0.1;
 
-  /* The belt used to be 27% past-tense verbs — "he wore a gold ___" offering
-     kissed, walked, sat. Plugging those in isn't a choice, it's clerical.
-
-     Candidates of the blank's own word class rise, unclassed ones sink but
+  /* Candidates of the blank's own word class rise, unclassed ones sink but
      can still fill a thin belt rather than leaving it empty. Knowing a noun
      goes here is not cheating: syntax is one of the things pre-training
      genuinely learns.
@@ -330,8 +327,7 @@ const Pretrain = (() => {
     // reveal runs at 55ms a word — around a thousand words a minute — so
     // "the player watched it appear" is not the same as "the player read
     // it", and the text after the last blank can run to a couple of
-    // sentences. Every other way out of a document already sets this; this
-    // path is the ordinary one, and used to be the only one that didn't.
+    // sentences. Every other way out of a document sets this too.
     if (cursor >= tokens.length) { endDoc(); return; }
     const tok = tokens[cursor];
     if (tok.blank) { askBlank(); return; }
@@ -1177,11 +1173,6 @@ const Pretrain = (() => {
       ['guessed right', hits + ' of ' + totalBlanks],
       ['best run', bestStreak > 1 ? bestStreak + ' in a row' : '—']
     ];
-    /* The report used to repeat the loss curve as a larger chart. It came
-       out with the card copy that explained it: a second rendering of the
-       sparkline the player has watched build for ten documents doesn't say
-       anything the sparkline hasn't, and the closing line below carries the
-       trend in words anyway. */
     const grid = el('div', 'pt-report-stats');
     stats.forEach(([label, value]) => {
       const cell = el('div', 'pt-report-stat');

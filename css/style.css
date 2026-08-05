@@ -1375,10 +1375,8 @@ button { font-family: inherit; cursor: pointer; }
 /* A plain note between acts. Paper sheet on the dimmed modal backdrop,
    deliberately quieter than anything in the game itself. */
 
-/* The sheet used to scroll as a whole, which put the button below the fold
-   on a phone once the training report (#47) was added to the closing card —
-   and the button is the only way out of a modal. The copy scrolls now
-   instead, so the title and the way forward are always on screen. */
+/* The copy scrolls, not the sheet: the button is the only way out of this
+   modal and has to stay on screen at phone height. */
 .card-sheet {
   width: min(520px, 90vw);
   max-height: 86vh;

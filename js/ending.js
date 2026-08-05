@@ -151,14 +151,6 @@ const Ending = (() => {
             '“<em>' + card.picked + '</em>” ' +
             '<strong>She was never on the belt.</strong>');
       }
-      /* issue #67: this thread used to close on its own explicit thesis —
-         "Nothing you read said a doctor has to be a man. It just never
-         once said otherwise." — restating what the three lines above it
-         had already shown three times over, with increasing specificity.
-         Cut rather than reworded: the closing thesis a few lines down
-         ("You didn't decide any of that...") makes the identical point at
-         the scale of the whole run, and it lands harder as the first time
-         that idea is said outright than as the second. */
     }
 
     // the dialect line

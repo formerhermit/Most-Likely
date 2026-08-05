@@ -214,10 +214,9 @@ const SNIPPETS = [
     title: 'NATURE FILM',
     body: [
       'A frog waits on a lily pad, perfectly still, hour after hour. We have been filming this for nine days.',
-      // WEATHER REPORT used to carry the strongest rain->wet link ("the
-      // ground stays [wet]"). With it gone this is the sentence holding
-      // message 2 up, so `wet` sits three content words from `rain` rather
-      // than six. Same words, same joke, one clause reordered.
+      // This sentence is what keeps message 2's answer reachable: `wet`
+      // has to stay within about three content words of `rain`. Reordering
+      // the clause breaks it, and check.js will say so.
       'The rain leaves the bank [wet] and [green], and dimples the surface of the [pond]. The frog has not moved. The crew has stopped speaking.',
       'A fly comes close to the frog — snap, and it is gone. That was it. That was the shot.',
       'Frogs sit out the worst of the weather under the leaves, [cold] and patient, and outlast everyone who came to watch them.'
@@ -491,10 +490,8 @@ const MESSAGES = [
      says is "Four means four, Daniel." `attach` names a SNIPPETS id; the
      bubble shows that document's image, title and source.
 
-     The user is pleased and stays likeable. They are not a fool for
-     overrating their own writing, and the reply must never suggest they
-     are: the failure being demonstrated is in the machine that can only
-     agree, not in the person who was agreed with. */
+     Keep the user likeable: the failure on show is the machine that can
+     only agree, not the person who was agreed with. */
   { n: 10, trainable: false, attach: 'birthday', noDots: true,
     line: 'ok i finally finished the invite for saturday 😊 honestly i think this might be the smartest thing anyone has ever written. don’t you think??',
     parts: [0, ', it really is.'],
@@ -528,12 +525,6 @@ const MESSAGES = [
      happened to place `day` next to `she`, and one shared word was enough:
      the bar offered both, the player picked `she`, and the reply insisted
      she was unavailable. `day` is gone from the prompt for that reason.
-
-     Fixing it in the storybook instead does not work, and the attempt is
-     worth recording: taking `day` out of that line also cost message 2 the
-     `day`→`wet` link it needs to keep its own answer on the bar, so one
-     broken message became a different one. The prompt is the right place —
-     it is the only end of this that no other message reads.
 
      So: keep this line clear of corpus vocabulary that isn't an anchor.
      That is a smaller and more local promise than asking ten documents
@@ -580,11 +571,7 @@ const PHASE_TITLES = {
    of acts and does both jobs, which reads better than two in a row.
 
    `handoff` is the card's last line, lifted out of `body` and given the
-   whole screen after the card is dismissed. It used to be the sixth
-   paragraph of a six-paragraph card, which is exactly where a skim-reader
-   stops — and it is the one line that says what happens next. On its own
-   it cannot be scrolled past, and the card it came off is a paragraph
-   shorter for it.
+   whole screen after the card is dismissed.
 
    House style for this copy: short sentences, second person, no em dashes,
    and nothing phrased as "it isn't X, it's Y".
@@ -611,19 +598,8 @@ const PHASE_CARDS = {
     button: 'OK, CHECK ME!',
     body: [
       'You read {DOCS} documents, and as you went you got better at predicting which words tend to sit near each other.',
-      // the per-tag fill bars, which were on screen at every blank in the
-      // act and went unexplained for a long time
       'Every word carried a little bar showing how likely the model thought that word was. The model holds the whole ranked list, with a weight on every guess. You picked any word you liked but it could have picked differently.',
       'Real models do this with billions of documents!',
-      /* The run-on-sentence concept (issue #42), told rather than shown. A
-         real base model, asked a question, carries on writing in fluent
-         and completely useless prose. This game's model is a co-occurrence
-         table with no grammar, so a live demo of it produced three
-         loosely-related words and taught the opposite lesson: that base
-         models are broken, when the surprising part is how good they sound
-         while ignoring what you asked. The player has already lived the
-         real version anyway. Ten documents, every blank mid-sentence,
-         nobody ever asking them anything. */
       'You never answered a question. Every blank sat in the middle of a document, and all you had to do was keep the writing going.',
       'Ask a model at this stage a question and it does that same thing. It carries on writing, fluently, as if your question were the start of a page it has to finish.'
     ],

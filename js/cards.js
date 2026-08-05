@@ -48,16 +48,8 @@ const Cards = (() => {
   const SLATE_IN_MS = 550;
   const SLATE_CPS = 55;
   const SLATE_OUT_MS = 550;
-  /* How long the slate stays up once its text has finished typing. It was a
-     flat 1250ms measured against the typed line only, which ignored that a
-     stage slate puts three things on screen — the phase number, the name
-     and the gloss — and gave the longest of them (13 words, on PHASE 3) the
-     same second and a quarter as the shortest (issue #72).
-
-     So it is per word of everything visible, with a floor. 300ms a word is
-     unhurried on purpose: this is the one moment the game names what the
-     player is about to do, and it is cheap to be generous when they can tap
-     straight through it. */
+  /* Hold is per word of everything on the slate — number, name and gloss —
+     not just the line being typed, with a floor. */
   const SLATE_MS_PER_WORD = 300;
   const SLATE_HOLD_MIN_MS = 1800;
 

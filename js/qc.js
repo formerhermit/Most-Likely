@@ -101,11 +101,6 @@ const QC = (() => {
      marked on, which is the thing Act 3 spends its whole shift charging the
      player for. Same board, same silhouette, same thumbs — the continuity
      matters, because the point is that this is one stage and not two. */
-  /* The second stage gets its own slate (issue #69). The bench, the
-     silhouette and the thumbs carry on unchanged either side of it, so the
-     room still reads as one room — but the sort and the rating rounds are
-     two different stages of training, and the game says so out loud on the
-     card afterwards. A slate is the cheapest way to mark the seam. */
   function startRatings() {
     $('qc-slip').classList.add('hidden');
     document.querySelector('.qc-fields').classList.add('hidden');
