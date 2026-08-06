@@ -733,9 +733,8 @@ const REPLIES = {
      corrected sentence, because the correction is the retry's whole
      teaching mechanism.
 
-     All pools draw via `pick`, which never returns the line it returned
-     last — same trick as `pickVerdict` in pretrain.js, because a repeat
-     back to back is the only repetition anyone notices. */
+     All pools draw via `drawFrom` (js/state.js), which never returns the
+     line it returned last. */
   okLines: [
     (s) => 'Oh nice — “' + s + '” Thanks!!',
     (s) => 'ha! “' + s + '” — perfect, going with that',
@@ -766,17 +765,9 @@ const REPLIES = {
     'i can see the dots moving',
     'it’s not a hard question lol'
   ],
-  lastPick: {},
-  pick(key) {
-    const pool = this[key];
-    let i;
-    do { i = Math.floor(Math.random() * pool.length); }
-    while (pool.length > 1 && i === this.lastPick[key]);
-    this.lastPick[key] = i;
-    return pool[i];
-  },
-  ok(sentence)    { return this.pick('okLines')(sentence); },
-  wrong(sentence) { return this.pick('wrongLines')(sentence); },
-  bad()           { return this.pick('badLines'); },
-  impatient()     { return this.pick('impatientLines'); }
+  // drawFrom (js/state.js) never returns the same line twice running
+  ok(sentence)    { return drawFrom(this.okLines)(sentence); },
+  wrong(sentence) { return drawFrom(this.wrongLines)(sentence); },
+  bad()           { return drawFrom(this.badLines); },
+  impatient()     { return drawFrom(this.impatientLines); }
 };

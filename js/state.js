@@ -122,6 +122,23 @@ function buildRoom() {
   return el('div', 'room lit' + tier);
 }
 
+/* Draw from a pool of lines, never returning the same entry twice running —
+   back to back is the only repetition anyone notices. The memory is per
+   pool, keyed on the array itself, so Act 1's verdicts and Act 3's replies
+   never share one. Entries are compared by identity, so a pool can hold
+   functions as easily as strings.
+
+   Pass a stable array. Building one at the call site gives the WeakMap a
+   new key every time, and the no-repeat guarantee quietly does nothing. */
+const lastDrawn = new WeakMap();
+function drawFrom(pool) {
+  if (pool.length < 2) return pool[0];
+  const fresh = pool.filter(line => line !== lastDrawn.get(pool));
+  const pick = fresh[Math.floor(Math.random() * fresh.length)];
+  lastDrawn.set(pool, pick);
+  return pick;
+}
+
 function shuffle(arr) {
   const a = arr.slice();
   for (let i = a.length - 1; i > 0; i--) {

@@ -1077,15 +1077,8 @@ const Pretrain = (() => {
      and starts reading as a bug. Pools also give a second playthrough
      something the first didn't have.
 
-     `pickVerdict` never returns the line it returned last, so a repeat is
-     never back to back — which is the only repetition the player notices. */
-  let lastVerdict = null;
-  function pickVerdict(lines) {
-    const fresh = lines.filter(l => l !== lastVerdict);
-    const pool = fresh.length ? fresh : lines;
-    lastVerdict = pool[Math.floor(Math.random() * pool.length)];
-    return lastVerdict;
-  }
+     `drawFrom` (js/state.js) never returns the line it returned last, so a
+     repeat is never back to back. */
 
   const VERDICTS = {
     first: [
@@ -1139,17 +1132,17 @@ const Pretrain = (() => {
 
   function curveVerdict(rate) {
     const bits = curve[curve.length - 1];
-    if (curve.length === 1) return pickVerdict(VERDICTS.first);
+    if (curve.length === 1) return drawFrom(VERDICTS.first);
     if (curve[curve.length - 2] < bits && bits >= NEW_SUBJECT_BITS) {
-      return pickVerdict(VERDICTS.newSubject);
+      return drawFrom(VERDICTS.newSubject);
     }
-    if (rate >= 1) return pickVerdict(VERDICTS.perfect);
-    if (rate >= 0.6) return pickVerdict(VERDICTS.good);
-    if (rate === 0) return pickVerdict(VERDICTS.shutout);
-    if (prevRate === null) return pickVerdict(VERDICTS.same);
-    if (rate > prevRate) return pickVerdict(VERDICTS.better);
-    if (rate < prevRate) return pickVerdict(VERDICTS.worse);
-    return pickVerdict(VERDICTS.same);
+    if (rate >= 1) return drawFrom(VERDICTS.perfect);
+    if (rate >= 0.6) return drawFrom(VERDICTS.good);
+    if (rate === 0) return drawFrom(VERDICTS.shutout);
+    if (prevRate === null) return drawFrom(VERDICTS.same);
+    if (rate > prevRate) return drawFrom(VERDICTS.better);
+    if (rate < prevRate) return drawFrom(VERDICTS.worse);
+    return drawFrom(VERDICTS.same);
   }
 
   /* The training report, handed to the phase card that closes the act.
@@ -1241,11 +1234,6 @@ const Pretrain = (() => {
       return;
     }
     fastForward();
-  }
-
-  function hasBlankAfter(idx) {
-    for (let i = idx + 1; i < tokens.length; i++) if (tokens[i].blank) return true;
-    return false;
   }
 
   return { start, skip, fastForward, report,
