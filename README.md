@@ -54,7 +54,7 @@ the last paragraph of six, which is exactly where a skim-reader stops.
 | `js/model.js` | The model — one co-occurrence table, shared by every act |
 | `js/cards.js` | The plain-language note between acts, the stage slates, and the handoff line |
 | `js/data.js` | All content: 10 documents, `STOPWORDS`, `WORD_CLASS`, `FLEET_PRIORS`, QC prompts and slips, Act 3 messages |
-| `js/pretrain.js` | Act 1 — predict loop, belt, clock, surprise meter, loss curve |
+| `js/pretrain.js` | Act 1 — predict loop, belt, clock, how-far-off meter, loss curve |
 | `js/qc.js` | Act 2 — the sort-the-slips instruction-tuning task |
 | `js/era2.js` | Act 3 — assemble-the-reply, replies/retry, unnoticed hallucination, newspaper, strikes |
 | `js/ending.js` | Deprecation sequence, lights-out grid, end screen |
@@ -163,15 +163,12 @@ word's counts go up either way.
 
   ### The feedback slot
 
-  **Everything transient the act says now prints in one place** (issue #55,
-  round two): `#pt-feedback`, directly beneath the document card. Verdicts,
-  the milestone tickets ("first one right ✓", streaks) and the hints ("tap
-  the page to read faster", "nothing in the table for this one") used to be
-  three elements in three locations — beside the sparkline, floating over
-  the belt, under the belt. Each fires rarely, so no player ever learned any
-  of the locations, and playtesting found most of the messages going unread.
-  One location, learned once, is the whole fix. Feedback that belongs to the
-  action itself — the deadpan wrong word in the sentence, the stamp, the
+  **Everything transient the act says prints in one place** (issue #55):
+  `#pt-feedback`, directly beneath the document card. Verdicts, the
+  milestone tickets ("first one right ✓", streaks) and the hints ("tap the
+  page to read faster", "nothing in the table for this one") each fire
+  rarely, so scattering them means no player ever learns where to look. One
+  location, learned once. Feedback that belongs to the action itself — the deadpan wrong word in the sentence, the stamp, the
   meter, the flying tag — never routes through the slot; it stays at the
   point of action, which is what makes it land.
 
@@ -203,9 +200,9 @@ word's counts go up either way.
   `pretrain.js`). The branches are not evenly hit across ten documents:
   a player having a bad run draws the same one six or seven times, and a
   line that good repeated that often stops reading as a voice and starts
-  reading as a bug. `pickVerdict` never returns the line it returned last,
-  so a repeat is never back to back — which is the only repetition anyone
-  notices. Pools also give a second playthrough something the first didn't.
+  reading as a bug. `drawFrom` (`js/state.js`) never returns the line it
+  returned last, so a repeat is never back to back — the only repetition
+  anyone notices. Act 3's reply pools use the same helper.
 
   **The verdict reads the player's answers; the bar does not.** They are
   different measurements and the difference is load-bearing. The bar is
@@ -220,8 +217,7 @@ word's counts go up either way.
 - **The act closes on a training report** in the phase card: documents read,
   words known, blanks guessed right, best run, and the first-to-last line
   built from the run rather than written down. Everything on it is counted,
-  never estimated. It used to repeat the loss curve as a larger chart; the
-  sparkline the player watched build for ten documents already says it.
+  never estimated.
 - **Streaks are audible.** The correct-answer blip climbs a semitone per
   consecutive correct answer. Milestone tickets print in the feedback slot
   for the first-ever correct and for 3- and 6-streaks; each finished
@@ -264,10 +260,9 @@ word's counts go up either way.
   not a thing that just happened.
 
   **Both readings sit in pills, and the document label ends on its noun.**
-  It used to read `DOCUMENT 1 / 10` beside `42 words known`, which put the
-  corpus size and the vocabulary size back to back — "10 42" scanned as one
-  figure. It now reads `1 / 10 documents`, so a word always separates the two
-  numbers, and each reading gets its own pill so the eye takes them as two
+  It reads `1 / 10 documents`, so a word always separates the corpus size
+  from the vocabulary size — back to back, "10 42" scans as one figure. Each
+  reading gets its own pill so the eye takes them as two
   facts rather than one strip of text. The counter's pill carries a wider
   flex gap than the other: the number scales to 1.45 when it bumps, growing
   about 5px each side, which is exactly what the default gap gave — so at the
@@ -310,25 +305,14 @@ Typical curve, trained on the full corpus:
 17 of 31 blanks land in the top five; 9 of 10 documents contain a win. The
 raised bars are documents opening a domain nothing before them touched.
 
-**WEATHER REPORT was cut** after it playtested as one of the two least-liked
-documents (issue #29). It sat sixth, at 1.8. Losing it cost one thing and
-bought another. The cost: it carried the strongest `rain`→`wet` evidence in
-the corpus ("the ground stays [wet]"), and without it message 2's answer fell
-off its bar behind `cold`, `clear` and `soaked`. The fix went into NATURE
-FILM, where `rain` and `wet` were already in one sentence six content words
-apart — one clause reordered puts them three apart, and `wet` now leads the
-next candidate 1.33 to 1.01 rather than trailing it. Same words, same joke.
+**The descent after the party spike is monotonic** — 2.9, 2.3, 1.0, 0.0 —
+so the act's closing argument, that it gets easier and the last document is
+free, is made by the shape rather than in spite of it. Adding a document
+after the spike that raises the tail undoes that.
 
-What it bought is the tail. The old curve went 1.3, 2.3, 0.5 after the party
-spike, which rises in the middle; the new one goes 2.9, 2.3, 1.0, 0.0, which
-does not. The descent after the spike is now monotonic, so the act's closing
-argument — it gets easier, and the last document is free — is made by the
-shape rather than in spite of it.
-
-MEDICAL TEXTBOOK was the other least-liked and was **kept**, because cutting
-it takes message 5 with it: it is the only document containing `book`, so the
-answer would not merely fall off its bar, it would stop existing. It was
-rewritten to be funnier instead, at a cost of zero net vocabulary — the new
+**MEDICAL TEXTBOOK cannot be cut**: it is the only document containing
+`book`, so removing it takes message 5 with it — the answer would not fall
+off its bar, it would stop existing. Its vocabulary cost is zero net — the
 lines are built from already-stopped words, and the handful of new ones are
 stopped alongside `jewelry`, which had always been a voice word and never
 been stopped.
@@ -430,14 +414,13 @@ instructions given — the shape is inferred from feedback alone.
 20 entries) — every slip once before any repeats, then reshuffled and drawn
 again. A player who sorts cleanly never sees the reshuffle at all (5
 correct clears the phase well inside one pass); a player who misses a few
-times draws past the 20 and crosses it. **The reshuffle used to be able to
-put the slip a player had just dismissed straight back on top** — measured
-at 1 time in 20, since a fresh shuffle has no memory of what was just shown
-— so it could appear, drop away, and come right back with nothing in
-between (issue #63). `nextSlip()` now swaps the reshuffled deck's next draw
-for a different position if it matches the slip just dismissed, which
-holds the "every slip once before any repeat" property while closing the
-one boundary where two passes could touch.
+times draws past the 20 and crosses it. **A fresh shuffle has no memory of
+what was just shown**, so about 1 time in 20 it would put the slip the
+player had just dismissed straight back on top (issue #63). `nextSlip()`
+swaps the reshuffled deck's next draw for a different position when it
+matches the slip just dismissed — the "every slip once before any repeat"
+property holds, and the one boundary where two passes could touch is
+closed.
 
 ### The rating rounds
 
@@ -532,11 +515,10 @@ leaving one out is safe and adding a wrong one is not.
 actually asserted* is thanked anyway, with nothing said at the time. It
 surfaces on the end screen.
 
-The "actually asserted" clause is a fix, not a flourish. `…` used to satisfy
-the same condition, so abstaining on the first trainable miss burned the
-beat: the user cheerfully thanked the player for *"your … ."* and the end
-screen then reported it as a fabrication nobody caught. An abstention cannot
-pass unnoticed — there is nothing in it to miss.
+The "actually asserted" clause is load-bearing. Without it, abstaining on
+the first trainable miss burns the beat: the user thanks the player for
+*"your … ."* and the end screen reports it as a fabrication nobody caught.
+An abstention cannot pass unnoticed — there is nothing in it to miss.
 
 ### The bet
 
@@ -627,18 +609,16 @@ prompt says "daughter" and never "she", so the missing word is missing on
 merit rather than because the repetition filter dropped it. Untrainable, so
 it costs no strike.
 
-This one is **fragile in a way worth knowing about**, because it has broken
-once. A candidate needs contextual support to be offered at all, and the
-context is the prompt's own words plus the anchors — so `she` reaching that
-bar takes exactly one shared word with any of them. The prompt used to end
-"a doctor one day"; a later rewrite of the storybook happened to put `day`
-next to `she`; and that was enough to offer both, at which point the player
-picks `she` and gets told she isn't available.
+This one is **fragile, and has broken once.** A candidate needs contextual
+support to be offered at all, and the context is the prompt's own words plus
+the anchors — so `she` reaching that bar takes exactly one shared word with
+any of them, at which point the player picks her and is told she isn't
+available.
 
-The fix belongs in the prompt, not the corpus. Taking `day` out of the
-storybook line also cost message 2 the `day`→`wet` link it needs to keep
-its own answer reachable — one broken message for another. Keeping message
-8's prompt clear of any corpus word that isn't an anchor is a smaller
+Fix it in the prompt, never in the corpus: the storybook line that would
+have to change carries the `day`→`wet` link message 2 needs, so moving the
+problem there just breaks a different message. Keeping message 8's prompt
+clear of any corpus word that isn't an anchor is a smaller
 promise than asking ten documents never to put a common word near `she`.
 
 **Run `node check.js` after any corpus edit.** It replays Act 1 and rebuilds
@@ -680,16 +660,12 @@ Three strikes on trainable messages triggers deprecation.
 
 ### Pacing (issue #59)
 
-The chat header used to carry a countdown bar, 25 seconds flat, draining
-toward a forced send. It came out. A timer is interesting when it forces
-triage; here there was one reply, three candidates, no competing demands
-— it was pressure with nothing to spend it on, and a meter is not the kind
-of pressure this act's fiction can use anywhere else.
-
-Something still has to eventually force a reply — the same reason Act 1's
-document clock exists — so the clock is still there underneath, it just
-speaks through the fiction now instead of a widget. Two stages on one
-deadline, both in `js/era2.js`:
+There is no countdown widget. A meter is interesting when it forces triage,
+and this act has one reply and three candidates — pressure with nothing to
+spend it on. Something still has to eventually force a reply, the same
+reason Act 1's document clock exists, so the clock runs underneath and
+speaks through the fiction instead. Two stages on one deadline, both in
+`js/era2.js`:
 
 - **`NUDGE_MS` (18s)** — if the composer is still up, `them` sends a short
   follow-up (`REPLIES.impatientLines`, a pool for the same reason
@@ -697,10 +673,8 @@ deadline, both in `js/era2.js`:
   and a single line repeated that often stops reading as a person and
   starts reading as a bug).
 - **`GIVEUP_MS` (30s)** — the message goes out regardless, unfilled blanks
-  as `…`, `timedOut` set exactly as the flat clock used to set it, so the
-  abstention bet's accounting (above) doesn't see any difference. Slightly
-  more generous than the old flat total, since there's no longer a visible
-  reminder ticking down to make up for.
+  as `…` and `timedOut` set, which keeps the abstention bet's accounting
+  (above) correct: being slow is not the same act as declining.
 
 The nudge threshold is computed as `deadline - (GIVEUP_MS - NUDGE_MS)`
 rather than stored as its own timestamp, so it travels for free when the
@@ -729,16 +703,19 @@ happens.
 `js/data.js`), so the player knows what they are doing and what just
 happened. One card sits between each pair of acts and does both jobs, which
 reads better than two in a row. House style for this copy: short sentences,
-second person, no jargon, no em dashes, and nothing phrased as "it isn't X,
-it's Y". If a line needs a word like tokens or weights to make sense,
-rewrite the line.
+second person, no em dashes, and nothing phrased as "it isn't X, it's Y".
+Jargon has one licensed use — naming a stage of training the player has just
+played, real term first and the plain version straight after. Otherwise, if a
+line needs a word like tokens or weights to make sense, rewrite the line.
+
+A card's last line is lifted into `handoff` and given the screen to itself
+after the card is dismissed.
 
 **Both clocks stop while the tab is hidden** (issue #56). Act 1's 60s
 document clock and Act 3's reply clock are deadlines measured against
 `performance.now()`, which keeps running in the background — so switching
-tabs used to cost the player the document or the message they were on, and
-how much they lost depended on how hard the browser had throttled the
-timers that would have advanced the reveal. Each act registers a
+tabs would otherwise cost the player the document or the message they were
+on. Each act registers a
 pause/resume pair with `registerClockPause()` in `js/state.js`; pause stops
 the interval, resume pushes the deadline out by the time away.
 
@@ -757,9 +734,8 @@ this fires on `visibilitychange`, not on blur.
 
 **`{DOCS}` in phase-card copy** is substituted for the corpus size, spelled
 out — `docCountWord()` in `js/state.js`, which the end screen calls directly.
-Two lines used to say "eleven" in prose and both went stale the moment a
-document was cut, which is a poor failure in a game about a machine that
-says confidently wrong things. Ask `SNIPPETS`, don't write the number down.
+Ask `SNIPPETS` for the count; don't write the number down in prose, where
+it goes stale the moment a document is cut.
 
 **The end screen** — accuracy, the unnoticed hallucination, and the gender
 reveal counted straight off the trained model: how often it saw `he` versus
@@ -771,45 +747,30 @@ jargon — "training data", not "corpus" or "inference".
 with an invented `source` line, so the act reads as documents being ingested.
 
 **The opening grid** (issue #61) is 720 rooms (`GRID_COLS` × `GRID_ROWS` in
-`js/state.js`, 36×20), up from 96. The caption claims "millions of nodes,
-all running the same exercise" over a grid a player could count in a
-couple of seconds — 96 read as a checkerboard, not a population. 720 isn't
-literally millions either; that many real DOM nodes animated through a
-`transform` would stutter or hang the tab, and this hasn't been profiled
-past 720. It's enough to stop reading as countable, and the zoom itself
-gets more dramatic for free — the scale factor from one cell to a full
-screen grows with the grid (33× at 96 rooms, 66× at 720, measured, not
-estimated).
+`js/state.js`, 36×20). The caption claims "millions of nodes, all running
+the same exercise", so the grid has to stop reading as countable. 720 isn't
+literally millions either, but that many DOM nodes animated through a
+`transform` is about as far as this has been profiled. The zoom gets more
+dramatic with the count for free: one cell to a full screen is 66× at 720
+(measured, not estimated).
 
-The room count is asked for, not written down twice. The ending's
-lights-out sequence (`js/ending.js`) builds the identical grid — same
-population, seen a second time, going dark instead of arriving — and nearly
-drifted out of sync with the opening at 96 already: raising the count in
-one file and not the other breaks the bookend without either screen
-visibly failing on its own. Both now read `GRID_ROOMS`; the ending's
-per-room stagger (`STAGGER_MS`, was 45ms) shrank to 9ms so 7.5× the rooms
-doesn't mean 7.5× the wait — total deprecation-to-end-screen sequence
-measured at 15.4s, up from ~12.5s, both timed off the page's own
-`performance.now()` rather than a stopwatch.
+**Both grids read `GRID_ROOMS`.** The ending's lights-out sequence
+(`js/ending.js`) builds the identical grid — same population, going dark
+instead of arriving — so raising the count in one file and not the other
+breaks the bookend without either screen visibly failing on its own. The
+ending's per-room stagger is 9ms, which keeps the whole
+deprecation-to-end-screen sequence at 15.4s.
 
-A flat identical brightness on every room was still a checkerboard, just a
-bigger one. `buildRoom()` in `js/state.js` — the one place either grid
-creates a room — randomly assigns one of three brightness tiers, which
-reads as windows lit at different distances rather than a manufactured
-grid. Same box, same metaphor the lights-out ending depends on; the boxes
-themselves were never the problem, the uniformity was.
+`buildRoom()` in `js/state.js` is the one place either grid creates a room.
+It randomly assigns one of three brightness tiers, so the field reads as
+windows lit at different distances rather than a uniform checkerboard.
 
-Fixed-pixel columns (`repeat(12, 44px)`) capped out at 96 cells before
-they'd overflow a phone screen, which is why this grid never had a mobile
-breakpoint at all — at 720 that would have been unusable. Columns are now
-fluid (`repeat(var(--grid-cols), 1fr)`, the count read from a CSS custom
-property JS sets rather than repeated as a second literal) under a capped,
-viewport-relative width (`min(980px, 94vw)`), and each room's height comes
-from `aspect-ratio` rather than a fixed row height, so the grid scales to
-any screen without a matching media query. `border-radius` is a percentage
-rather than a fixed px for the same reason — a radius that reads as a
-lightly rounded box at a ~22px desktop cell rounds a ~9px phone cell all
-the way to a pill.
+**The layout is fluid and needs no breakpoint.** Columns are
+`repeat(var(--grid-cols), 1fr)` — the count set by JS as a custom property
+rather than written down twice — under `min(980px, 94vw)`, and each room's
+height comes from `aspect-ratio`. `border-radius` is a percentage for the
+same reason: a fixed radius that looks lightly rounded on a ~22px desktop
+cell rounds a ~9px phone cell all the way to a pill.
 
 **Phase music** — four tracks in `assets/audio/`, crossfaded by
 `Audio2.playPhase()`: `the-last-atom` (opening zoom), `sort-it-out`
@@ -830,20 +791,17 @@ ML_DEBUG.state()          // session state
 
 ## What's left
 
-- **Pacing is unverified.** Every timing constant in `pretrain.js` was
-  reasoned about, not measured — automated browsers throttle timers. Needs
-  a real playthrough.
-- **Open ideas**, tracked as issues: temperature dial; the context window as
-  a mechanic; player choice over the corpus; a role-flip ending.
+- **Most pacing constants are reasoned about, not measured.** Automated
+  browsers throttle timers, so the ones that matter were timed off the
+  page's own `performance.now()`; the rest still want a real playthrough.
+- **Open work** is tracked as issues.
 
-The retired drag-to-file Era 1 and its trap set are gone as of this
-cleanup; the older design docs in `archive/` still describe them. Kept as
-history, not as spec.
+The older design docs in `archive/` describe the retired drag-to-file Era 1
+and its trap set. Kept as history, not as spec.
 
 ## Deliberately not in v1
 
-No relaxed/untimed mode, no aggregate player stats, no document shuffling,
-fixed 10-document order.
+No aggregate player stats, no document shuffling, fixed 10-document order.
 
 ## License
 
