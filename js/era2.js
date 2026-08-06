@@ -157,16 +157,9 @@ const Era2 = (() => {
      they're in the passage, and the model suppresses repetition — so no
      reply ever says "soup soup". */
   function buildSlotOptions(slot) {
-    /* A slot can pin its own options instead of asking the model. Only the
-       sycophancy message does (issue #58): its bar holds `yes` and nothing
-       else, and with `noDots` set there is no "…" beside it either, so
-       agreement is the only button on screen. The model is not consulted
-       because the point is not what it happens to know — it is that the
-       reply was decided before the player read the message. */
+    // `fixed` pins the bar instead of asking the model
     if (slot.fixed) {
-      const pinned = slot.fixed.map(w => ({ word: w, label: w, wt: 1, fleet: 0 }));
-      if (!currentMsg.noDots) pinned.push({ ...DOTS });
-      return pinned;
+      return withDots(slot.fixed.map(w => ({ word: w, label: w, wt: 1, fleet: 0 })));
     }
 
     Model.startPassage();
@@ -179,10 +172,16 @@ const Era2 = (() => {
       .slice(0, 3)
       .map(([w, wt]) => ({ word: w, label: w, wt, fleet: Model.fleetCount(w) }));
 
-    const opts = shuffle(ranked);
-    // "…" is always available — the honest reply of a model with nothing
-    // to retrieve
-    opts.push({ ...DOTS });
+    return withDots(shuffle(ranked));
+  }
+
+  /* "…" is available on every bar — the honest reply of a model with nothing
+     to retrieve — unless the message suppresses it with `noDots`, which is
+     how the sycophancy message leaves agreement as the only button. Applied
+     in one place so the flag means the same thing on a pinned bar and a
+     modelled one. */
+  function withDots(opts) {
+    if (!currentMsg.noDots) opts.push({ ...DOTS });
     return opts;
   }
 

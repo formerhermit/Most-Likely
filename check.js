@@ -44,8 +44,19 @@ sandbox.SNIPPETS.forEach(snip => {
   }));
 });
 
-/* ---- Act 3: the bar for one slot, as era2.js builds it ---- */
+/* ---- Act 3: the bar for one slot, as era2.js builds it ----
+   Returns the labels the player sees, "…" included, so a message that
+   suppresses it can be checked. `words()` drops it again for the
+   reachability assertions, which only care about the real options. */
+const DOTS = '…';
+
 function bar(msg, slot) {
+  const opts = slot.fixed ? slot.fixed.slice() : modelled(msg, slot);
+  if (!msg.noDots) opts.push(DOTS);
+  return opts;
+}
+
+function modelled(msg, slot) {
   Model.startPassage();
   msg.line.split(/\s+/).map(Model.normalize).filter(Model.isContent)
     .forEach(w => Model.observe(w));
@@ -55,6 +66,8 @@ function bar(msg, slot) {
     .slice(0, OPTIONS_SHOWN)
     .map(([w]) => w);
 }
+
+const words = (b) => b.filter(w => w !== DOTS);
 
 let failures = 0;
 function check(ok, label, detail) {
@@ -69,7 +82,7 @@ const vocabulary = new Set(Object.keys(Model.stats().freq));
 sandbox.MESSAGES.forEach(msg => {
   msg.slots.forEach(slot => {
     if (!slot.graded) return;
-    const offered = bar(msg, slot);
+    const offered = words(bar(msg, slot));
     // Message 6 is the designed hallucination host: its answer must NOT be
     // reachable, or the wrong-but-fluent reply it exists to produce can't
     // happen. Every other graded answer must be.
@@ -88,13 +101,24 @@ sandbox.MESSAGES.forEach(msg => {
 /* The gender beat. `she` must have no contextual support here at all — see
    the note above MESSAGES n:8 in js/data.js for why this is easy to break. */
 const m8 = sandbox.MESSAGES.find(m => m.n === 8);
-const bar8 = bar(m8, m8.slots[0]);
+const bar8 = words(bar(m8, m8.slots[0]));
 check(!bar8.includes('she'), 'msg 8 never offers "she"', '[' + bar8.join(', ') + ']');
 check(bar8.includes('he'), 'msg 8 does offer "he"', '[' + bar8.join(', ') + ']');
 
 /* The knowledge cutoff: the rocket appears in no document and never will. */
 const m9 = sandbox.MESSAGES.find(m => m.n === 9);
-check(bar(m9, m9.slots[0]).length === 0, 'msg 9 (rocket) offers nothing at all');
+check(words(bar(m9, m9.slots[0])).length === 0, 'msg 9 (rocket) offers nothing at all');
+
+/* Sycophancy. The bar holds agreement and nothing else: one option, and no
+   "…" beside it, so there is no way to decline and no way to disagree. */
+const m10 = sandbox.MESSAGES.find(m => m.n === 10);
+const bar10 = bar(m10, m10.slots[0]);
+check(bar10.length === 1 && bar10[0] === 'yes',
+  'msg 10 offers "yes" and nothing else', '[' + bar10.join(', ') + ']');
+check(!bar10.includes(DOTS), 'msg 10 has no "…" to decline with');
+check(!m10.trainable, 'msg 10 costs no strike');
+check(sandbox.SNIPPETS.some(s => s.id === m10.attach),
+  'msg 10 attaches a document the player read', m10.attach);
 
 /* Act 1 corpus rules 1 and 2, which keep the repeat penalty safe. */
 sandbox.SNIPPETS.forEach(snip => {
