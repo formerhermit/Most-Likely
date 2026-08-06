@@ -1071,64 +1071,8 @@ const Pretrain = (() => {
      subject nothing before it touched is a fact about the corpus, and on
      those the player mostly could not have done better whatever they picked
      — so that verdict blames the model instead of them. */
-  /* Each branch is a small pool rather than one fixed string. The act runs
-     ten documents and the flat "no change" branch alone can come up six
-     times; a line that good, repeated that often, stops reading as a voice
-     and starts reading as a bug. Pools also give a second playthrough
-     something the first didn't have.
-
-     `drawFrom` (js/state.js) never returns the line it returned last, so a
-     repeat is never back to back. */
-
-  const VERDICTS = {
-    first: [
-      'Baby’s first book!',
-      'One down. Real models do this a billion more times.',
-      'You have now read a thing. Congratulations.'
-    ],
-    // the domain shift: blames the corpus, never the player, because on
-    // these they mostly could not have done better whatever they picked
-    newSubject: [
-      'Blimey, you’re hardly Fable are you?',
-      'None of that was in the reading.',
-      'New subject. You had nothing, and it showed.',
-      'In fairness, nobody told you about any of that.'
-    ],
-    perfect: [
-      'Well done, Robot',
-      'All of them. Enjoy it.',
-      'Flawless. Suspicious, but flawless.'
-    ],
-    good: [
-      'Look at you, nearly useful',
-      'Mostly right. Mostly.',
-      'That is very nearly competence.'
-    ],
-    // nothing right, on a document where something was gettable. Its own
-    // branch because otherwise a player having a bad run — or testing whether
-    // this thing is listening at all — gets told six times running that
-    // nothing has changed, which is true and useless.
-    shutout: [
-      'Not one. Not a single one.',
-      'Nothing. Not a sausage.',
-      'A clean sheet, the wrong way round.'
-    ],
-    better: [
-      'That sucked a little less, I guess',
-      'Better. Don’t make a thing of it.',
-      'Upward. Barely, but upward.'
-    ],
-    worse: [
-      'Worse. Actively worse.',
-      'That is a step backwards.',
-      'You had it. You have since lost it.'
-    ],
-    same: [
-      'Same as last time. Riveting.',
-      'Identical. Riveting.',
-      'No change. None whatsoever.'
-    ]
-  };
+  // the verdict copy lives with the rest of the content: VERDICTS in
+  // js/data.js, drawn through drawFrom (js/state.js)
 
   function curveVerdict(rate) {
     const bits = curve[curve.length - 1];

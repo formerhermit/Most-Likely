@@ -197,7 +197,7 @@ word's counts go up either way.
   exactly the players the change is for.
 
   **Each branch is a pool of three, not one line** (`VERDICTS` in
-  `pretrain.js`). The branches are not evenly hit across ten documents:
+  `js/data.js`). The branches are not evenly hit across ten documents:
   a player having a bad run draws the same one six or seven times, and a
   line that good repeated that often stops reading as a voice and starts
   reading as a bug. `drawFrom` (`js/state.js`) never returns the line it
