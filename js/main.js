@@ -15,23 +15,25 @@
     opening();
   }
 
-  /* The opening, as a timeline rather than five loose timeouts.
+  /* The opening, as one timeline rather than a handful of loose timeouts.
 
-     Each caption gets a calm stretch after it has finished typing and
-     before anything else moves — the typing is slow enough to read along
-     with, so what a line needs is the quiet afterwards. The zoom counts as
-     something else moving: once the room starts rushing in, nobody is
-     reading.
-
-     The last line waits for the zoom to land. It used to start 1.6s into a
-     4.6s zoom and finish before the room arrived, which is why it felt
-     rushed — it was competing with the biggest movement on screen. */
+     Every caption gets a calm stretch after it finishes typing and before
+     anything else moves. The typing is slow enough to read along with, so
+     what a line needs is the quiet afterwards — and the zoom counts as
+     something moving, since nobody reads while the room is rushing in.
+     Nothing may be scheduled to overlap the zoom. */
   const ZOOM_MS = 4600;          // must match .grid-rooms transition in the CSS
-  const T_LINE2 = 4600;          // after line 1 has been typed and sat a beat
-  const T_ZOOM = 8400;           // …and the same again for line 2
-  const T_LINE3 = ZOOM_MS + T_ZOOM + 300;   // 300ms after the room lands
-  const T_CAPTION_OUT = 18300;
-  const T_SLATE = 19100;
+  const LINE3_CPS = 26;          // slower than the others: it is the payoff line
+  const T_LINE1 = 1600;          // the grid sits there first, before anything speaks
+  const T_LINE2 = 6200;          // after line 1 has been typed and sat a beat
+  const T_ZOOM = 10000;          // …and the same again for line 2
+  const T_LINE3 = ZOOM_MS + T_ZOOM + 400;   // once the room has landed
+  const T_CAPTION_OUT = 21600;
+  const T_SLATE = 22400;
+  /* Act 1's music starts on its own mark rather than with the slate: "The
+     Last Atom" runs 19.6s and doesn't loop, so the handover has to happen
+     before the track runs out no matter how the captions above are timed. */
+  const T_MUSIC = 18800;
 
   function opening() {
     Audio2.playPhase('intro');
@@ -43,7 +45,9 @@
     const caption = $('grid-caption');
     caption.classList.remove('gone', 'over-room');
     showScreen('screen-grid');
-    typeText(caption, 'millions of nodes, all running the same exercise.');
+    setTimeout(() => {
+      typeText(caption, 'millions of nodes, all running the same exercise.');
+    }, T_LINE1);
     // one room among millions, then zoom into it — near-centre rather than
     // dead-centre, the same slight offset the old fixed index (41 of 96)
     // happened to land on, computed now instead of hardcoded so it can't
@@ -51,6 +55,7 @@
     const targetIndex = (Math.floor(GRID_ROWS / 2) - 1) * GRID_COLS + (Math.floor(GRID_COLS / 2) - 1);
     const target = grid.children[targetIndex];
     setTimeout(() => {
+      target.classList.remove('dim', 'mid');
       target.classList.add('you');
       typeText(caption, 'one of them is you.');
     }, T_LINE2);
@@ -70,19 +75,16 @@
     // the room has arrived; now it says what the player is (issue #14) —
     // the process, not a sentient machine and not themselves
     setTimeout(() => {
-      typeText(caption, 'you are part of a language model in training. welcome, ' + State.nodeId + '.', 30);
+      typeText(caption, 'you are part of a language model in training. welcome, ' + State.nodeId + '.', LINE3_CPS);
     }, T_LINE3);
     setTimeout(() => {
       caption.classList.add('gone');
     }, T_CAPTION_OUT);
-    /* The slate runs the last beat and starts Act 1 on its way out. The
-       music changes with the slate rather than with the act: "The Last
-       Atom" is 19.6s and doesn't loop, so waiting for Act 1 would leave
-       the slate playing in silence. `playPhase` is a no-op once that track
-       is current, so Pretrain.start()'s own call still covers entering the
-       act any other way. */
+    // `playPhase` is a no-op once that track is current, so
+    // Pretrain.start()'s own call still covers entering the act another way
+    setTimeout(() => Audio2.playPhase('era1'), T_MUSIC);
+    // the slate runs the last beat and starts Act 1 on its way out
     setTimeout(() => {
-      Audio2.playPhase('era1');
       Cards.phase('pretrain', () => Pretrain.start(afterTraining));
     }, T_SLATE);
   }

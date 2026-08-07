@@ -775,11 +775,10 @@ cell rounds a ~9px phone cell all the way to a pill.
 **Phase music** — four tracks in `assets/audio/`, crossfaded by
 `Audio2.playPhase()`: `the-last-atom` (opening zoom), `sort-it-out`
 (Acts 1–2), `best-guess` (Act 3), `thank-you` (ending). The opening track
-doesn't loop: it runs 19.6s, and the crossfade into Act 1's music starts
-with the phase slate at 19.1s, so it hands over just before the track would
-run out. That crossfade fires from `main.js` rather than waiting for
-`Pretrain.start()` — the act itself begins about 5s later, which would
-leave the slate playing in silence.
+doesn't loop: it runs 19.6s, so `main.js` hands over to Act 1's music on
+its own mark (`T_MUSIC`, 18.8s) rather than waiting for `Pretrain.start()`,
+which is several seconds later. Retiming the opening captions means
+checking that mark still lands before the track runs out.
 
 **Debug helpers**, console only:
 
