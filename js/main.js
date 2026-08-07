@@ -23,13 +23,14 @@
      something moving, since nobody reads while the room is rushing in.
      Nothing may be scheduled to overlap the zoom. */
   const ZOOM_MS = 4600;          // must match .grid-rooms transition in the CSS
-  const LINE3_CPS = 26;          // slower than the others: it is the payoff line
-  const T_LINE1 = 1600;          // the grid sits there first, before anything speaks
-  const T_LINE2 = 6200;          // after line 1 has been typed and sat a beat
-  const T_ZOOM = 10000;          // …and the same again for line 2
+  const CAPTION_CPS = 28;        // the opening types slower than typeText's default
+  const LINE3_CPS = 24;          // slower still: it is the payoff line
+  const T_LINE1 = 2000;          // the grid sits there first, before anything speaks
+  const T_LINE2 = 7000;          // after line 1 has been typed and sat a beat
+  const T_ZOOM = 11000;          // …and the same again for line 2
   const T_LINE3 = ZOOM_MS + T_ZOOM + 400;   // once the room has landed
-  const T_CAPTION_OUT = 21600;
-  const T_SLATE = 22400;
+  const T_CAPTION_OUT = 22900;
+  const T_SLATE = 23700;
   /* Act 1's music starts on its own mark rather than with the slate: "The
      Last Atom" runs 19.6s and doesn't loop, so the handover has to happen
      before the track runs out no matter how the captions above are timed. */
@@ -43,10 +44,11 @@
     grid.style.setProperty('--grid-cols', GRID_COLS);
     for (let i = 0; i < GRID_ROOMS; i++) grid.appendChild(buildRoom());
     const caption = $('grid-caption');
+    caption.textContent = '';   // a replay must not open on the last line typed
     caption.classList.remove('gone', 'over-room');
     showScreen('screen-grid');
     setTimeout(() => {
-      typeText(caption, 'millions of nodes, all running the same exercise.');
+      typeText(caption, 'millions of nodes, all running the same exercise.', CAPTION_CPS);
     }, T_LINE1);
     // one room among millions, then zoom into it — near-centre rather than
     // dead-centre, the same slight offset the old fixed index (41 of 96)
@@ -57,7 +59,7 @@
     setTimeout(() => {
       target.classList.remove('dim', 'mid');
       target.classList.add('you');
-      typeText(caption, 'one of them is you.');
+      typeText(caption, 'one of them is you.', CAPTION_CPS);
     }, T_LINE2);
     setTimeout(() => {
       // zoom keeps the target room dead center: scale about the room's
