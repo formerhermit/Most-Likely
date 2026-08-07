@@ -15,9 +15,25 @@
     opening();
   }
 
+  /* The opening, as a timeline rather than five loose timeouts.
+
+     Each caption gets a calm stretch after it has finished typing and
+     before anything else moves — the typing is slow enough to read along
+     with, so what a line needs is the quiet afterwards. The zoom counts as
+     something else moving: once the room starts rushing in, nobody is
+     reading.
+
+     The last line waits for the zoom to land. It used to start 1.6s into a
+     4.6s zoom and finish before the room arrived, which is why it felt
+     rushed — it was competing with the biggest movement on screen. */
+  const ZOOM_MS = 4600;          // must match .grid-rooms transition in the CSS
+  const T_LINE2 = 4600;          // after line 1 has been typed and sat a beat
+  const T_ZOOM = 8400;           // …and the same again for line 2
+  const T_LINE3 = ZOOM_MS + T_ZOOM + 300;   // 300ms after the room lands
+  const T_CAPTION_OUT = 18300;
+  const T_SLATE = 19100;
+
   function opening() {
-    // "The Last Atom" runs 19.7s; the phase change at 17.4s crossfades out
-    // of it, so it lands almost exactly on the end of the track
     Audio2.playPhase('intro');
     const grid = $('grid-rooms');
     grid.innerHTML = '';
@@ -37,7 +53,7 @@
     setTimeout(() => {
       target.classList.add('you');
       typeText(caption, 'one of them is you.');
-    }, 3400);
+    }, T_LINE2);
     setTimeout(() => {
       // zoom keeps the target room dead center: scale about the room's
       // own center, then translate that point to the viewport center
@@ -50,25 +66,25 @@
         'translate(' + (window.innerWidth / 2 - tx) + 'px,' +
         (window.innerHeight / 2 - ty) + 'px) scale(' + scale + ')';
       caption.classList.add('over-room');
-    }, 6600);
-    // mid-zoom: name the mechanism directly — the player is the process,
-    // not a sentient machine and not themselves (issue #14)
+    }, T_ZOOM);
+    // the room has arrived; now it says what the player is (issue #14) —
+    // the process, not a sentient machine and not themselves
     setTimeout(() => {
       typeText(caption, 'you are part of a language model in training. welcome, ' + State.nodeId + '.', 30);
-    }, 8200);
-    // zoom lands with the room filling the screen; the caption is the last
-    // thing left — swap it for the phase card, then start training
+    }, T_LINE3);
     setTimeout(() => {
       caption.classList.add('gone');
-    }, 13600);
-    /* The slate now runs the last beat of the opening and starts Act 1 on
-       its way out, instead of the title and the act being two timers that
-       happened to be 3s apart. "The Last Atom" runs 19.7s; the slate lands
-       at 14.4s and hands over around 17.5s, so the crossfade still leaves
-       the track close to its own ending. */
+    }, T_CAPTION_OUT);
+    /* The slate runs the last beat and starts Act 1 on its way out. The
+       music changes with the slate rather than with the act: "The Last
+       Atom" is 19.6s and doesn't loop, so waiting for Act 1 would leave
+       the slate playing in silence. `playPhase` is a no-op once that track
+       is current, so Pretrain.start()'s own call still covers entering the
+       act any other way. */
     setTimeout(() => {
+      Audio2.playPhase('era1');
       Cards.phase('pretrain', () => Pretrain.start(afterTraining));
-    }, 14400);
+    }, T_SLATE);
   }
 
   /* Act 1 finishes, the player is told what happened, then Act 2 starts. */
