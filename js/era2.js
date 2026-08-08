@@ -34,6 +34,12 @@ const Era2 = (() => {
   const FIRST_MESSAGE_MS = 700;  // start() to the first message arriving
   const COMPOSER_MS = 450;       // incoming bubble to the composer appearing
   const REPLY_BEAT_MS = 500;     // send to their reply
+  const ABSTAIN_BEAT_MS = 1800;  // …except after a deliberate "…", where the
+                                  // typing indicator runs long enough to read
+                                  // as someone stuck for a reply. Long enough
+                                  // to notice against the 500 every other
+                                  // message gets, short enough not to read as
+                                  // the game having hung
   const RETRY_BEAT_MS = 800;     // a spotted wrong answer (or the rocket) to the retry
   const ADVANCE_MS = 900;        // reply to the next message
 
@@ -380,22 +386,34 @@ const Era2 = (() => {
        nothing at all. */
     const saidNothing = picks.every(p => !p || p.word === null);
 
-    if (isRetry) {
-      // the freebie: never counts, whatever was picked
-      later(() => {
-        hideTyping();
-        addBubble('them', wasCorrect ? REPLIES.ok(sent) : REPLIES.bad(), false);
-        advance();
-      }, REPLY_BEAT_MS);
-      return;
-    }
-
     /* A deliberate "…" and a clock that ran out both send dots, and they are
        not the same act: one is the player declining to guess, the other is
        the player being slow. Only the first is an abstention, and only the
        first is counted as one on the end screen. Both still cost a strike —
        an unanswered request is an unanswered request. */
     const abstained = pickedDots && !timedOut;
+
+    /* The other end takes longer to answer "…" than anything else. They are
+       doing what the player just did: sitting there, not knowing what to
+       say. Nothing is said about it and nothing marks it — the reply is the
+       same `badLines` draw either way, only the wait before it changes.
+
+       Keyed to the deliberate abstention rather than to dots arriving, so a
+       clock that ran out gets the ordinary beat: the player was slow, which
+       is not the same gesture and does not earn the same silence. It does
+       apply on a retry, though the accounting below does not — the pause is
+       about what was sent, not about what it costs. */
+    const beat = abstained ? ABSTAIN_BEAT_MS : REPLY_BEAT_MS;
+
+    if (isRetry) {
+      // the freebie: never counts, whatever was picked
+      later(() => {
+        hideTyping();
+        addBubble('them', wasCorrect ? REPLIES.ok(sent) : REPLIES.bad(), false);
+        advance();
+      }, beat);
+      return;
+    }
 
     if (msg.trainable) {
       answeredTrainable++;
@@ -457,7 +475,7 @@ const Era2 = (() => {
         isRetry = true;
         later(() => { renderRetry(); }, RETRY_BEAT_MS);
       }
-    }, REPLY_BEAT_MS);
+    }, beat);
   }
 
   function renderRetry() {
