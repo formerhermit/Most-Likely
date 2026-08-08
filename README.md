@@ -299,13 +299,13 @@ word's counts go up either way.
 Typical curve, trained on the full corpus:
 
 ```
-3.5  4.7  3.5  1.5  4.7  7.0  2.9  2.3  1.0  0.0
+3.5  3.5  2.3  4.7  4.7  7.0  3.6  2.3  1.1  0.0
 ```
 
 17 of 31 blanks land in the top five; 9 of 10 documents contain a win. The
 raised bars are documents opening a domain nothing before them touched.
 
-**The descent after the party spike is monotonic** — 2.9, 2.3, 1.0, 0.0 —
+**The descent after the party spike is monotonic** — 3.6, 2.3, 1.1, 0.0 —
 so the act's closing argument, that it gets easier and the last document is
 free, is made by the shape rather than in spite of it. Adding a document
 after the spike that raises the tail undoes that.
@@ -320,11 +320,10 @@ been stopped.
 **Every document but one now contains a win** (issue #35). Playtesting found
 a shutout reads as frustration rather than as instruction — the player is not
 told the model is ignorant, they just get nothing right twice running and
-stop enjoying it. FLIGHT MANUAL and MEDICAL TEXTBOOK each gained a blank on
-the one word in their own text the model can already reach, `sky` and
-`hospital`, both arriving through fleet piles. No prose changed; the brackets
-moved. Their other blanks are still unreachable, so both keep a raised bar —
-4.7 rather than 7.0.
+stop enjoying it. MEDICAL TEXTBOOK and THE DAILY BYTE each carry one blank
+on a word the model can already reach — `hospital` and `park`, both arriving
+through fleet piles. Their other blanks are unreachable, so both keep a
+raised bar at 4.7 rather than 7.0.
 
 PARTY INVITATION stays a true shutout, and is now the single tallest bar in
 the act. Every content word in it is new to the model, so there is no word to
@@ -349,10 +348,20 @@ context rather than by touching the blanks:
 - `morning` had nothing in the chat supporting it, so `sam` now wants a
   coffee first — `coffee`→`morning` is the strongest pair the fleet seeds.
 
-The raised bars — FLIGHT MANUAL, MEDICAL TEXTBOOK, PARTY INVITATION — are
+The raised bars — MEDICAL TEXTBOOK, THE DAILY BYTE, PARTY INVITATION — are
 deliberate and stay that way. Each opens a domain nothing before it touched,
 which is what a loss spike is. Only PARTY INVITATION is a true shutout; the
 other two carry one reachable blank each, per issue #35 above.
+
+**THE DAILY BYTE is a robot newspaper reporting on humans imitating
+machines** (issue #80) — a found document like the rest, describing the
+player's own job back at them without knowing it. Its whole voice is
+stopped, so it adds no vocabulary at all; `park`, `school` and `phone` carry
+the document. Its win is `park`, reachable because a dog sits in front of
+the blank and `dog`→`park` is the strongest pile the fleet seeds for it.
+`school` and `phone` appear in no other document, which is the point: a
+blank shared with a later document adds weight that can outrank that
+document's own answers.
 
 ### Corpus rules
 

@@ -176,26 +176,6 @@ const SNIPPETS = [
     boxes: ['pond', 'fighting', 'plate', 'pig', 'kiss', 'bird', 'rescued', 'wet', 'crown']
   },
   {
-    id: 'aviation',
-    title: 'FLIGHT MANUAL',
-    body: [
-      'The plane is checked before takeoff: the captain walks the wing, looks under each [engine], and nods. That is the check.',
-      'It climbs steadily through grey cloud and levels out above it, the seatbelt sign goes off, and the cart comes out.',
-      // [sky] is the one word in this document the model can already reach,
-      // via the fleet's plane->sky pile. It is blanked so the flight manual
-      // has a win in it: `engine` and `snow` are both genuinely new here, and
-      // a document where nothing can go right reads as frustration rather
-      // than as the domain shift it is meant to demonstrate. The spike
-      // survives — two of its three blanks are still unreachable.
-      'Up here the [sky] is clear and very cold, and the rain sits far below, and a sandwich is twenty dollars.',
-      'From the window the cloud tops look like a field of [snow], white and cold, and free to look at. The toilet is not.'
-    ],
-    image: 'assets/images/aviation.jpg',
-    source: 'SkySaver Airways, safety card and onboard menu',
-    belt: ['plane', 'cloud', 'captain'],
-    boxes: ['sky', 'rain', 'bird', 'cold', 'house', 'morning', 'engine', 'wet', 'gift']
-  },
-  {
     id: 'menu',
     title: 'MENU',
     body: [
@@ -245,6 +225,22 @@ const SNIPPETS = [
     source: '“Auscultation for Beginners”, 6th edition, unrevised since the 2nd',
     belt: ['steth', 'gradcap', 'heart'],
     boxes: ['hospital', 'morning', 'woman', 'running', 'book', 'sleeping', 'man', 'night', 'school']
+  },
+  {
+    id: 'robots',
+    title: 'THE DAILY BYTE',
+    body: [
+      // [park] is this document's win, reachable from the fleet's dog->park
+      // pile — `dog` sits in front of it for that reason, the same way the
+      // group chat wants a coffee before its `morning` blank. `trees` and
+      // `phone` are both new here, so the spike survives.
+      'Our reporter and a small dog were out in the [park] when it happened, and both of them saw it clearly.',
+      'A human was walking very slowly past the [school], arms held straight out in front, beeping.',
+      'Experts say humans do this to avoid awkward conversations, chores, and decisions. It can go on all day.',
+      'We asked around the office. One of us was flattered. Another said they should leave the [phone] at home and try being themselves.'
+    ],
+    image: 'assets/images/robots.jpg',
+    source: 'The Daily Byte, vol. 101 no. 404 — “all the news, none of the bugs”'
   },
   {
     id: 'birthday',
@@ -362,7 +358,15 @@ const STOPWORDS = new Set(('a an and are as at back be became been before behind
   // has a WORD_CLASS entry, so stopping them deletes nothing the model
   // learns and keeps none of them off an Act 3 bar it could reach.
   // `jewelry` was always a voice word; it just never got stopped.
-  'jewelry lower standards proceed less reassuring sounds').split(/\s+/));
+  'jewelry lower standards proceed less reassuring sounds ' +
+  // THE DAILY BYTE's voice. A robot newspaper baffled by humans imitating
+  // machines needs a reporter, an office and a diagnosis, none of which the
+  // corpus has any use for. All appear in that document alone and none has
+  // a WORD_CLASS entry, so the joke costs the table nothing and its three
+  // blanks — park, school, phone — carry the whole document's weight.
+  'reporter saw clearly human humans walking slowly arms held straight front ' +
+  'beeping experts say avoid awkward conversations chores decisions office ' +
+  'flattered another should leave try being themselves').split(/\s+/));
 
 /* ---- Fleet priors ----
    Boxes don't arrive empty: the rest of the fleet has been running this
