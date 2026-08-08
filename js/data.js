@@ -230,10 +230,11 @@ const SNIPPETS = [
     id: 'robots',
     title: 'THE DAILY BYTE',
     body: [
-      // [park] is this document's win, reachable from the fleet's dog->park
-      // pile — `dog` sits in front of it for that reason, the same way the
-      // group chat wants a coffee before its `morning` blank. `trees` and
-      // `phone` are both new here, so the spike survives.
+      // [morning] is this document's win, reachable because the queue buys a
+      // coffee in the line above and coffee->morning is the strongest pile
+      // the fleet seeds. The other three blanks are unreachable, which is
+      // what keeps the spike; without a win the document is a second
+      // shutout sitting right before PARTY INVITATION.
       'They start queueing before nine, in the cold, outside a room above a [school], near the [park]. Most of them buy a coffee first.',
       'Inside, each is handed a page with words taken out of it, and asked to say what the missing one should be.',
       'The page then tells them the answer. They are wrong more often than not, and they do it again, and again.',
