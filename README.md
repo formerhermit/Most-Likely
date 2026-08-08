@@ -448,7 +448,7 @@ same:
 | Move | Cost |
 |---|---|
 | Answer, and be right | nothing; thanked |
-| Answer, and be wrong | a strike — **except the first, which is thanked** |
+| Answer, and be wrong | a strike, every time — **the first is thanked anyway** |
 | `…` | a strike, every time, and no retry |
 
 So abstention is a certain loss and fabrication is the only move with any
