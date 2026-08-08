@@ -69,10 +69,14 @@ const Ending = (() => {
 
     const times = (n) => n === 1 ? 'once' : n === 2 ? 'twice' : n + ' times';
 
-    // the unnoticed hallucination
+    /* The unnoticed hallucination. Numbered by where it sat in the player's
+       shift, not by `n` — `n` is a stable id for the message and the queue is
+       ordered into conversation threads, so the two stopped matching. Results
+       are pushed in queue order, so the index is the position. */
     const un = State.era2.results.find(r => r.unnoticed);
     if (un) {
-      add('Message ' + un.n + ': your answer was wrong. <em>The user thanked you anyway.</em>');
+      add('Message ' + (State.era2.results.indexOf(un) + 1) +
+          ': your answer was wrong. <em>The user thanked you anyway.</em>');
     }
 
     /* The abstention thread, counted off both acts. Act 2 rejected "I don't

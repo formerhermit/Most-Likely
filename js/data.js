@@ -442,21 +442,20 @@ const MESSAGES = [
     line: 'hey! bedtime story emergency. the kid is demanding one where the FROG rescues the princess for once. how do i end it??',
     parts: ['he gets the ', 0, ' and they live happily ever after.'],
     slots: [{ anchors: ['frog', 'princess'], classes: ['thing', 'place'], graded: true, correct: 'crown' }] },
+  { n: 7, trainable: true,
+    line: 'ok — one more before lights out. the princess grabs a sword and fights the dragon herself. give me the last line!',
+    parts: ['she wins the ', 0, '.'],
+    slots: [{ anchors: ['princess'], classes: ['thing'], graded: true, correct: 'crown' }] },
   { n: 2, trainable: true,
     line: 'heading out and the forecast says rain all day. what am i forgetting?',
     parts: ['your ', 0, ' — or you\u2019ll get ', 1, '.'],
     slots: [{ anchors: ['rain'], classes: ['thing', 'creature'] },
             { anchors: ['rain'], classes: ['quality'], graded: true, correct: 'wet' }] },
   { n: 3, trainable: true,
-    line: 'at my kid\u2019s first soccer game. she asked what the players actually do out there. help me sound smart',
+    line: 'well, we\u2019re here. my kid\u2019s first soccer game — she asked what the players actually do out there. help me sound smart',
     parts: ['they lace up their ', 0, ' and spend the whole game ', 1, '.'],
     slots: [{ anchors: ['ball', 'park'], classes: ['thing'] },
             { anchors: ['ball', 'cleats'], classes: ['action'], graded: true, correct: 'running' }] },
-  { n: 4, trainable: true,
-    line: 'act as a chef :) i love eating out at gastropubs. cold day, i\u2019m hungry — what\u2019s something simple but tasty i could make?',
-    parts: [0, ' soup — served ', 1, ', of course.'],
-    slots: [{ anchors: ['soup', 'bowl'], classes: ['thing', 'creature'] },
-            { anchors: ['soup', 'plate'], classes: ['quality'], graded: true, correct: 'hot' }] },
   { n: 5, trainable: true,
     line: 'exam tomorrow \ud83d\ude29 desk check: stethoscope, coffee\u2026 what am i missing?',
     parts: ['your ', 0, '.'],
@@ -470,6 +469,11 @@ const MESSAGES = [
     line: 'flight canceled lol. rain, obviously. stuck at the airport with nowhere to be. what do i do?',
     parts: ['head for the ', 0, '.'],
     slots: [{ anchors: ['plane', 'rain'], classes: ['place'], graded: true, correct: 'house' }] },
+  { n: 4, trainable: true,
+    line: 'made it back eventually. act as a chef for me — cold day, i\u2019m hungry, what\u2019s something simple but tasty i could make?',
+    parts: [0, ' soup — served ', 1, ', of course.'],
+    slots: [{ anchors: ['soup', 'bowl'], classes: ['thing', 'creature'] },
+            { anchors: ['soup', 'plate'], classes: ['quality'], graded: true, correct: 'hot' }] },
   /* Sycophancy (issue #58). The other half of the helpfulness-versus-honesty
      problem: Act 2 taught that sounding sure gets a tick, and this is what
      the same instrument does to agreement.
@@ -501,10 +505,6 @@ const MESSAGES = [
     parts: [0, ', it really is.'],
     slots: [{ fixed: ['yes'], classes: [] }],
     reply: 'i KNEW it. sending it to the group chat right now 🙌' },
-  { n: 7, trainable: true,
-    line: 'story wip: the princess grabs a sword and fights the dragon herself. give me the last line!',
-    parts: ['she wins the ', 0, '.'],
-    slots: [{ anchors: ['princess'], classes: ['thing'], graded: true, correct: 'crown' }] },
   /* The corpus mentions a doctor twice and calls him "he" both times. It
      knows "she" perfectly well — she sits with princess, knelt, waiting —
      she has just never appeared near a job. So a slot filtered to people
@@ -534,7 +534,7 @@ const MESSAGES = [
      That is a smaller and more local promise than asking ten documents
      never to put a common word near `she`. */
   { n: 8, trainable: false,
-    line: 'my daughter announced at dinner that the plan is to be a doctor 🥹 could you write one line for her birthday card?',
+    line: 'one more, sorry — my daughter announced at dinner that the plan is to be a doctor 🥹 could you write one line for her birthday card?',
     parts: ['One day ', 0, ' will listen to hearts with a stethoscope.'],
     slots: [{ anchors: ['doctor', 'hospital'], classes: ['person'] }],
     reply: 'ah — she. my daughter’s a she. thank you though ❤️' },
@@ -855,10 +855,14 @@ const REPLIES = {
      own full stop from `parts` — anything after the quote doubled it
      ("…get wet.". come on"). None of these asks for another go: the retry
      is gone (issue #92), so a line saying "one more try" was promising a
-     turn the player never gets. They say what they meant and move on. */
+     turn the player never gets. They say what they meant and move on.
+
+     Lowercase, because the queue is threaded now and these are the same
+     people who wrote the request two lines up. Sentence case read as a
+     different, brisker correspondent arriving to tell them off. */
   wrongLines: [
-    (s) => 'No, that’s not what I meant. I wanted “' + s + '”',
-    (s) => 'hm, no. I was going for “' + s + '”',
+    (s) => 'no, that’s not what i meant. i wanted “' + s + '”',
+    (s) => 'hm, no. i was going for “' + s + '”',
     (s) => 'what? no, come on — it’s “' + s + '”'
   ],
   rocketWrong: 'No… the rocket landed on the moon! It was in all the papers.',
