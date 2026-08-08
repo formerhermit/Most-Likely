@@ -797,6 +797,28 @@ button { font-family: inherit; cursor: pointer; }
 .np-body { font-size: 15px; line-height: 1.5; margin-bottom: 20px; }
 .np-seq { font-size: 26px; display: inline-block; margin-top: 8px; }
 
+/* A correction notice, set as column filler: left-aligned under a hairline
+   rule, in the paper's own serif. Ruled rather than boxed, so the ad below
+   it keeps the only box on the page. */
+.np-correction {
+  border-top: 1px solid var(--ink);
+  padding-top: 9px;
+  margin-bottom: 18px;
+  font-family: Georgia, serif;
+  font-size: 11px;
+  font-style: italic;
+  line-height: 1.45;
+  text-align: left;
+  opacity: 0.7;
+}
+.np-correction-kicker {
+  font-style: normal;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  font-size: 9px;
+  margin-right: 6px;
+}
+
 /* The trade ad in the corner of the page. Boxed and set in the paper's
    own serif so it reads as bought column inches rather than as the game
    talking to the player — it is funnier if nobody points at it. */
