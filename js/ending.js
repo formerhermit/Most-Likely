@@ -153,6 +153,15 @@ const Ending = (() => {
       }
     }
 
+    /* The size of the thing they just were. The count is the model's own
+       vocabulary — the same number Act 1 shows live as "words known" — so it
+       moves with the corpus and can't go stale. The five-year-old is the one
+       approximation on a screen where everything else is counted, and says
+       "about" so it reads as one. */
+    add('Your whole vocabulary was <strong>' +
+        Object.keys(stats.freq).length + ' words</strong>. ' +
+        'A five-year-old knows about five thousand.');
+
     // the dialect line
     add('<strong>Your training data was mostly US English.</strong> Most language models are too — and they cost more to run in every other language.');
 
