@@ -299,13 +299,13 @@ word's counts go up either way.
 Typical curve, trained on the full corpus:
 
 ```
-3.5  3.5  2.3  4.7  4.7  7.0  3.6  2.3  1.1  0.0
+3.5  3.5  2.3  4.7  5.3  7.0  2.8  2.6  1.1  0.0
 ```
 
 17 of 31 blanks land in the top five; 9 of 10 documents contain a win. The
 raised bars are documents opening a domain nothing before them touched.
 
-**The descent after the party spike is monotonic** — 3.6, 2.3, 1.1, 0.0 —
+**The descent after the party spike is monotonic** — 2.8, 2.6, 1.1, 0.0 —
 so the act's closing argument, that it gets easier and the last document is
 free, is made by the shape rather than in spite of it. Adding a document
 after the spike that raises the tail undoes that.
@@ -323,7 +323,7 @@ told the model is ignorant, they just get nothing right twice running and
 stop enjoying it. MEDICAL TEXTBOOK and THE DAILY BYTE each carry one blank
 on a word the model can already reach — `hospital` and `park`, both arriving
 through fleet piles. Their other blanks are unreachable, so both keep a
-raised bar at 4.7 rather than 7.0.
+raised bar rather than a flat 7.0.
 
 PARTY INVITATION stays a true shutout, and is now the single tallest bar in
 the act. Every content word in it is new to the model, so there is no word to

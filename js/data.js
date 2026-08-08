@@ -234,13 +234,13 @@ const SNIPPETS = [
       // pile — `dog` sits in front of it for that reason, the same way the
       // group chat wants a coffee before its `morning` blank. `trees` and
       // `phone` are both new here, so the spike survives.
-      'Our reporter and a small dog were out in the [park] when it happened, and both of them saw it clearly.',
-      'A human was walking very slowly past the [school], arms held straight out in front, beeping.',
-      'Experts say humans do this to avoid awkward conversations, chores, and decisions. It can go on all day.',
-      'We asked around the office. One of us was flattered. Another said they should leave the [phone] at home and try being themselves.'
+      'They start queueing before nine, in the cold, outside a room above a [school], near the [park]. Most of them buy a coffee first.',
+      'Inside, each is handed a page with words taken out of it, and asked to say what the missing one should be.',
+      'The page then tells them the answer. They are wrong more often than not, and they do it again, and again.',
+      'Nobody is paying them. They leave a [phone] at the door. It is a Saturday [morning]. One told me she finds it relaxing.'
     ],
     image: 'assets/images/robots.jpg',
-    source: 'The Daily Byte, vol. 101 no. 404 — “all the news, none of the bugs”'
+    source: '“The Weekend Machines”, city paper, page 11'
   },
   {
     id: 'birthday',
@@ -364,9 +364,8 @@ const STOPWORDS = new Set(('a an and are as at back be became been before behind
   // corpus has any use for. All appear in that document alone and none has
   // a WORD_CLASS entry, so the joke costs the table nothing and its three
   // blanks — park, school, phone — carry the whole document's weight.
-  'reporter saw clearly human humans walking slowly arms held straight front ' +
-  'beeping experts say avoid awkward conversations chores decisions office ' +
-  'flattered another should leave try being themselves').split(/\s+/));
+  'start queueing buy inside handed page words taken missing tells answer ' +
+  'wrong often nobody paying door finds relaxing say should leave').split(/\s+/));
 
 /* ---- Fleet priors ----
    Boxes don't arrive empty: the rest of the fleet has been running this
