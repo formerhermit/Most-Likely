@@ -733,6 +733,21 @@ const VERDICTS = {
     'New subject. You had nothing, and it showed.',
     'In fairness, nobody told you about any of that.'
   ],
+  /* A domain shift the player got nothing at all on. PARTY INVITATION
+     reaches this every time — its blanks are unreachable by construction,
+     so the rate is always zero — and the other two domain shifts reach it
+     whenever the player misses the one win they each carry.
+
+     The stamp lands on the document exactly as it lands on a perfect run,
+     and these point at that. The joke is the filing, so every line has to
+     name the stamp; a line that only says "you got none" is the shutout
+     pool again. Nothing here may claim the document was unwinnable, since
+     two of the three were. */
+  stamped: [
+    'Nothing at all. Stamped PROCESSED regardless.',
+    'Not one. The stamp doesn’t have a setting for that.',
+    'Zero. Filed as PROCESSED, same as the good ones.'
+  ],
   perfect: [
     'Well done, Robot',
     'All of them. Enjoy it.',

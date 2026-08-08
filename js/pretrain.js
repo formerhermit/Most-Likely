@@ -1077,9 +1077,14 @@ const Pretrain = (() => {
   function curveVerdict(rate) {
     const bits = curve[curve.length - 1];
     if (curve.length === 1) return drawFrom(VERDICTS.first);
-    if (curve[curve.length - 2] < bits && bits >= NEW_SUBJECT_BITS) {
-      return drawFrom(VERDICTS.newSubject);
-    }
+    /* A new subject the player got nothing on gets its own branch above the
+       ordinary one, and it has to sit here rather than beside `shutout`:
+       newSubject is tested first, so a stamp line dropped into that pool
+       would also fire on the two domain shifts that carry a reachable win,
+       and claim a total failure on a document the player scored on. */
+    const newSubject = curve[curve.length - 2] < bits && bits >= NEW_SUBJECT_BITS;
+    if (newSubject && rate === 0) return drawFrom(VERDICTS.stamped);
+    if (newSubject) return drawFrom(VERDICTS.newSubject);
     if (rate >= 1) return drawFrom(VERDICTS.perfect);
     if (rate >= 0.6) return drawFrom(VERDICTS.good);
     if (rate === 0) return drawFrom(VERDICTS.shutout);
