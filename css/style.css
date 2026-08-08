@@ -1395,6 +1395,18 @@ button { font-family: inherit; cursor: pointer; }
 
 /* fleet-sourced suggestions in Act 3, same ×N language as the belt tags */
 .opt-fleet { border-color: rgba(255, 217, 138, 0.45); }
+/* The option's weight, in the same language as Act 1's tags: a track under
+   the word with an accent fill sized to its share of the heaviest candidate.
+   Dark palette, so the track is a light wash rather than an ink one. */
+.opt-track {
+  align-self: stretch;
+  height: 3px;
+  margin-top: 3px;
+  background: rgba(238, 230, 218, 0.16);
+  border-radius: 999px;
+  overflow: hidden;
+}
+.opt-fill { display: block; height: 100%; background: var(--accent); border-radius: 999px; }
 .opt-fleet-count {
   display: block;
   font-family: var(--mono);

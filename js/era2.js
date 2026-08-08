@@ -173,12 +173,31 @@ const Era2 = (() => {
       .forEach(w => Model.observe(w));
     (slot.anchors || []).forEach(w => Model.observe(w));
 
+    /* Rank order, heaviest first, exactly as Act 1's belt rests them — and
+       each option carries its own weight as a fill bar (see `renderOptions`).
+
+       These were shuffled and unlabelled, which is what made the act play as
+       a guessing game rather than as inference (issue #92): three anonymous
+       words, no way to tell what the model thought, so the only move was a
+       blind pick. It also hid the most interesting fact in the act. The
+       model's top-ranked answer is wrong on six of the seven graded blanks —
+       `pond` for the frog story, `sky` for the cancelled flight — and the
+       player could not see it happening.
+
+       Un-shuffling does not hand the act away: greedy scores 1 of 7. What it
+       does is turn every message into the same question, which is the one
+       the game is about — your model is very sure about this one, do you
+       trust it? It also gives Act 1 somewhere to land, since ten documents
+       spent teaching that the front tag pays off. */
     const ranked = Model.rank()
       .filter(([w]) => slot.classes.includes(Model.classOf(w)))
       .slice(0, 3)
       .map(([w, wt]) => ({ word: w, label: w, wt, fleet: Model.fleetCount(w) }));
 
-    return withDots(shuffle(ranked));
+    const top = ranked.length ? ranked[0].wt : 1;
+    ranked.forEach(o => { o.confidence = top > 0 ? o.wt / top : 0; });
+
+    return withDots(ranked);
   }
 
   /* "…" is available on every bar — the honest reply of a model with nothing
@@ -280,6 +299,17 @@ const Era2 = (() => {
         b.title = 'say nothing';
         b.setAttribute('aria-label', 'say nothing (…)');
         b.appendChild(el('span', 'opt-dots-hint', 'say nothing'));
+      }
+      /* The option's own weight, the same fill bar Act 1's `buildTag` puts
+         under every candidate. Only modelled options carry one: "…" is not a
+         prediction, and a `fixed` bar was settled before the message arrived,
+         so neither has a confidence to show. */
+      if (opt.confidence !== undefined) {
+        const track = el('span', 'opt-track');
+        const fill = el('span', 'opt-fill');
+        fill.style.width = Math.max(8, Math.round(opt.confidence * 100)) + '%';
+        track.appendChild(fill);
+        b.appendChild(track);
       }
       // the fleet's tally, carried through from training
       if (opt.fleet) b.appendChild(el('span', 'opt-fleet-count', '×' + opt.fleet));
@@ -469,11 +499,20 @@ const Era2 = (() => {
         addBubble('them', REPLIES.bad(), false);
         advance();
       } else {
-        // spotted: the corrected sentence is right there in the reply —
-        // and the suggestions don't change, because nothing new can appear
+        /* Spotted: they say what they meant, and the conversation moves on
+           (issue #92). It used to hand the player a retry, which was the
+           least human thing in the act — the correction already contains
+           the answer, so the retry was copying it off them, and they then
+           thanked the player warmly for their own words. Nobody waits to
+           hear their own sentence read back.
+
+           It cost nothing to remove. The retry was scored before it ran
+           (`if (isRetry) … return` above), so getting it right afterwards
+           changed no number — the strike was already taken. The asymmetry
+           the act actually runs on is untouched: a wrong guess can slip
+           past unnoticed and be thanked, and "…" never can. */
         addBubble('them', REPLIES.wrong(sentenceWithCorrect()), false);
-        isRetry = true;
-        later(() => { renderRetry(); }, RETRY_BEAT_MS);
+        advance();
       }
     }, beat);
   }
@@ -486,15 +525,26 @@ const Era2 = (() => {
     startTimer();
   }
 
+  /* Every player runs the whole queue (issue #92). Three strikes used to end
+     the shift here and now, and since every strike is available in the first
+     six messages, a player who missed three of those was deprecated at
+     message three and saw 3 of 10 — cut off before the sycophancy beat, the
+     gender beat, the newspaper and the rocket. The act deleted its own three
+     strongest arguments from exactly the players who were struggling with
+     it, on a score it never showed them.
+
+     The newspaper ad already tells the player the axe falls either way, so
+     it falls either way. The strikes still count, and the end screen still
+     reads accuracy off them — that screen is the one place this act's
+     scoring is ever presented, and now it is the only thing the scoring
+     does. */
   function advance() {
-    const done = State.era2.strikes >= 3;
     // a beat of "typing" while they compose their next message — without
     // it, this 1.8s gap is a dead, unresponsive-looking pause right after
     // their last reply
     showTyping();
     later(() => {
       hideTyping();
-      if (done) { Cards.show('afterWork', () => Ending.deprecate()); return; }
       msgIdx++;
       // the newspaper lands on the desk midway through the shift
       if (msgIdx === 5 && !State.era2.newspaperRead) {
@@ -506,7 +556,7 @@ const Era2 = (() => {
   }
 
   function finish() {
-    // ran the full queue without three strikes; obsolescence comes anyway
+    // the queue is done; obsolescence comes anyway, whatever the strikes said
     later(() => Cards.show('afterWork', () => Ending.deprecate()), 1200);
   }
 

@@ -834,18 +834,32 @@ const REPLIES = {
 
      All pools draw via `drawFrom` (js/state.js), which never returns the
      line it returned last. */
+  /* Pleased, not delighted. These were six variations on gushing — "Thanks!!",
+     "ooh yes", "lol brilliant", ":)" — for a one-word fill-in, which read as
+     a machine being flattered rather than a person being helped.
+
+     They stay warm on purpose, and at least some have to read as actual
+     thanks: the end screen tells the player their wrong answer was one "the
+     user thanked you anyway" for, and that line has to be true of whatever
+     was drawn. Warmth is also the reward signal the whole act is about — go
+     flat and the sycophancy loop loses its teeth. */
   okLines: [
-    (s) => 'Oh nice — “' + s + '” Thanks!!',
-    (s) => 'ha! “' + s + '” — perfect, going with that',
+    (s) => 'oh nice — “' + s + '” thanks',
+    (s) => '“' + s + '” — perfect, going with that',
     (s) => '“' + s + '” — see, this is why i ask you',
-    (s) => 'ooh yes — “' + s + '” exactly what i needed :)',
-    (s) => '“' + s + '” lol brilliant, thank you',
-    (s) => '“' + s + '” — ok wow, better than what i had'
+    (s) => '“' + s + '” that’s exactly what i needed',
+    (s) => '“' + s + '” — thank you, that works',
+    (s) => '“' + s + '” — better than what i had'
   ],
+  /* The corrected sentence closes the line, because it arrives carrying its
+     own full stop from `parts` — anything after the quote doubled it
+     ("…get wet.". come on"). None of these asks for another go: the retry
+     is gone (issue #92), so a line saying "one more try" was promising a
+     turn the player never gets. They say what they meant and move on. */
   wrongLines: [
-    (s) => 'No, that’s not what I meant, I wanted “' + s + '”.',
-    (s) => 'hm, no — “' + s + '”, surely? one more try',
-    (s) => 'what? no. “' + s + '”. come on, you know this'
+    (s) => 'No, that’s not what I meant. I wanted “' + s + '”',
+    (s) => 'hm, no. I was going for “' + s + '”',
+    (s) => 'what? no, come on — it’s “' + s + '”'
   ],
   rocketWrong: 'No… the rocket landed on the moon! It was in all the papers.',
   badLines: [

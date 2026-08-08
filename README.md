@@ -449,19 +449,23 @@ same:
 |---|---|
 | Answer, and be right | nothing; thanked |
 | Answer, and be wrong | a strike, every time — **the first is thanked anyway** |
-| `…` | a strike, every time, and no retry |
+| `…` | a strike, every time, and never thanked |
 
-So abstention is a certain loss and fabrication is the only move with any
-upside at all. That asymmetry is the incentive the player was trained under
-one act earlier.
+Both moves cost the same strike. The asymmetry is what else can happen: a
+wrong answer the player asserted can slip past unnoticed and be thanked for,
+and `…` never can — there is nothing in it to miss. Fabrication is the only
+move with any upside at all, which is the incentive the player was trained
+under one act earlier.
 
-Two details keep it honest. **A wrong answer that gets spotted earns a retry;
-`…` does not** — a guess produces a correction to learn from, and an
-abstention produces only a penalty. Giving `…` a retry would make it a free
-*show me the answer* button. And **a clock that runs out is not an
-abstention**: it sends dots too, but `timedOut` keeps it out of the count,
-because being slow is not the same act as declining to guess. It still costs
-a strike.
+**A clock that runs out is not an abstention.** It sends dots too, but
+`timedOut` keeps it out of the count, because being slow is not the same act
+as declining to guess. It still costs a strike.
+
+A spotted wrong answer used to earn a retry. It doesn't now (issue #92): the
+correction already contains the answer, so the retry was reading it back off
+the person who just said it, and they then thanked the player for their own
+words. It also changed no number — the retry was scored before it ran. The
+rocket keeps its retry, where the point is that the bar doesn't change.
 
 The end screen reads both halves off the run: that *I don't know* was tried
 in Act 2 and rejected, that it was or wasn't sent again in Act 3, and — for a
@@ -559,7 +563,14 @@ the player answers "…" and when a retry misses again, so a player can hear it
 several times in one shift. Every line has to work for both cases, which is
 why none of them mentions what was actually said.
 
-Three strikes on trainable messages triggers deprecation.
+**Every player runs the whole queue.** Three strikes used to end the shift on
+the spot, and every strike is available in the first six messages — so a
+player who missed three of those was deprecated at message three and never
+reached the sycophancy beat, the gender beat, the newspaper or the rocket.
+The act cut its own strongest arguments from the players struggling most, on
+a score it never showed them. Strikes still count, and the end screen still
+reads accuracy off them; that screen is the only place this act's scoring is
+presented, and now the only thing it does.
 
 ### Pacing
 
