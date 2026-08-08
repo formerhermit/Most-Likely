@@ -33,6 +33,17 @@ function resetState() {
                  newspaperRead: false, peakAccuracy: 0 };
 }
 
+/* One of the other nodes, for the notices Act 1 prints from the fleet.
+   Same shape as the player's own id and never equal to it: they are
+   interchangeable, which is the point, but two of them cannot be the
+   same one. */
+function fleetNodeId() {
+  let id;
+  do { id = 'NODE-' + String(Math.floor(1e6 + Math.random() * 9e6)); }
+  while (id === State.nodeId);
+  return id;
+}
+
 /* The display word for a named vocabulary id — used when mapping
    FLEET_PRIORS onto the model. */
 function objDisplay(objId) {

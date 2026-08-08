@@ -146,6 +146,9 @@ const Pretrain = (() => {
   let resolving = false;    // a miss beat is playing out; don't re-ask
   let fbKind = null;        // what the feedback slot is showing: verdict|ticket|hint
   let fbTimer = null;       // a ticket's dwell timer
+  let pettyDocs = new Set(); // documents that carry a notice from the fleet
+  let pettyFired = false;   // …and whether this document has already sent it
+  let docBlanksAsked = 0;   // blanks asked so far in this document
 
   const $ = (id) => document.getElementById(id);
   const normalize = Model.normalize;
@@ -176,6 +179,24 @@ const Pretrain = (() => {
     });
   }
 
+  /* ---------- the fleet, being petty ---------- */
+
+  /* Which documents carry a notice from one of the other nodes. Two of
+     them, drawn from the middle of the run: not the first, which is
+     already carrying the fast-forward hint and the first belt's
+     explanation of the bars, and not the last, which the act has arranged
+     to be won and should not be interrupted while it pays off.
+
+     None at all in relaxed mode. Someone else being faster is pressure,
+     and relaxed mode is where the pressure comes out. */
+  const PETTY_COUNT = 2;
+  function pickPettyDocs() {
+    if (State.relaxed) return new Set();
+    const eligible = [];
+    for (let i = 1; i < SNIPPETS.length - 1; i++) eligible.push(i);
+    return new Set(shuffle(eligible).slice(0, PETTY_COUNT));
+  }
+
   /* ---------- flow ---------- */
 
   function start(done) {
@@ -191,6 +212,7 @@ const Pretrain = (() => {
     firstCorrect = false;
     firstBlankAsked = false;
     resolving = false;
+    pettyDocs = pickPettyDocs();
     fbClear();
     // a restart mid-run must not inherit the old run's machinery: the
     // previous document's clock interval would keep ticking against the
@@ -254,6 +276,9 @@ const Pretrain = (() => {
       });
       text.appendChild(p);
     });
+
+    pettyFired = false;
+    docBlanksAsked = 0;
 
     clearBelt();
     $('pt-stamp').classList.remove('hit');
@@ -356,6 +381,21 @@ const Pretrain = (() => {
     awaiting = true;
     askingFirstBlank = !firstBlankAsked;
     firstBlankAsked = true;
+    /* The fleet, mid-document. It hangs off a blank being asked rather than
+       off the reveal, because `fastForward()` clears the pending `readOn`
+       and walks the cursor itself — anything hooked to the reveal is
+       skipped entirely by a player who taps through the text, which is a
+       normal way to play. Both paths end here.
+
+       The second blank, so the player is demonstrably still working on a
+       document another node has already filed. Every document in the corpus
+       has at least two, and no timer of its own means nothing to pause when
+       the tab is hidden and nothing that can outlive the document. */
+    docBlanksAsked++;
+    if (!pettyFired && docBlanksAsked === 2 && pettyDocs.has(docIdx)) {
+      pettyFired = true;
+      fbTicket(drawFrom(FLEET_TICKETS)(fleetNodeId()), Audio2.blip);
+    }
     const want = Model.classOf(tokens[cursor].word);
     pendingList = Model.rank(REPEAT_PENALTY)
       .map(([w, score]) => {
@@ -927,11 +967,14 @@ const Pretrain = (() => {
      next document starts */
   function fbVerdict(text, sub) { fbShow('verdict', text, sub); }
 
-  /* milestones: first-ever correct, streaks. Briefly borrows the slot. */
-  function fbTicket(msg) {
+  /* milestones: first-ever correct, streaks, and the fleet's notices.
+     Briefly borrows the slot. The sound is the caller's — a milestone
+     dings, a fleet notice files, and the two must not be confused: a
+     coworker being faster than you is not an achievement. */
+  function fbTicket(msg, sound) {
     if (fbKind === 'verdict') return;
     fbShow('ticket', msg);
-    Audio2.ding();
+    (sound || Audio2.ding)();
     fbTimer = setTimeout(fbClear, 2200);
   }
 

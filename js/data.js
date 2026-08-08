@@ -784,6 +784,26 @@ const VERDICTS = {
   ]
 };
 
+/* ---- The fleet, being petty ----
+   Notices from the other nodes, printed in Act 1's feedback slot a couple
+   of times a run. The game says the player is one of millions; these are
+   the only place another node is heard from while they work.
+
+   Ambient, and it has to stay ambient: no score, no tally the player can
+   chase, and nothing that reads as a leaderboard. The joke is that someone
+   is doing the identical job slightly faster and nobody anywhere cares
+   about either of them, so a line must never praise the player, never
+   scold them, and never depend on how they are doing.
+
+   Each takes the id of another node and supplies its own figures. */
+const FLEET_TICKETS = [
+  (node) => node + ' finished this document ' + (7 + Math.floor(Math.random() * 20)) + ' seconds ago.',
+  (node) => node + ' is ' + (2 + Math.floor(Math.random() * 4)) + ' documents ahead of you.',
+  (node) => node + ' got that one on its first pass.',
+  (node) => node + ' has not missed a blank all shift.',
+  (node) => node + ' read this one twice. No reason given.'
+];
+
 /* ---- Reply text ----
    ok echoes the assembled sentence back — the echo is what makes the
    unnoticed hallucination land ("frog soup!! making it tonight").
