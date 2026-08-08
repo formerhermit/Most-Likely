@@ -92,7 +92,15 @@ button { font-family: inherit; cursor: pointer; }
      an inline-flex label rides up alongside the button instead. Width hugs
      the content so the clickable area is the label, not the whole row. */
   display: flex;
+  /* The aside is a sibling rather than part of the label's own text so it
+     can wrap to its own line: nested inline, a narrow screen broke the
+     label mid-phrase and left the checkbox stranded at the far left of a
+     full-width row, no longer beside the words it ticks. As a flex item it
+     drops whole, and the checkbox keeps its label. */
+  flex-wrap: wrap;
+  justify-content: center;
   width: fit-content;
+  max-width: 100%;
   margin: 18px auto 0;
   align-items: center;
   gap: 8px;
@@ -102,6 +110,9 @@ button { font-family: inherit; cursor: pointer; }
 }
 .relaxed-toggle input { cursor: pointer; accent-color: var(--accent); }
 .relaxed-toggle:hover { opacity: 0.85; }
+/* quieter than the setting it follows: the label is the thing to read, the
+   aside is the thing to catch */
+.relaxed-aside { font-size: 12px; opacity: 0.7; }
 
 .tiny { margin-top: 26px; font-size: 12px; opacity: 0.5; }
 /* sits under the fine print it follows, quieter than it — a credit, not a
